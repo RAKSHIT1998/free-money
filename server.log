@@ -1,0 +1,72 @@
+Constructor: opportunities array length before seeding: 0
+Seeding sample data...
+Seeded 3 sample opportunities
+Constructor: opportunities array length after seeding: 3
+(node:1956) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1956) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+Failed to connect to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED ::1:27017, connect ECONNREFUSED 127.0.0.1:27017
+    at _handleConnectionErrors (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\connection.js:1169:11)
+    at NativeConnection.openUri (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\connection.js:1100:11)
+    at async startServer (C:\Users\rakshit\Downloads\free money\free-money-1\server.js:66:5) {
+  errorLabelSet: Set(0) {},
+  reason: TopologyDescription {
+    type: 'Unknown',
+    servers: Map(1) { 'localhost:27017' => [ServerDescription] },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: null,
+    maxElectionId: null,
+    maxSetVersion: null,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  },
+  code: undefined,
+  cause: TopologyDescription {
+    type: 'Unknown',
+    servers: Map(1) { 'localhost:27017' => [ServerDescription] },
+    stale: false,
+    compatible: true,
+    heartbeatFrequencyMS: 10000,
+    localThresholdMS: 15,
+    setName: null,
+    maxElectionId: null,
+    maxSetVersion: null,
+    commonWireVersion: 0,
+    logicalSessionTimeoutMinutes: null
+  }
+}
+Continuing without MongoDB (using in-memory storage for opportunities)
+Running initial opportunity sync...
+Starting opportunity sync...
+Fetching from SourceA (mock)
+Fetching from SourceB (mock)
+Fetched 0 opportunities from sources
+Saved 0 opportunities to memory
+getOpportunities: opportunities array length: 3
+getOpportunities: filtered array length (before filtering): 3
+getOpportunities: returning 3 opportunities
+Initial sync completed: 3 opportunities synced
+node:events:487
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::5000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at Server.listen (node:net:2170:7)
+    at app.listen (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\express\lib\application.js:635:24)
+    at startServer (C:\Users\rakshit\Downloads\free money\free-money-1\server.js:95:7)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:2044:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -4091,
+  syscall: 'listen',
+  address: '::',
+  port: 5000
+}
+
+Node.js v24.16.0
