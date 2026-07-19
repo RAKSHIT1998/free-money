@@ -1,0 +1,1 @@
+{"success":true,"message":"Login successful","data":{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJkZW1vLXVzZXItaWQiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzg0NDYwMzUwLCJleHAiOjE3ODQ1NDY3NTB9.zotkPq8DDFdNU5RrCK4sLK-JmPsZefHUBQKAL9yd2i4","user":{"id":"demo-user-id","username":"admin","role":"admin"}}}

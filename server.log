@@ -1,14 +1,16 @@
-Constructor: opportunities array length before seeding: 0
-Seeding sample data...
-Seeded 3 sample opportunities
-Constructor: opportunities array length after seeding: 3
-(node:1956) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(node:16892) [MONGOOSE] Warning: Duplicate schema index on {"url":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
 (Use `node --trace-warnings ...` to show where the warning was created)
-(node:1956) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(node:16892) [MONGODB DRIVER] Warning: useNewUrlParser is a deprecated option: useNewUrlParser has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+(node:16892) [MONGODB DRIVER] Warning: useUnifiedTopology is a deprecated option: useUnifiedTopology has no effect since Node.js Driver version 4.0.0 and will be removed in the next major version
+Error loading agents from database: MongooseError: Operation `agents.find()` buffering timed out after 10000ms
+    at Timeout.<anonymous> (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:187:23)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Warning: Failed to load agents from database: Operation `agents.find()` buffering timed out after 10000ms
 Failed to connect to MongoDB: MongooseServerSelectionError: connect ECONNREFUSED ::1:27017, connect ECONNREFUSED 127.0.0.1:27017
     at _handleConnectionErrors (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\connection.js:1169:11)
     at NativeConnection.openUri (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\connection.js:1100:11)
-    at async startServer (C:\Users\rakshit\Downloads\free money\free-money-1\server.js:66:5) {
+    at async startServer (C:\Users\rakshit\Downloads\free money\free-money-1\server.js:79:5) {
   errorLabelSet: Set(0) {},
   reason: TopologyDescription {
     type: 'Unknown',
@@ -42,31 +44,101 @@ Continuing without MongoDB (using in-memory storage for opportunities)
 Running initial opportunity sync...
 Starting opportunity sync...
 Fetching from SourceA (mock)
+Starting agent management system...
 Fetching from SourceB (mock)
 Fetched 0 opportunities from sources
-Saved 0 opportunities to memory
-getOpportunities: opportunities array length: 3
-getOpportunities: filtered array length (before filtering): 3
-getOpportunities: returning 3 opportunities
-Initial sync completed: 3 opportunities synced
-node:events:487
-      throw er; // Unhandled 'error' event
-      ^
-
-Error: listen EADDRINUSE: address already in use :::5000
-    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
-    at listenInCluster (node:net:2065:12)
-    at Server.listen (node:net:2170:7)
-    at app.listen (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\express\lib\application.js:635:24)
-    at startServer (C:\Users\rakshit\Downloads\free money\free-money-1\server.js:95:7)
-Emitted 'error' event on Server instance at:
-    at emitErrorNT (node:net:2044:8)
-    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
-  code: 'EADDRINUSE',
-  errno: -4091,
-  syscall: 'listen',
-  address: '::',
-  port: 5000
-}
-
-Node.js v24.16.0
+Saved 0 opportunities to database
+getOpportunities: fetching opportunities with filters: {}
+Server is running on port 5000
+Agent 1 (cryptoHunter) started
+[1] [2026-07-19T11:21:01.841Z] Starting cryptocurrency opportunity scan
+Spawned cryptoHunter agent with ID 1
+Error loading agents from database: MongooseError: Operation `agents.find()` buffering timed out after 10000ms
+    at Timeout.<anonymous> (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:187:23)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Warning: Failed to load agents from database: Operation `agents.find()` buffering timed out after 10000ms
+Error fetching opportunities from database: Operation `opportunities.find()` buffering timed out after 10000ms
+Error during initial sync: MongooseError: Operation `opportunities.find()` buffering timed out after 10000ms
+    at Timeout.<anonymous> (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:187:23)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+info
+Error saving agent 1 to database: MongooseError: Operation `agents.findOneAndUpdate()` buffering timed out after 10000ms
+    at Timeout.<anonymous> (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:187:23)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Warning: Failed to save agent 1 to database: Operation `agents.findOneAndUpdate()` buffering timed out after 10000ms
+Agent 2 (opportunityScout) started
+[2] [2026-07-19T11:21:11.857Z] Starting opportunity scout scan
+Spawned opportunityScout agent with ID 2
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:21:12.887Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+info
+Error saving agent 2 to database: MongooseError: Operation `agents.findOneAndUpdate()` buffering timed out after 10000ms
+    at Timeout.<anonymous> (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:187:23)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Warning: Failed to save agent 2 to database: Operation `agents.findOneAndUpdate()` buffering timed out after 10000ms
+Agent 3 (developer) started
+[3] [2026-07-19T11:21:21.868Z] Starting developer agent - seeking development opportunities
+Spawned developer agent with ID 3
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:21:22.889Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:21:22.890Z] Scan completed. Found 2 opportunities, estimated value: $38.420004279353485
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[2] [2026-07-19T11:21:23.376Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[3] [2026-07-19T11:21:23.878Z] Development cycle completed. Found 0 opportunities, estimated value: $0
+info
+Error saving agent 3 to database: MongooseError: Operation `agents.findOneAndUpdate()` buffering timed out after 10000ms
+    at Timeout.<anonymous> (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:187:23)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Warning: Failed to save agent 3 to database: Operation `agents.findOneAndUpdate()` buffering timed out after 10000ms
+Agent 4 (manager) started
+[4] [2026-07-19T11:21:31.872Z] Starting manager agent - monitoring agent performance
+[4] [2026-07-19T11:21:31.872Z] Evaluating 4 agents for survival
+[4] [2026-07-19T11:21:31.873Z] Eliminating underperforming agent: 4 (manager) - Score: 50.00
+Agent 4 (manager) stopped
+[4] [2026-07-19T11:21:31.873Z] Cleaning up manager agent
+Spawned manager agent with ID 4
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[2] [2026-07-19T11:21:33.389Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[2] [2026-07-19T11:21:33.390Z] Scan completed. Found 2 opportunities, estimated value: $53.20653864079458
+Error saving agent 4 to database: MongooseError: Operation `agents.findOneAndUpdate()` buffering timed out after 10000ms
+    at Timeout.<anonymous> (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:187:23)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Warning: Failed to save agent 4 to database: Operation `agents.findOneAndUpdate()` buffering timed out after 10000ms
+Initial agents spawned from configuration
+Error removing agent 4 from database: MongooseError: Operation `agents.deleteOne()` buffering timed out after 10000ms
+    at Timeout.<anonymous> (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:187:23)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Warning: Failed to remove agent 4 from database: Operation `agents.deleteOne()` buffering timed out after 10000ms
+Removed agent with ID 4
+[4] [2026-07-19T11:21:41.898Z] Boosting elite agent: 1 (cryptoHunter) - Score: 50.00
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:21:42.866Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+Error saving agent 1 to database: MongooseError: Operation `agents.findOneAndUpdate()` buffering timed out after 10000ms
+    at Timeout.<anonymous> (C:\Users\rakshit\Downloads\free money\free-money-1\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:187:23)
+    at listOnTimeout (node:internal/timers:605:17)
+    at process.processTimers (node:internal/timers:541:7)
+Warning: Failed to update agent 1 in database: Operation `agents.findOneAndUpdate()` buffering timed out after 10000ms
+[4] [2026-07-19T11:21:51.903Z] Management cycle complete. Evaluated 4 agents.
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:21:52.874Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:21:52.874Z] Scan completed. Found 2 opportunities, estimated value: $117.4801484890801
+info
+[2] [2026-07-19T11:21:58.372Z] Scan completed. Found 0 opportunities, estimated value: $0
+info
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:22:12.879Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:22:22.879Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:22:22.879Z] Scan completed. Found 2 opportunities, estimated value: $93.50921961146064
+info
+[3] [2026-07-19T11:22:23.887Z] Development cycle completed. Found 0 opportunities, estimated value: $0
+[1] [2026-07-19T11:22:32.894Z] Scan completed. Found 0 opportunities, estimated value: $0
+[2] [2026-07-19T11:22:43.369Z] Scan completed. Found 0 opportunities, estimated value: $0
+[1] [2026-07-19T11:23:02.892Z] Scan completed. Found 0 opportunities, estimated value: $0

@@ -1,21 +1,8 @@
-// In-memory opportunity service for development/testing
-let opportunities = [];
-let idCounter = 1;
-
-// Helper to generate a simple ID
-const generateId = () => {
-  return idCounter++;
-};
+// Persistent opportunity service using MongoDB
+const Opportunity = require('../models/Opportunity');
 
 class OpportunityService {
   constructor() {
-    console.log('Constructor: opportunities array length before seeding:', opportunities.length);
-    // Initialize with some sample data if empty
-    if (opportunities.length === 0) {
-      this.seedSampleData();
-    }
-    console.log('Constructor: opportunities array length after seeding:', opportunities.length);
-
     // Bind methods to ensure proper 'this' context
     this.fetchFromSourceA = this.fetchFromSourceA.bind(this);
     this.fetchFromSourceB = this.fetchFromSourceB.bind(this);
@@ -24,59 +11,21 @@ class OpportunityService {
     this.syncOpportunities = this.syncOpportunities.bind(this);
     this.getOpportunities = this.getOpportunities.bind(this);
     this.getOpportunityById = this.getOpportunityById.bind(this);
+    this.addOpportunity = this.addOpportunity.bind(this); // New method for agents to add opportunities
+    this.getOpportunityStats = this.getOpportunityStats.bind(this); // New method for stats
 
     // Define sources after binding
     this.sources = [
       this.fetchFromSourceA,
       this.fetchFromSourceB
     ];
-  }
 
-  seedSampleData() {
-    console.log('Seeding sample data...');
-    const samples = [
-      {
-        title: 'Example Airdrop: FreeToken',
-        description: 'Claim 100 FreeTokens by joining our Telegram and following on Twitter.',
-        url: 'https://example.com/airdrop/freetoken',
-        source: 'ExampleAirdropSite',
-        type: 'airdrop',
-        reward: '100 FreeTokens',
-        deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-        requirements: ['Join Telegram', 'Follow Twitter', 'Retweet announcement'],
-        tags: ['airdrop', 'FreeToken']
-      },
-      {
-        title: 'Gitcoin Grant: OpenSource Project',
-        description: 'Funding for open-source developers working on public goods.',
-        url: 'https://gitcoin.co/grant/123',
-        source: 'Gitcoin',
-        type: 'grant',
-        reward: '$5000 matching fund',
-        deadline: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days from now
-        requirements: ['Open source project', 'Public repository'],
-        tags: ['grant', 'opensource']
-      },
-      {
-        title: 'Freelance Gig: Web3 Developer',
-        description: 'Looking for a Web3 developer to build a smart contract for a DeFi project.',
-        url: 'https://example.com/freelance/web3-dev',
-        source: 'FreelanceSite',
-        type: 'freelance',
-        reward: '$2000 - $5000',
-        requirements: ['Solidity experience', 'Web3.js knowledge'],
-        tags: ['freelance', 'web3', 'solidity']
-      }
-    ];
-
-    samples.forEach(sample => {
-      sample.id = generateId();
-      sample.postedAt = new Date();
-      sample.updatedAt = new Date();
-      sample.status = 'active';
-      opportunities.push(sample);
-    });
-    console.log('Seeded', samples.length, 'sample opportunities');
+    // Track statistics (we can also compute from db, but we'll keep in-memory stats for simplicity)
+    this.stats = {
+      totalOpportunitiesProcessed: 0,
+      opportunitiesByType: {},
+      lastReset: new Date()
+    };
   }
 
   // Example source: AirdropAlert.com (if they have an API or RSS)
@@ -116,28 +65,28 @@ class OpportunityService {
     return uniqueOpportunities;
   }
 
-  // Save fetched opportunities to the in-memory store
+  // Save fetched opportunities to the database
   async saveOpportunities(opportunitiesToSave) {
     const saved = [];
     for (const oppData of opportunitiesToSave) {
       try {
         // Check if opportunity already exists by URL
-        let existingIndex = opportunities.findIndex(op => op.url === oppData.url);
-        if (existingIndex !== -1) {
+        let existingOpportunity = await Opportunity.findOne({ url: oppData.url });
+        if (existingOpportunity) {
           // Update existing opportunity
-          opportunities[existingIndex] = { ...opportunities[existingIndex], ...oppData, updatedAt: Date.now() };
-          saved.push(opportunities[existingIndex]);
+          existingOpportunity.set({ ...oppData, updatedAt: new Date() });
+          await existingOpportunity.save();
+          saved.push(existingOpportunity.toObject());
         } else {
           // Create new opportunity
-          const newOpportunity = {
-            id: generateId(),
+          const newOpportunity = new Opportunity({
             ...oppData,
             postedAt: new Date(),
             updatedAt: new Date(),
             status: 'active'
-          };
-          opportunities.push(newOpportunity);
-          saved.push(newOpportunity);
+          });
+          await newOpportunity.save();
+          saved.push(newOpportunity.toObject());
         }
       } catch (error) {
         console.error('Error saving opportunity:', error.message);
@@ -146,48 +95,92 @@ class OpportunityService {
     return saved;
   }
 
+  // Add a single opportunity (used by agents)
+  async addOpportunity(opportunityData) {
+    try {
+      // Validate required fields
+      if (!opportunityData.title || !opportunityData.description || !opportunityData.url || !opportunityData.source) {
+        throw new Error('Missing required fields: title, description, url, source');
+      }
+
+      // Check if opportunity already exists by URL
+      let existingOpportunity = await Opportunity.findOne({ url: opportunityData.url });
+      if (existingOpportunity) {
+        // Update existing opportunity
+        existingOpportunity.set({ ...opportunityData, updatedAt: new Date() });
+        await existingOpportunity.save();
+        return existingOpportunity.toObject();
+      } else {
+        // Create new opportunity
+        const newOpportunity = new Opportunity({
+          ...opportunityData,
+          postedAt: new Date(),
+          updatedAt: new Date(),
+          status: 'active'
+        });
+        await newOpportunity.save();
+        return newOpportunity.toObject();
+      }
+    } catch (error) {
+      console.error('Error adding opportunity:', error.message);
+      throw error;
+    }
+  }
+
   // Full sync: fetch and save
   async syncOpportunities() {
     console.log('Starting opportunity sync...');
     const fetchedOpportunities = await this.fetchAllOpportunities();
     console.log(`Fetched ${fetchedOpportunities.length} opportunities from sources`);
     const saved = await this.saveOpportunities(fetchedOpportunities);
-    console.log(`Saved ${saved.length} opportunities to memory`);
+    console.log(`Saved ${saved.length} opportunities to database`);
     return await this.getOpportunities({});
   }
 
-  // Get opportunities from memory with optional filters
+  // Get opportunities from database with optional filters
   async getOpportunities(filters = {}) {
-    console.log('getOpportunities: opportunities array length:', opportunities.length);
+    console.log('getOpportunities: fetching opportunities with filters:', filters);
     try {
-      let filtered = [...opportunities];
-      console.log('getOpportunities: filtered array length (before filtering):', filtered.length);
+      let query = Opportunity.find({});
 
       // Filter by type
       if (filters.type) {
-        filtered = filtered.filter(op => op.type === filters.type);
+        query = query.where('type').equals(filters.type);
       }
 
       // Filter by status
       if (filters.status) {
-        filtered = filtered.filter(op => op.status === filters.status);
+        query = query.where('status').equals(filters.status);
       }
 
       // Filter by keyword search in title/description
       if (filters.search) {
         const searchRegex = new RegExp(filters.search, 'i');
-        filtered = filtered.filter(op =>
-          searchRegex.test(op.title) || searchRegex.test(op.description)
-        );
+        query = query.where({
+          $or: [
+            { title: { $regex: searchRegex } },
+            { description: { $regex: searchRegex } }
+          ]
+        });
       }
 
       // Sort by postedAt descending
-      filtered.sort((a, b) => b.postedAt - a.postedAt);
+      query = query.sort({ postedAt: -1 });
 
-      console.log('getOpportunities: returning', filtered.length, 'opportunities');
-      return filtered;
+      // Apply limit and offset if provided
+      if (filters.limit) {
+        query = query.limit(parseInt(filters.limit));
+      }
+      if (filters.offset) {
+        query = query.skip(parseInt(filters.offset));
+      }
+
+      const opportunities = await query.lean(); // Returns plain JavaScript objects
+
+      console.log('getOpportunities: returning', opportunities.length, 'opportunities');
+      return opportunities;
     } catch (error) {
-      console.error('Error fetching opportunities from memory:', error.message);
+      console.error('Error fetching opportunities from database:', error.message);
       throw error;
     }
   }
@@ -195,11 +188,73 @@ class OpportunityService {
   // Get single opportunity by ID
   async getOpportunityById(id) {
     try {
-      // Note: our in-memory id is a number, but the incoming id might be string
-      const numericId = parseInt(id);
-      return opportunities.find(op => op.id === numericId) || null;
+      // Note: our id is the MongoDB _id (string)
+      const opportunity = await Opportunity.findById(id).lean();
+      return opportunity || null;
     } catch (error) {
       console.error('Error fetching opportunity by ID:', error.message);
+      throw error;
+    }
+  }
+
+  // Get opportunity statistics
+  async getOpportunityStats() {
+    try {
+      // Use aggregation for efficiency
+      const stats = await Opportunity.aggregate([
+        {
+          $facet: {
+            totalOpportunities: [
+              { $count: 'count' }
+            ],
+            byType: [
+              { $group: { _id: '$type', count: { $sum: 1 } } }
+            ],
+            byStatus: [
+              { $group: { _id: '$status', count: { $sum: 1 } } }
+            ],
+            opportunitiesPerDay: [
+              {
+                $group: {
+                  _id: null,
+                  avgPerDay: {
+                    $avg: {
+                      $divide: [
+                        { $subtract: [new Date(), '$postedAt'] },
+                        1000 * 60 * 60 * 24 // milliseconds in a day
+                      ]
+                    }
+                  }
+                }
+              },
+              { $project: { _id: 0, opportunitiesPerDay: { $divide: [1, '$avgPerDay'] } } }
+            ]
+          }
+        }
+      ]);
+
+      // Process the aggregation results
+      const totalOpportunities = stats[0].totalOpportunities[0]?.count || 0;
+      const byType = {};
+      stats[0].byType.forEach(item => {
+        byType[item._id] = item.count;
+      });
+      const byStatus = {};
+      stats[0].byStatus.forEach(item => {
+        byStatus[item._id] = item.count;
+      });
+      const opportunitiesPerDay = stats[0].opportunitiesPerDay[0]?.opportunitiesPerDay || 0;
+
+      return {
+        totalOpportunities,
+        byType,
+        byStatus,
+        opportunitiesPerDay: Number(isFinite(opportunitiesPerDay) ? opportunitiesPerDay : 0).toFixed(2),
+        lastUpdated: new Date(),
+        stats: this.stats
+      };
+    } catch (error) {
+      console.error('Error getting opportunity statistics:', error.message);
       throw error;
     }
   }
