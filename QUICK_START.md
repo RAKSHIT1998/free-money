@@ -29,6 +29,7 @@ node demo.js
 ### 1. Basic Requirements
 - [Node.js](https://nodejs.org/) (v18+)
 - [MongoDB](https://www.mongodb.com/try/download/community) (optional - uses memory if not available)
+- **Optional**: [Ollama](https://ollama.com/) or similar for enhanced LLM features (free local AI)
 
 ### 2. Quick Setup
 ```bash
@@ -79,6 +80,13 @@ curl -X POST http://localhost:5000/api/agents/spawn \
 curl -H "Authorization: Bearer $TOKEN" http://localhost:5000/api/opportunities
 ```
 
+### ⚡ Optional: Enable Local LLM (Free AI Enhancement)
+For more varied, realistic opportunity generation without paid APIs:
+1. Install [Ollama](https://ollama.com/) (free)
+2. Pull a model: `ollama pull llama3`
+3. Add to `.env`: `USE_LLM=true` and `LLM_MODEL=llama3`
+4. Restart the system - agents will now use your local LLM for enhanced content
+
 ## 💡 Pro Tips
 
 - **First run**: The demo (`node demo.js`) is the fastest way to see everything work
@@ -95,6 +103,7 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:5000/api/opportunities
 | "Port already in use" | Another process is on port 5000 - change PORT in .env or stop the other process |
 | "Invalid token" | Get a fresh token from `/api/auth/login` (tokens expire in 7 days) |
 | No agents showing | Wait 5-10 seconds after startup - agents spawn after server initializes |
+| LLM not working (if enabled) | Verify Ollama is running: `ollama serve`, check model with `ollama list` |
 
 ## 📚 Need More Details?
 
@@ -103,6 +112,7 @@ See the full [README.md](README.md) for:
 - All configuration options
 - Architecture details
 - Deployment guide
+- LLM setup instructions
 
 ---
 

@@ -1,6 +1,7 @@
 // Crypto Hunter Agent - searches for cryptocurrency opportunities
 const BaseAgent = require('./baseAgent');
 const OpportunityService = require('../services/opportunityService');
+const LocalLLMService = require('./localLLMService');
 
 class CryptoHunterAgent extends BaseAgent {
   constructor(options = {}) {
@@ -19,6 +20,13 @@ class CryptoHunterAgent extends BaseAgent {
 
     // Reference to opportunity service for adding discovered opportunities
     this.opportunityService = OpportunityService;
+
+    // Initialize LLM service (disabled by default for zero setup)
+    this.llmService = new LocalLLMService({
+      enabled: options.config?.useLLM || false,
+      model: options.config?.llmModel || 'local-default',
+      endpoint: options.config?.llmEndpoint || 'http://localhost:11434'
+    });
   }
 
   /**
@@ -89,16 +97,14 @@ class CryptoHunterAgent extends BaseAgent {
       const opportunities = [];
       for (let i = 0; i < opportunitiesFound; i++) {
         const oppType = ['airdrop', 'bounty', 'freelance', 'grant'][Math.floor(Math.random() * 4)];
-        const opportunity = {
-          title: `${this.generateCryptoOpportunityTitle(oppType)} ${Math.floor(Math.random() * 1000)}`,
-          description: this.generateCryptoOpportunityDescription(oppType),
-          url: `https://blockchain-example.com/tx/${Date.now()}-${Math.floor(Math.random() * 1000000)}`,
-          source: `CryptoHunter-${Date.now()}`,
-          type: oppType,
-          reward: `${Math.floor(Math.random() * 10 + 1)} ETH (~$${Math.floor(Math.random() * 3000 + 500)})`,
-          requirements: this.generateCryptoRequirements(oppType),
-          tags: this.generateCryptoTags(oppType)
-        };
+
+        // Use LLM service if enabled, otherwise use built-in simulation
+        let opportunity;
+        if (this.llmService.enabled) {
+          opportunity = await this.llmService.generateContent('cryptoHunter', oppType);
+        } else {
+          opportunity = this.generateFallbackOpportunity(oppType);
+        }
 
         // Add the opportunity to the opportunity service
         try {
@@ -113,13 +119,31 @@ class CryptoHunterAgent extends BaseAgent {
         opportunitiesFound,
         estimatedValue,
         timestamp: new Date(),
-        scanType: 'simulated_crypto_scan',
+        scanType: this.llmService.enabled ? 'llm_enhanced_crypto_scan' : 'simulated_crypto_scan',
         opportunities: opportunities
       };
     } catch (error) {
       this.log('error', 'Error performing scan action:', error.message);
       throw error;
     }
+  }
+
+  /**
+   * Generate fallback opportunity (original simulation method)
+   * @private
+   */
+  generateFallbackOpportunity(oppType) {
+    const opportunity = {
+      title: `${this.generateCryptoOpportunityTitle(oppType)} ${Math.floor(Math.random() * 1000)}`,
+      description: this.generateCryptoOpportunityDescription(oppType),
+      url: `https://blockchain-example.com/tx/${Date.now()}-${Math.floor(Math.random() * 1000000)}`,
+      source: `CryptoHunter-${Date.now()}`,
+      type: oppType,
+      reward: `${Math.floor(Math.random() * 10 + 1)} ETH (~$${Math.floor(Math.random() * 3000 + 500)})`,
+      requirements: this.generateCryptoRequirements(oppType),
+      tags: this.generateCryptoTags(oppType)
+    };
+    return opportunity;
   }
 
   /**
