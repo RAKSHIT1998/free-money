@@ -654,3 +654,55 @@ Error adding opportunity: Operation `opportunities.findOne()` buffering timed ou
 [1] [2026-07-19T11:39:53.175Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
 [1] [2026-07-19T11:39:53.175Z] Scan completed. Found 2 opportunities, estimated value: $56.00899621652509
 [2] [2026-07-19T11:39:58.640Z] Scan completed. Found 0 opportunities, estimated value: $0
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:02.426Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:12.433Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:12.433Z] Scan completed. Found 2 opportunities, estimated value: $81.64534159354353
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:13.181Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:13.181Z] Scan completed. Found 1 opportunities, estimated value: $94.62372634325989
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:23.446Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:23.446Z] Scan completed. Found 1 opportunities, estimated value: $77.9601646442153
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[3] [2026-07-19T11:40:34.052Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[3] [2026-07-19T11:40:34.053Z] Development cycle completed. Found 1 opportunities, estimated value: $129.53011462188903
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:34.485Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:34.485Z] Scan completed. Found 1 opportunities, estimated value: $12.0258399213139
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:43.175Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:43.175Z] Scan completed. Found 1 opportunities, estimated value: $80.23880988168007
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:45.523Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:45.523Z] Scan completed. Found 1 opportunities, estimated value: $74.32422600429682
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[2] [2026-07-19T11:40:53.645Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[2] [2026-07-19T11:40:53.645Z] Scan completed. Found 1 opportunities, estimated value: $165.5641862627813
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:56.544Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:40:56.545Z] Scan completed. Found 1 opportunities, estimated value: $36.50063097389082
+[1] [2026-07-19T11:40:57.564Z] Scan completed. Found 0 opportunities, estimated value: $0
+[1] [2026-07-19T11:41:03.176Z] Scan completed. Found 0 opportunities, estimated value: $0
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:41:12.588Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:41:22.592Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:41:22.592Z] Scan completed. Found 2 opportunities, estimated value: $20.94608780220653
+[1] [2026-07-19T11:41:23.616Z] Scan completed. Found 0 opportunities, estimated value: $0
+[3] [2026-07-19T11:41:24.044Z] Development cycle completed. Found 0 opportunities, estimated value: $0
+[1] [2026-07-19T11:41:33.184Z] Scan completed. Found 0 opportunities, estimated value: $0
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:41:38.629Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[2] [2026-07-19T11:41:38.660Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[2] [2026-07-19T11:41:38.660Z] Scan completed. Found 1 opportunities, estimated value: $24.537140449830346
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:41:48.630Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:41:48.630Z] Scan completed. Found 2 opportunities, estimated value: $189.2002807515693
+Error adding opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:41:59.645Z] Failed to add opportunity: Operation `opportunities.findOne()` buffering timed out after 10000ms
+[1] [2026-07-19T11:41:59.645Z] Scan completed. Found 1 opportunities, estimated value: $30.82700849840833
+[1] [2026-07-19T11:42:00.649Z] Scan completed. Found 0 opportunities, estimated value: $0
+[1] [2026-07-19T11:42:03.200Z] Scan completed. Found 0 opportunities, estimated value: $0
