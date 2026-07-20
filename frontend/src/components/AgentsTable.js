@@ -33,45 +33,50 @@ const AgentsTable = () => {
   if (agents.length === 0) return <p className="loading">No agents found</p>;
 
   return (
-    <table className="agent-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Type</th>
-          <th>Name</th>
-          <th>State</th>
-          <th>Earnings</th>
-          <th>Opportunities</th>
-          <th>Actions</th>
-          <th>Success Rate</th>
-          <th>Last Active</th>
-        </tr>
-      </thead>
-      <tbody>
-        {agents.map(agent => {
-          const statusClass =
-            agent.state === 'active' ? 'status-active' :
-            agent.state === 'error' ? 'status-error' : 'status-idle';
+    <div>
+      <h2>Agent Activity Details</h2>
+      <table className="agent-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Name</th>
+            <th>State</th>
+            <th>Total Earnings</th>
+            <th>Earnings/Hour</th>
+            <th>Opportunities</th>
+            <th>Actions</th>
+            <th>Success Rate</th>
+            <th>Last Active</th>
+          </tr>
+        </thead>
+        <tbody>
+          {agents.map(agent => {
+            const statusClass =
+              agent.state === 'active' ? 'status-active' :
+              agent.state === 'error' ? 'status-error' : 'status-idle';
 
-          const lastActive = new Date(agent.lastActive);
-          const timeAgo = getTimeAgo(lastActive);
+            const lastActive = new Date(agent.lastActive);
+            const timeAgo = getTimeAgo(lastActive);
 
-          return (
-            <tr key={agent.id}>
-              <td>{agent.id}</td>
-              <td>{capitalizeFirstLetter(agent.type)}</td>
-              <td>{agent.name || 'Unnamed'}</td>
-              <td><span className={`status-badge ${statusClass}`}>{agent.state}</span></td>
-              <td>${(agent.performance?.earnings || 0).toFixed(2)}</td>
-              <td>{agent.performance?.opportunitiesFound || 0}</td>
-              <td>{agent.performance?.actionsTaken || 0}</td>
-              <td>{(agent.performance?.successRate || 0).toFixed(1)}%</td>
-              <td>{timeAgo}</td>
-            </tr>
-          );
-        })}
-      </tbody>
-    </table>
+            return (
+              <tr key={agent.id}>
+                <td>{agent.id}</td>
+                <td>{capitalizeFirstLetter(agent.type)}</td>
+                <td>{agent.name || 'Unnamed'}</td>
+                <td><span className={`status-badge ${statusClass}`}>{agent.state}</span></td>
+                <td>${(agent.performance?.totalEarnings || 0).toFixed(2)}</td>
+                <td>${(agent.performance?.earningsPerHour || 0).toFixed(2)}/hr</td>
+                <td>{agent.performance?.opportunitiesFound || 0}</td>
+                <td>{agent.performance?.actionsTaken || 0}</td>
+                <td>{(agent.performance?.successRate || 0).toFixed(1)}%</td>
+                <td>{timeAgo}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
     );
 };
 

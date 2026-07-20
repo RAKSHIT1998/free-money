@@ -28,6 +28,7 @@ ChartJS.register(
 const Dashboard = () => {
   const [agentStats, setAgentStats] = useState(null);
   const [opportunityStats, setOpportunityStats] = useState(null);
+  const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -43,12 +44,17 @@ const Dashboard = () => {
         const oppRes = await api.getOpportunityStats();
         setOpportunityStats(oppRes.data);
 
+        // Fetch all agents to calculate total earnings
+        const agentsRes = await api.getAllAgents();
+        setAgents(agentsRes.data.agents || []);
+
         setError(null);
       } catch (err) {
         console.error('Failed to fetch stats:', err);
         setError('Failed to load dashboard statistics');
         setAgentStats(null);
         setOpportunityStats(null);
+        setAgents([]);
       } finally {
         setLoading(false);
       }
@@ -62,6 +68,11 @@ const Dashboard = () => {
 
   if (loading) return <p className="loading">Loading dashboard...</p>;
   if (error) return <p className="error">{error}</p>;
+
+  // Calculate total earnings across all agents
+  const totalEarnings = agents.reduce((sum, agent) => {
+    return sum + (agent.performance?.totalEarnings || 0);
+  }, 0);
 
   // Prepare data for agent distribution doughnut chart
   const agentTypeData = {
@@ -87,10 +98,10 @@ const Dashboard = () => {
 
   // Prepare data for performance bar chart
   const performanceData = {
-    labels: ['Earnings ($)', 'Opportunities', 'Actions', 'Success Rate (%)'],
+    labels: ['Earnings ($/hr)', 'Opportunities/hr', 'Actions', 'Success Rate (%)'],
     datasets: [
       {
-        label: 'Average Performance',
+        label: 'Average Performance (per hour)',
         data: [
           agentStats?.averagePerformance?.earnings || 0,
           agentStats?.averagePerformance?.opportunitiesFound || 0,
@@ -124,8 +135,13 @@ const Dashboard = () => {
         </div>
         <div className="stat-card">
           <div className="stat-icon">💰</div>
-          <div className="stat-value">${(agentStats?.averagePerformance?.earnings || 0).toFixed(2)}</div>
-          <div className="stat-label">Avg Earnings</div>
+          <div className="stat-value">${totalEarnings.toFixed(2)}</div>
+          <div className="stat-label">Total Earnings (Wallet)</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">💵</div>
+          <div className="stat-value">${(agentStats?.averagePerformance?.earnings || 0).toFixed(2)}/hr</div>
+          <div className="stat-label">Avg Earnings/Hour</div>
         </div>
         <div className="stat-card">
           <div className="stat-icon">🎯</div>
@@ -154,7 +170,7 @@ const Dashboard = () => {
           </div>
         </div>
         <div className="chart-card">
-          <h3 className="chart-title">Performance Overview</h3>
+          <h3 className="chart-title">Performance Overview (Per Hour)</h3>
           <div>
             <Bar data={performanceData} />
           </div>
