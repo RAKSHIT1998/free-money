@@ -30,10 +30,27 @@ const AgentsTable = () => {
 
   if (loading) return <p className="loading">Loading agents...</p>;
   if (error) return <p className="error">{error}</p>;
-  if (agents.length === 0) return <p className="loading">No agents found</p>;
+  if (agents.length === 0) return <p className="empty-state">No agents found</p>;
+
+  // Helper function to get time ago string
+  const getTimeAgo = (date) => {
+    const seconds = Math.floor((new Date() - date) / 1000);
+
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    if (seconds < 2592000) return `${Math.floor(seconds / 86400)}d ago`;
+
+    return date.toLocaleDateString();
+  };
+
+  // Helper function to capitalize first letter
+  const capitalizeFirstLetter = (string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
 
   return (
-    <div>
+    <div className="agent-table-container">
       <h2>Agent Activity Details</h2>
       <table className="agent-table">
         <thead>
@@ -54,7 +71,7 @@ const AgentsTable = () => {
           {agents.map(agent => {
             const statusClass =
               agent.state === 'active' ? 'status-active' :
-              agent.state === 'error' ? 'status-error' : 'status-idle';
+                agent.state === 'error' ? 'status-error' : 'status-idle';
 
             const lastActive = new Date(agent.lastActive);
             const timeAgo = getTimeAgo(lastActive);
@@ -77,24 +94,7 @@ const AgentsTable = () => {
         </tbody>
       </table>
     </div>
-    );
+  );
 };
-
-// Helper function to get time ago string
-function getTimeAgo(date) {
-  const seconds = Math.floor((new Date() - date) / 1000);
-
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  if (seconds < 2592000) return `${Math.floor(seconds / 86400)}d ago`;
-
-  return date.toLocaleDateString();
-}
-
-// Helper function to capitalize first letter
-function capitalizeFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
 
 export default AgentsTable;

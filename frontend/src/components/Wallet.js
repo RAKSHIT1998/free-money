@@ -9,10 +9,34 @@ const Wallet = () => {
 
   // Sample transaction history (in a real app, this would come from backend)
   const sampleTransactions = [
-    { id: 1, type: 'deposit', amount: 100, timestamp: '2023-05-15T10:30:00Z', description: 'Initial deposit' },
-    { id: 2, type: 'earning', amount: 25.50, timestamp: '2023-05-16T14:22:00Z', description: 'Crypto hunter bounty completed' },
-    { id: 3, type: 'earning', amount: 15.75, timestamp: '2023-05-17T09:15:00Z', description: 'Freelance task completed' },
-    { id: 4, type: 'withdrawal', amount: -50, timestamp: '2023-05-18T16:45:00Z', description: 'Withdrawal to external wallet' },
+    {
+      id: 1,
+      type: 'deposit',
+      amount: 100,
+      timestamp: '2023-05-15T10:30:00Z',
+      description: 'Initial deposit'
+    },
+    {
+      id: 2,
+      type: 'earning',
+      amount: 25.50,
+      timestamp: '2023-05-16T14:22:00Z',
+      description: 'Crypto hunter bounty completed'
+    },
+    {
+      id: 3,
+      type: 'earning',
+      amount: 15.75,
+      timestamp: '2023-05-17T09:15:00Z',
+      description: 'Freelance task completed'
+    },
+    {
+      id: 4,
+      type: 'withdrawal',
+      amount: -50,
+      timestamp: '2023-05-18T16:45:00Z',
+      description: 'Withdrawal to external wallet'
+    },
   ];
 
   // Initialize wallet on mount
@@ -167,11 +191,15 @@ const Wallet = () => {
             {transactionHistory.map(tx => (
               <div key={tx.id} className={`transaction-item ${tx.type}`}>
                 <div className="transaction-info">
-                  <span className="transaction-type">{tx.type === 'deposit' ? 'Deposit' : tx.type === 'withdrawal' ? 'Withdrawal' : 'Earning'}</span>
+                  <span className="transaction-type">
+                    {tx.type === 'deposit' ? 'Deposit' : tx.type === 'withdrawal' ? 'Withdrawal' : 'Earning'}
+                  </span>
                   <span className="transaction-description">{tx.description}</span>
                 </div>
                 <div className="transaction-amount">
-                  {tx.type === 'deposit' ? `+$${tx.amount.toFixed(2)}` : tx.type === 'withdrawal' ? `-$${Math.abs(tx.amount).toFixed(2)}` : `$${tx.amount.toFixed(2)}`}
+                  {tx.type === 'deposit' ? `+$${tx.amount.toFixed(2)}` :
+                   tx.type === 'withdrawal' ? `-$${Math.abs(tx.amount).toFixed(2)}` :
+                   `$${tx.amount.toFixed(2)}`}
                 </div>
                 <div className="transaction-time">
                   {new Date(tx.timestamp).toLocaleString()}

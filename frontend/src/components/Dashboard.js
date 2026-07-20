@@ -81,14 +81,14 @@ const Dashboard = () => {
       {
         data: agentStats?.byType ? Object.values(agentStats.byType) : [],
         backgroundColor: [
-          '#6a11cb',
-          '#2575fc',
-          '#17c9b2',
-          '#f39c12',
+          '#3498db',
+          '#2c3e50',
           '#e74c3c',
+          '#2ecc71',
+          '#f39c12',
           '#9b59b6',
-          '#f1c40f',
-          '#2ecc71'
+          '#1abc9c',
+          '#f1c40f'
         ],
         borderWidth: 2,
         borderColor: '#fff'
@@ -109,16 +109,16 @@ const Dashboard = () => {
           agentStats?.averagePerformance?.successRate || 0
         ],
         backgroundColor: [
-          'rgba(106, 17, 203, 0.5)',
-          'rgba(37, 117, 252, 0.5)',
-          'rgba(23, 201, 178, 0.5)',
-          'rgba(243, 156, 18, 0.5)'
+          'rgba(52, 152, 219, 0.5)',
+          'rgba(44, 62, 80, 0.5)',
+          'rgba(231, 76, 60, 0.5)',
+          'rgba(46, 204, 113, 0.5)'
         ],
         borderColor: [
-          'rgba(106, 17, 203, 1)',
-          'rgba(37, 117, 252, 1)',
-          'rgba(23, 201, 178, 1)',
-          'rgba(243, 156, 18, 1)'
+          'rgba(52, 152, 219, 1)',
+          'rgba(44, 62, 80, 1)',
+          'rgba(231, 76, 60, 1)',
+          'rgba(46, 204, 113, 1)'
         ],
         borderWidth: 2
       }
@@ -128,37 +128,25 @@ const Dashboard = () => {
   return (
     <div className="dashboard">
       <div className="stats-grid">
-        <div className="stat-card">
+        <div className="stat-card stat-agents">
           <div className="stat-icon">👥</div>
           <div className="stat-value">{agentStats?.total || 0}</div>
           <div className="stat-label">Total Agents</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card stat-earnings">
           <div className="stat-icon">💰</div>
           <div className="stat-value">${totalEarnings.toFixed(2)}</div>
-          <div className="stat-label">Total Earnings (Wallet)</div>
+          <div className="stat-label">Total Earnings</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card stat-opportunities">
           <div className="stat-icon">💵</div>
           <div className="stat-value">${(agentStats?.averagePerformance?.earnings || 0).toFixed(2)}/hr</div>
           <div className="stat-label">Avg Earnings/Hour</div>
         </div>
-        <div className="stat-card">
+        <div className="stat-card stat-success-rate">
           <div className="stat-icon">🎯</div>
           <div className="stat-value">{opportunityStats?.totalOpportunities || 0}</div>
           <div className="stat-label">Total Opportunities</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">⚡</div>
-          <div className="stat-value">
-            {/* Format uptime from agent stats if available, otherwise show 00:00:00 */}
-            {agentStats?.uptime ? (
-              new Date(agentStats.uptime).toISOString().substr(11, 8)
-            ) : (
-              '00:00:00'
-            )}
-          </div>
-          <div className="stat-label">System Uptime</div>
         </div>
       </div>
 
