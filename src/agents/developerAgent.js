@@ -1,6 +1,7 @@
 // Developer Agent - builds tools and performs tasks to earn cryptocurrency
 const BaseAgent = require('./baseAgent');
 const OpportunityService = require('../services/opportunityService');
+const LocalLLMService = require('../services/localLLMService');
 
 class DeveloperAgent extends BaseAgent {
   constructor(options = {}) {
@@ -23,6 +24,13 @@ class DeveloperAgent extends BaseAgent {
 
     // Reference to opportunity service for adding discovered opportunities
     this.opportunityService = OpportunityService;
+
+    // Initialize LLM service (disabled by default for zero setup)
+    this.llmService = new LocalLLMService({
+      enabled: this.config.useLLM || false,
+      model: this.config.llmModel || "local-default",
+      endpoint: this.config.llmEndpoint || "http://localhost:11434"
+    });
   }
 
   /**
@@ -94,16 +102,23 @@ class DeveloperAgent extends BaseAgent {
       const opportunities = [];
       for (let i = 0; i < opportunitiesFound; i++) {
         const oppType = ['freelance', 'grant', 'bounty', 'contest'][Math.floor(Math.random() * 4)];
-        const opportunity = {
-          title: `${this.generateDevelopmentOpportunityTitle(oppType)} ${Math.floor(Math.random() * 1000)}`,
-          description: this.generateDevelopmentOpportunityDescription(oppType),
-          url: `https://dev-platform.example.com/task/${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-          source: `DeveloperAgent-${Date.now()}`,
-          type: oppType,
-          reward: `$${Math.floor(Math.random() * 1000 + 200)}`,
-          requirements: this.generateDevelopmentRequirements(oppType),
-          tags: this.generateDevelopmentTags(oppType)
-        };
+        let opportunity;
+
+        // Use LLM service if enabled, otherwise use built-in simulation
+        if (this.llmService.enabled) {
+          opportunity = await this.llmService.generateContent('developer', oppType);
+        } else {
+          opportunity = {
+            title: `${this.generateDevelopmentOpportunityTitle(oppType)} ${Math.floor(Math.random() * 1000)}`,
+            description: this.generateDevelopmentOpportunityDescription(oppType),
+            url: `https://dev-platform.example.com/task/${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+            source: `DeveloperAgent-${Date.now()}`,
+            type: oppType,
+            reward: `$${Math.floor(Math.random() * 1000 + 200)}`,
+            requirements: this.generateDevelopmentRequirements(oppType),
+            tags: this.generateDevelopmentTags(oppType)
+          };
+        }
 
         // Add the opportunity to the opportunity service
         try {
@@ -118,7 +133,7 @@ class DeveloperAgent extends BaseAgent {
         opportunitiesFound,
         estimatedValue,
         timestamp: new Date(),
-        taskType: 'simulated_development_task',
+        taskType: this.llmService.enabled ? 'llm_enhanced_development_task' : 'simulated_development_task',
         opportunities: opportunities
       };
     } catch (error) {

@@ -1,6 +1,7 @@
 // Opportunity Scout Agent - searches for traditional money-making opportunities
 const BaseAgent = require('./baseAgent');
 const OpportunityService = require('../services/opportunityService');
+const LocalLLMService = require('../services/localLLMService');
 
 class OpportunityScoutAgent extends BaseAgent {
   constructor(options = {}) {
@@ -19,6 +20,13 @@ class OpportunityScoutAgent extends BaseAgent {
 
     // Reference to opportunity service for adding discovered opportunities
     this.opportunityService = OpportunityService;
+
+    // Initialize LLM service (disabled by default for zero setup)
+    this.llmService = new LocalLLMService({
+      enabled: this.config.useLLM || false,
+      model: this.config.llmModel || "local-default",
+      endpoint: this.config.llmEndpoint || "http://localhost:11434"
+    });
   }
 
   /**
@@ -90,16 +98,23 @@ class OpportunityScoutAgent extends BaseAgent {
       const opportunities = [];
       for (let i = 0; i < opportunitiesFound; i++) {
         const oppType = ['airdrop', 'bounty', 'freelance', 'grant', 'contest', 'other'][Math.floor(Math.random() * 6)];
-        const opportunity = {
-          title: `${this.generateOpportunityTitle(oppType)} ${Math.floor(Math.random() * 1000)}`,
-          description: this.generateOpportunityDescription(oppType),
-          url: `https://example.com/${oppType}/${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-          source: `OpportunityScanner-${Date.now()}`,
-          type: oppType,
-          reward: `$${Math.floor(Math.random() * 500 + 50)}`,
-          requirements: this.generateRequirements(oppType),
-          tags: this.generateTags(oppType)
-        };
+        let opportunity;
+
+        // Use LLM service if enabled, otherwise use built-in simulation
+        if (this.llmService.enabled) {
+          opportunity = await this.llmService.generateContent('opportunityScout', oppType);
+        } else {
+          opportunity = {
+            title: `${this.generateOpportunityTitle(oppType)} ${Math.floor(Math.random() * 1000)}`,
+            description: this.generateOpportunityDescription(oppType),
+            url: `https://example.com/${oppType}/${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            source: `OpportunityScanner-${Date.now()}`,
+            type: oppType,
+            reward: `$${Math.floor(Math.random() * 500 + 50)}`,
+            requirements: this.generateRequirements(oppType),
+            tags: this.generateTags(oppType)
+          };
+        }
 
         // Add the opportunity to the opportunity service
         try {
@@ -114,7 +129,7 @@ class OpportunityScoutAgent extends BaseAgent {
         opportunitiesFound,
         estimatedValue,
         timestamp: new Date(),
-        scanType: 'simulated_opportunity_scan',
+        scanType: this.llmService.enabled ? 'llm_enhanced_opportunity_scan' : 'simulated_opportunity_scan',
         opportunityTypes: this.generateOpportunityTypes(opportunitiesFound),
         opportunities: opportunities
       };

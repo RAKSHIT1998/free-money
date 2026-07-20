@@ -27,7 +27,6 @@ class CryptoHunterAgent extends BaseAgent {
       model: this.config.llmModel || "local-default",
       endpoint: this.config.llmEndpoint || "http://localhost:11434"
     });
-  }
 
   /**
    * Main logic loop for the crypto hunter
