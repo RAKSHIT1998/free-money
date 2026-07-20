@@ -12,6 +12,30 @@ This system creates multiple autonomous agents that continuously scan for money-
 
 The system automatically removes underperforming agents (bottom 20%) and rewards top performers (top 10%) to evolve a more effective agent population over time.
 
+## 🚀 Quick Start with Ollama (Recommended)
+
+Want to get started quickly with enhanced AI capabilities? Follow these steps:
+
+1. **Install Ollama**: Visit [https://ollama.com/](https://ollama.com/) and install Ollama for your platform
+2. **Pull a model**: In your terminal, run:
+   ```bash
+   ollama pull llama3
+   ```
+3. **Enable LLM in the system**: Copy the example environment file and uncomment the LLM lines:
+   ```bash
+   cp .env.example .env
+   # Then edit .env and uncomment these lines:
+   # USE_LLM=true
+   # LLM_MODEL=llama3
+   # LLM_ENDPOINT=http://localhost:11434
+   ```
+4. **Start the system**: 
+   ```bash
+   npm run dev
+   # or
+   node server.js
+   ```
+
 ## ✨ Optional: Local LLM Integration (Free AI Enhancement)
 
 The system includes an **optional Local LLM Service** that can generate more realistic and varied opportunity descriptions without relying on paid token services. This feature is **disabled by default** (uses lightweight templates) but can be enabled to connect to free local LLMs like Ollama.
@@ -31,14 +55,7 @@ The system includes an **optional Local LLM Service** that can generate more rea
    ollama pull llama3
    ```
 
-2. **Enable LLM in agent configuration**:
-   Edit `.env` or pass configuration when starting agents:
-   ```bash
-   # Example: Enable LLM for crypto hunter agents
-   # You can modify the .env file or create custom agent configs
-   ```
-
-3. **Or configure via environment variables** (add to `.env`):
+2. **Enable LLM via environment variables** (add to `.env`):
    ```
    # Enable LLM features (set to true to activate)
    USE_LLM=true
@@ -49,11 +66,6 @@ The system includes an **optional Local LLM Service** that can generate more rea
    # LLM endpoint (default Ollama)
    LLM_ENDPOINT=http://localhost:11434
    ```
-
-### How It Works:
-- **Default mode (disabled)**: Uses intelligent template system - zero setup, always works
-- **LLM mode (enabled)**: Connects to your local LLM (like Ollama) for enhanced generation
-- **Fallback**: If LLM is unavailable, automatically reverts to templates
 
 ### Configuration Options:
 | Variable | Description | Default |

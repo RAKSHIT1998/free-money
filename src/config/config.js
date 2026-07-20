@@ -46,12 +46,18 @@ module.exports = {
     cryptoHunter: {
       scanInterval: parseInt(process.env.CRYPTO_HUNTER_SCAN_INTERVAL) || 30000,
       maxResultsPerScan: parseInt(process.env.CRYPTO_HUNTER_MAX_RESULTS) || 10,
-      minRewardThreshold: parseFloat(process.env.CRYPTO_HUNTER_MIN_REWARD) || 10
+      minRewardThreshold: parseFloat(process.env.CRYPTO_HUNTER_MIN_REWARD) || 10,
+      useLLM: process.env.USE_LLM === "true",
+      llmModel: process.env.LLM_MODEL || "local-default",
+      llmEndpoint: process.env.LLM_ENDPOINT || "http://localhost:11434"
     },
     opportunityScout: {
       scanInterval: parseInt(process.env.OPPORTUNITY_SCOUT_SCAN_INTERVAL) || 45000,
       maxResultsPerScan: parseInt(process.env.OPPORTUNITY_SCOUT_MAX_RESULTS) || 15,
-      minRewardThreshold: parseFloat(process.env.OPPORTUNITY_SCOUT_MIN_REWARD) || 5
+      minRewardThreshold: parseFloat(process.env.OPPORTUNITY_SCOUT_MIN_REWARD) || 5,
+      useLLM: process.env.USE_LLM === "true",
+      llmModel: process.env.LLM_MODEL || "local-default",
+      llmEndpoint: process.env.LLM_ENDPOINT || "http://localhost:11434"
     },
     developer: {
       taskInterval: parseInt(process.env.DEVELOPER_TASK_INTERVAL) || 60000,
