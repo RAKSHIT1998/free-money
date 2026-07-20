@@ -30,7 +30,32 @@ const OpportunitiesList = () => {
 
   if (loading) return <p className="loading">Loading opportunities...</p>;
   if (error) return <p className="error">{error}</p>;
-  if (opportunities.length === 0) return <p className="loading">No opportunities found</p>;
+  if (opportunities.length === 0) return <p className="empty-state">No opportunities found</p>;
+
+  // Helper function to get time ago string
+  const getTimeAgo = (date) => {
+    const seconds = Math.floor((new Date() - date) / 1000);
+
+    if (seconds < 60) return 'just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    if (seconds < 2592000) return `${Math.floor(seconds / 86400)}d ago`;
+
+    return date.toLocaleDateString();
+  };
+
+  // Helper function to get opportunity type color
+  const getOpportunityTypeColor = (type) => {
+    const colors = {
+      airdrop: '#3498db',
+      bounty: '#e74c3c',
+      freelance: '#2ecc71',
+      grant: '#f39c12',
+      contest: '#9b59b6',
+      other: '#95a5a6'
+    };
+    return colors[type] || '#95a5a6';
+  };
 
   return (
     <div className="opportunities-list">
@@ -38,7 +63,10 @@ const OpportunitiesList = () => {
         <div key={opp.id} className="opportunity-card">
           <div className="opportunity-header">
             <h3>{opp.title}</h3>
-            <span className="opportunity-type" style={{ backgroundColor: getOpportunityTypeColor(opp.type) }}>
+            <span
+              className={`opportunity-type type-${opp.type}`}
+              style={{ backgroundColor: getOpportunityTypeColor(opp.type) }}
+            >
               {opp.type}
             </span>
           </div>
@@ -65,30 +93,5 @@ const OpportunitiesList = () => {
     </div>
   );
 };
-
-// Helper function to get time ago string
-function getTimeAgo(date) {
-  const seconds = Math.floor((new Date() - date) / 1000);
-
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  if (seconds < 2592000) return `${Math.floor(seconds / 86400)}d ago`;
-
-  return date.toLocaleDateString();
-}
-
-// Helper function to get opportunity type color
-function getOpportunityTypeColor(type) {
-  const colors = {
-    airdrop: '#3498db',
-    bounty: '#e74c3c',
-    freelance: '#2ecc71',
-    grant: '#f39c12',
-    contest: '#9b59b6',
-    other: '#95a5a6'
-  };
-  return colors[type] || '#95a5a6';
-}
 
 export default OpportunitiesList;
