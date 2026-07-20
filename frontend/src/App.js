@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Dashboard from './components/Dashboard';
 import AgentsTable from './components/AgentsTable';
 import OpportunitiesList from './components/OpportunitiesList';
+import Wallet from './components/Wallet';
 import './App.css';
 
 function App() {
@@ -12,6 +13,10 @@ function App() {
       </header>
       <main>
         <Dashboard />
+        <section>
+          <h2>Wallet</h2>
+          <Wallet />
+        </section>
         <section>
           <h2>Active Agents</h2>
           <AgentsTable />
