@@ -137,7 +137,11 @@ class OpportunityScoutAgent extends BaseAgent {
         // Optionally, we could still generate an opportunity record for tracking
         // but now it's based on REAL work, not simulation
         if (this.config.generateOpportunityRecords !== false) {
-          await this.generateOpportunityRecord(result, earnedAmount);
+          const workResult = {
+            workType: selectedWork.type,
+            workDetails: result.details
+          };
+          await this.generateOpportunityRecord(workResult, earnedAmount);
         }
 
         return {

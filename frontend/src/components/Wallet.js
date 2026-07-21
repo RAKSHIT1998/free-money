@@ -288,8 +288,7 @@ const Wallet = () => {
                         Please install <a href="https://metamask.io/" target="_blank" rel="noreferrer" className="text-decoration-underline">MetaMask</a> to use this feature
                       </p>
                     </div>
-                  )}
-                </div>
+                  ))}
                 {!isMetaMaskInstalled ? (
                   <button
                     onClick={handleGenerateWallet}
@@ -311,6 +310,7 @@ const Wallet = () => {
           </div>
         </div>
       </div>
+    </div>
     );
   }
 
