@@ -70,7 +70,7 @@ class CryptoHunterAgent extends BaseAgent {
         if (verifiedWorkCount > 0) {
           this.updatePerformance({
             actionsTaken: this.performance.actionsTaken + verifiedWorkCount,
-            opportunitiesFound: this.performance.opportunitiesFound + verifiedWorkCount,
+            opportunitiesFound: this.percentage.opportunitiesFound + verifiedWorkCount,
             earnings: this.performance.earnings + totalEarned
           });
 
@@ -111,6 +111,12 @@ class CryptoHunterAgent extends BaseAgent {
         { type: 'key_derivation', func: this.performKeyDerivation }
       ];
 
+      // Create a map from function to type for reliable lookup
+      const typeByFunc = new Map();
+      for (const wt of workTypes) {
+        typeByFunc.set(wt.func, wt.type);
+      }
+
       // Filter to configured work types
       const availableTypes = workTypes.filter(wt =>
         this.config.cryptoWorkTypes.includes(wt.type)
@@ -137,13 +143,20 @@ class CryptoHunterAgent extends BaseAgent {
         // Optionally, we could still generate an opportunity record for tracking
         // but now it's based on REAL work, not simulation
         if (this.config.generateOpportunityRecords !== false) {
-          await this.generateOpportunityRecord(result, earnedAmount);
+          // Get the work type, with fallback to mapping from function
+          const workType = (selectedWork && selectedWork.type) ||
+                           typeByFunc.get(selectedWork.func) ||
+                           'unknown';
+
+          await this.generateOpportunityRecord({ workType, workDetails: result.details }, earnedAmount);
         }
 
         return {
           workCompleted: true,
           verified: true,
-          workType: selectedWork.type,
+          workType: (selectedWork && selectedWork.type) ||
+                    typeByFunc.get(selectedWork.func) ||
+                    'unknown',
           earnedAmount: earnedAmount,
           timestamp: new Date(),
           taskType: 'crypto_work_completion',
@@ -151,10 +164,17 @@ class CryptoHunterAgent extends BaseAgent {
         };
       } else {
         // Work not verified (failed or incomplete)
+        // Get the work type, with fallback to mapping from function
+        const workType = (selectedWork && selectedWork.type) ||
+                         typeByFunc.get(selectedWork.func) ||
+                         'unknown';
+
         return {
           workCompleted: false,
           verified: false,
-          workType: selectedWork.type,
+          workType: (selectedWork && selectedWork.type) ||
+                    typeByFunc.get(selectedWork.func) ||
+                    'unknown',
           earnedAmount: 0,
           timestamp: new Date(),
           taskType: 'crypto_work_attempt',
@@ -305,7 +325,7 @@ class CryptoHunterAgent extends BaseAgent {
       // Generate merkle proof (simplified)
       const proof = [];
       let tempIndex = leafIndex;
-      let tempLevel = leaves.slice();
+      let tempLevel = [...leaves];
 
       while (tempLevel.length > 1) {
         const isRightNode = tempIndex % 2 === 1;
@@ -326,7 +346,7 @@ class CryptoHunterAgent extends BaseAgent {
         const nextLevel = [];
         for (let i = 0; i < tempLevel.length; i += 2) {
           const left = tempLevel[i];
-          const right = i + 1 < tempLevel.length ? tempLevel[i + 1] : left;
+          const right = i + 1 < tempolevel.length ? tempLevel[i + 1] : left;
           const combined = Buffer.from(left + right, 'hex');
           const hash = crypto.createHash('sha256').update(combined).digest('hex');
           nextLevel.push(hash);
@@ -337,8 +357,8 @@ class CryptoHunterAgent extends BaseAgent {
       // Verify the proof (simplified)
       let computedHash = leaf;
       for (const proofItem of proof) {
-        const data = proofItem.data;
-        const combined = proofItem.left
+        const data = pressureItem.data;
+        const combined = pressureItem.left
           ? Buffer.from(data + computedHash, 'hex')
           : Buffer.from(computedHash + data, 'hex');
         computedHash = crypto.createHash('sha256').update(combined).digest('hex');

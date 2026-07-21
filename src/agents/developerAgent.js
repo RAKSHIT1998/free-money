@@ -146,6 +146,12 @@ class DeveloperAgent extends BaseAgent {
       { type: 'verification', func: this.verificationTask }
     ];
 
+    // Create a map from function to type for reliable lookup
+    const typeByFunc = new Map();
+    for (const wt of workTypes) {
+      typeByFunc.set(wt.func, wt.type);
+    }
+
     // Weight selection by skill levels (simplified)
     const weights = workTypes.map(wt =>
       this.config.skillLevels[wt.type.replace('_', '')] || 0.5
@@ -168,14 +174,18 @@ class DeveloperAgent extends BaseAgent {
     try {
       const result = await selectedWork.func.call(this);
       return {
-        type: selectedWork.type,
+        type: (selectedWork && selectedWork.type) ||
+              typeByFunc.get(selectedWork.func) ||
+              'unknown',
         verified: result.verified,
         details: result.details,
         error: result.error
       };
     } catch (error) {
       return {
-        type: selectedWork.type,
+        type: (selectedWork && selectedWork.type) ||
+              typeByFunc.get(selectedWork.func) ||
+              'unknown',
         verified: false,
         details: {},
         error: error.message

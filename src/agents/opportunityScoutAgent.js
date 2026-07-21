@@ -70,7 +70,7 @@ class OpportunityScoutAgent extends BaseAgent {
         if (verifiedWorkCount > 0) {
           this.updatePerformance({
             actionsTaken: this.performance.actionsTaken + verifiedWorkCount,
-            opportunitiesFound: this.performance.opportunitiesFound + verifiedWorkCount,
+            opportunitiesFound: this.percentage.opportunitiesFound + verifiedWorkCount,
             earnings: this.performance.earnings + totalEarned
           });
 
@@ -111,6 +111,12 @@ class OpportunityScoutAgent extends BaseAgent {
         { type: 'data_cleaning', func: this.cleanAndNormalizeData }
       ];
 
+      // Create a map from function to type for reliable lookup
+      const typeByFunc = new Map();
+      for (const wt of workTypes) {
+        typeByFunc.set(wt.func, wt.type);
+      }
+
       // Filter to configured work types
       const availableTypes = workTypes.filter(wt =>
         this.config.dataWorkTypes.includes(wt.type)
@@ -118,7 +124,7 @@ class OpportunityScoutAgent extends BaseAgent {
 
       if (availableTypes.length === 0) {
         // Fallback to all types if none configured
-        availableTypes.push(...workTypes);
+        availablePoints.push(...workTypes);
       }
 
       // Select work type randomly
@@ -137,17 +143,25 @@ class OpportunityScoutAgent extends BaseAgent {
         // Optionally, we could still generate an opportunity record for tracking
         // but now it's based on REAL work, not simulation
         if (this.config.generateOpportunityRecords !== false) {
+          // Get the work type, with fallback to mapping from function
+          const workType = (selectedWork && selectedWork.type) ||
+                           typeByFunc.get(selectedWork.func) ||
+                           'unknown';
+
           const workResult = {
-            workType: selectedWork.type,
+            workType: workType,
             workDetails: result.details
           };
+
           await this.generateOpportunityRecord(workResult, earnedAmount);
         }
 
         return {
           workCompleted: true,
           verified: true,
-          workType: selectedWork.type,
+          workType: (selectedWork && selectedWork.type) ||
+                    typeByFunc.get(selectedWork.func) ||
+                    'unknown',
           earnedAmount: earnedAmount,
           timestamp: new Date(),
           taskType: 'data_work_completion',
@@ -155,10 +169,17 @@ class OpportunityScoutAgent extends BaseAgent {
         };
       } else {
         // Work not verified (failed or incomplete)
+        // Get the work type, with fallback to mapping from function
+        const workType = (selectedWork && selectedWork.type) ||
+                         typeByFunc.get(selectedWork.func) ||
+                         'unknown';
+
         return {
           workCompleted: false,
           verified: false,
-          workType: selectedWork.type,
+          workType: (selectedWork && selectedWork.type) ||
+                    typeByFunc.get(selectedWork.func) ||
+                    'unknown',
           earnedAmount: 0,
           timestamp: new Date(),
           taskType: 'data_work_attempt',
