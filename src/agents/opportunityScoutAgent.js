@@ -70,7 +70,7 @@ class OpportunityScoutAgent extends BaseAgent {
         if (verifiedWorkCount > 0) {
           this.updatePerformance({
             actionsTaken: this.performance.actionsTaken + verifiedWorkCount,
-            opportunitiesFound: this.percentage.opportunitiesFound + verifiedWorkCount,
+            opportunitiesFound: this.performance.opportunitiesFound + verifiedWorkCount,
             earnings: this.performance.earnings + totalEarned
           });
 
