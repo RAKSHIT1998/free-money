@@ -4,12 +4,24 @@ const { Config } = require('../../config/config');
 
 // Load configuration to get JWT secret
 const config = new Config();
-const JWT_SECRET = config.get('jwtSecret');
+const JWT_SECRET = config.get('jwtSecret') || process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 /**
  * Verify JWT token middleware
+ * Bypasses authentication in development mode for easier testing
  */
 const authenticateToken = (req, res, next) => {
+  // Skip authentication in development mode
+  if (process.env.NODE_ENV === 'development') {
+    // Attach a default user for development
+    req.user = {
+      id: 'dev-user-id',
+      username: 'dev-user',
+      role: 'admin'
+    };
+    return next();
+  }
+
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 

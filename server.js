@@ -75,37 +75,49 @@ app.use('*', (req, res) => {
 
 // Connect to MongoDB and start server
 const startServer = async () => {
-  try {
-    await mongoose.connect(configInstance.get('database.uri') || 'mongodb://localhost:27017/money-maker', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.error('Failed to connect to MongoDB:', error);
-    console.log('Continuing without MongoDB (using in-memory storage for opportunities)');
+  // Only connect to MongoDB if persistence is enabled
+  const persistenceEnabled = configInstance.get('agentManager.persistenceEnabled', true);
+  if (persistenceEnabled) {
+    try {
+      await mongoose.connect(configInstance.get('database.uri') || 'mongodb://localhost:27017/money-maker', {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log('Connected to MongoDB');
+    } catch (error) {
+      console.error('Failed to connect to MongoDB:', error);
+      console.log('Continuing without MongoDB (using in-memory storage for opportunities)');
+    }
+  } else {
+    console.log('MongoDB persistence disabled - using in-memory storage for opportunities');
   }
 
-  // Schedule automatic opportunity sync every 6 hours
-  cron.schedule('0 */6 * * *', async () => {
-    console.log('Running scheduled opportunity sync...');
-    try {
-      const opportunityService = require('./src/services/opportunityService');
-      const opportunities = await opportunityService.syncOpportunities();
-      console.log(`Scheduled sync completed: ${opportunities.length} opportunities synced`);
-    } catch (error) {
-      console.error('Error during scheduled opportunity sync:', error);
-    }
-  });
+  // Schedule automatic opportunity sync every 6 hours (only if persistence is enabled)
+  if (persistenceEnabled) {
+    cron.schedule('0 */6 * * *', async () => {
+      console.log('Running scheduled opportunity sync...');
+      try {
+        const opportunityService = require('./src/services/opportunityService');
+        const opportunities = await opportunityService.syncOpportunities();
+        console.log(`Scheduled sync completed: ${opportunities.length} opportunities synced`);
+      } catch (error) {
+        console.error('Error during scheduled opportunity sync:', error);
+      }
+    });
+  }
 
-  // Run initial sync on startup
-  console.log('Running initial opportunity sync...');
-  const opportunityService = require('./src/services/opportunityService');
-  opportunityService.syncOpportunities().then(result => {
-    console.log(`Initial sync completed: ${result.length} opportunities synced`);
-  }).catch(err => {
-    console.error('Error during initial sync:', err);
-  });
+  // Run initial sync on startup (only if persistence is enabled)
+  if (persistenceEnabled) {
+    console.log('Running initial opportunity sync...');
+    const opportunityService = require('./src/services/opportunityService');
+    opportunityService.syncOpportunities().then(result => {
+      console.log(`Initial sync completed: ${result.length} opportunities synced`);
+    }).catch(err => {
+      console.error('Error during initial sync:', err);
+    });
+  } else {
+    console.log('Skipping opportunity sync - persistence disabled');
+  }
 
   // Start the agent management system
   console.log('Starting agent management system...');

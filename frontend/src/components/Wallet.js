@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import './Wallet.css';
 
 const Wallet = () => {
   const [walletAddress, setWalletAddress] = useState('');
@@ -6,9 +7,12 @@ const Wallet = () => {
   const [transactionHistory, setTransactionHistory] = useState([]);
   const [isAddingFunds, setIsAddingFunds] = useState(false);
   const [amountToAdd, setAmountToAdd] = useState('');
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState(false);
+  const [networkStatus, setNetworkStatus] = useState('');
 
   // Sample transaction history (in a real app, this would come from backend)
-  const sampleTransactions = [
+  const sampleTransactions = useMemo(() => [
     {
       id: 1,
       type: 'deposit',
@@ -37,32 +41,139 @@ const Wallet = () => {
       timestamp: '2023-05-18T16:45:00Z',
       description: 'Withdrawal to external wallet'
     },
-  ];
+  ], []);
 
-  // Initialize wallet on mount
-  // In a real app, this would fetch from backend/local storage
-  // For demo, we'll use sample data
-  // useEffect(() => {
-  //   const loadWallet = async () => {
-  //     try {
-  //       // Fetch wallet data from backend
-  //     } catch (error) {
-  //       console.error('Failed to load wallet:', error);
-  //     }
-  //   };
-  //   loadWallet();
-  // }, []);
+  // Check if MetaMask is installed and initialize
+  useEffect(() => {
+    const checkMetaMask = async () => {
+      if (window.ethereum) {
+        setIsMetaMaskInstalled(true);
+        try {
+          // Check if accounts are already connected
+          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+            setWalletAddress(accounts[0]);
+            // Get network info
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            const networkNames = {
+              '0x1': 'Ethereum Mainnet',
+              '0x3': 'Ropsten Testnet',
+              '0x4': 'Rinkeby Testnet',
+              '0x5': 'Goerli Testnet',
+              '0x2a': 'Kovan Testnet',
+              '0x89': 'Polygon Mainnet'
+            };
+            setNetworkStatus(networkNames[chainId] || 'Unknown Network');
+          }
+        } catch (error) {
+          console.error('Error checking MetaMask accounts:', error);
+        }
+      } else {
+        setIsMetaMaskInstalled(false);
+      }
+    };
 
-  const handleGenerateWallet = () => {
-    // In a real app, this would generate a wallet address
-    // For demo, we'll generate a mock address
-    const mockAddress = '0x' + Math.random().toString(16).substr(2, 40);
-    setWalletAddress(mockAddress);
-    setBalance(0);
-    setTransactionHistory([]);
+    checkMetaMask();
+
+    // Listen for account changes
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+      return () => {
+        if (window.ethereum) {
+          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+          window.ethereum.removeListener('chainChanged', handleChainChanged);
+        }
+      };
+    }
+  }, []);
+
+  const handleAccountsChanged = async (accounts) => {
+    if (accounts.length > 0) {
+      setWalletAddress(accounts[0]);
+    } else {
+      setWalletAddress('');
+    }
   };
 
-  const handleAddFunds = async () => {
+  const handleChainChanged = async (chainId) => {
+    const networkNames = {
+      '0x1': 'Ethereum Mainnet',
+      '0x3': 'Ropsten Testnet',
+      '0x4': 'Rinkeby Testnet',
+      '0x5': 'Goerli Testnet',
+      '0x2a': 'Kovan Testnet',
+      '0x89': 'Polygon Mainnet'
+    };
+    setNetworkStatus(networkNames[chainId] || 'Unknown Network');
+  };
+
+  // Initialize wallet on mount
+  useEffect(() => {
+    // Load any existing transaction history from localStorage or backend
+    const loadWallet = async () => {
+      try {
+        // In a real app, this would fetch from backend
+        // For demo, we'll use sample data
+        setTransactionHistory(sampleTransactions);
+      } catch (error) {
+        console.error('Failed to load wallet:', error);
+        // Fallback to sample data
+        setTransactionHistory(sampleTransactions);
+      }
+    };
+
+    loadWallet();
+  }, []);
+
+  const handleConnectWallet = useCallback(async () => {
+    if (!window.ethereum) {
+      alert('MetaMask is not installed. Please install MetaMask to use this feature.');
+      return;
+    }
+
+    setIsConnecting(true);
+    try {
+      // Request account access
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      if (accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+
+        // Get network info
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        const networkNames = {
+          '0x1': 'Ethereum Mainnet',
+          '0x3': 'Ropsten Testnet',
+          '0x4': 'Rinkeby Testnet',
+          '0x5': 'Goerli Testnet',
+          '0x2a': 'Kovan Testnet',
+          '0x89': 'Polygon Mainnet'
+        };
+        setNetworkStatus(networkNames[chainId] || 'Unknown Network');
+      }
+    } catch (error) {
+      console.error('Failed to connect to MetaMask:', error);
+      alert('Failed to connect to MetaMask. Please try again.');
+    } finally {
+      setIsConnecting(false);
+    }
+  }, []);
+
+  const handleGenerateWallet = useCallback(() => {
+    // Fallback to mock wallet if MetaMask is not available
+    if (!window.ethereum) {
+      const mockAddress = '0x' + Math.random().toString(16).substr(2, 40);
+      setWalletAddress(mockAddress);
+      setBalance(0);
+      setTransactionHistory([]);
+      return;
+    }
+
+    // If MetaMask is available, connect to it
+    handleConnectWallet();
+  }, [handleConnectWallet]);
+
+  const handleAddFunds = useCallback(async () => {
     if (!amountToAdd || parseFloat(amountToAdd) <= 0) {
       alert('Please enter a valid amount');
       return;
@@ -92,9 +203,9 @@ const Wallet = () => {
     } finally {
       setIsAddingFunds(false);
     }
-  };
+  }, [amountToAdd]);
 
-  const handleWithdraw = async (amount) => {
+  const handleWithdraw = useCallback(async (amount) => {
     if (balance < amount) {
       alert('Insufficient funds');
       return;
@@ -118,17 +229,86 @@ const Wallet = () => {
       console.error('Failed to withdraw:', error);
       alert('Failed to withdraw. Please try again.');
     }
-  };
+  }, [balance]);
 
-  if (!walletAddress) {
+  // Memoize transaction history display for performance
+  const transactionItems = useMemo(() => {
+    return transactionHistory.length > 0 ? (
+      transactionHistory.map(tx => (
+        <div key={tx.id} className={`transaction-item ${tx.type} glass-effect p-3 mb-3`}>
+          <div className="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <span className={`badge bg-${tx.type === 'deposit' ? 'success' : tx.type === 'withdrawal' ? 'danger' : 'info'} me-2`}>
+                {tx.type === 'deposit' ? 'Deposit' : tx.type === 'withdrawal' ? 'Withdrawal' : 'Earning'}
+              </span>
+              <span className="text-muted">{tx.description}</span>
+            </div>
+            <div className="text-end">
+              {tx.type === 'deposit' ? (
+                `<span className="text-success">+$${tx.amount.toFixed(2)}</span>`
+              ) : tx.type === 'withdrawal' ? (
+                `<span className="text-danger">-$${Math.abs(tx.amount).toFixed(2)}</span>`
+              ) : (
+                `<span className="text-info">$${tx.amount.toFixed(2)}</span>`
+              )}
+            </div>
+          </div>
+          <div className="text-muted small">
+            {new Date(tx.timestamp).toLocaleString()}
+          </div>
+        </div>
+      ))
+    ) : (
+      <div className="text-center py-5">
+        <div className="fs-1 mb-3">💰</div>
+        <p className="text-muted mb-0">No transactions yet. Start earning with your agents to see transactions here.</p>
+      </div>
+    );
+  }, [transactionHistory]);
+
+  if (!walletAddress && !isConnecting) {
     return (
       <div className="wallet-container">
-        <div className="wallet-card">
-          <h2>Wallet</h2>
-          <p>Your secure cryptocurrency wallet for storing earnings from the multi-agent system.</p>
-          <button className="btn-primary" onClick={handleGenerateWallet}>
-            Create Wallet
-          </button>
+        <div className="row justify-content-center">
+          <div className="col-md-8 col-lg-6">
+            <div className="card glass-effect border-0 shadow-lg h-100">
+              <div className="card-body p-5 text-center">
+                <div className="mb-4">
+                  {(isMetaMaskInstalled ? (
+                    <div className="p-3 bg-success bg-opacity-10 rounded-3">
+                      <i className="bi bi-wallet2 fs-1 text-success mb-3 d-block"></i>
+                      <h5 className="fw-bold">MetaMask Detected</h5>
+                      <p className="mb-0">Connect your wallet to start earning</p>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-warning bg-opacity-10 rounded-3">
+                      <i className="bi bi-exclamation-triangle fs-1 text-warning mb-3 d-block"></i>
+                      <h5 className="fw-bold">MetaMask Not Detected</h5>
+                      <p className="mb-0">
+                        Please install <a href="https://metamask.io/" target="_blank" rel="noreferrer" className="text-decoration-underline">MetaMask</a> to use this feature
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {!isMetaMaskInstalled ? (
+                  <button
+                    onClick={handleGenerateWallet}
+                    className="btn btn-outline-primary w-100 mb-3"
+                  >
+                    Use Demo Wallet (Mock)
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleConnectWallet}
+                    disabled={isConnecting}
+                    className="btn btn-primary w-100"
+                  >
+                    {isConnecting ? 'Connecting...' : 'Connect MetaMask'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -136,94 +316,106 @@ const Wallet = () => {
 
   return (
     <div className="wallet-container">
-      <div className="wallet-header">
-        <h2>My Wallet</h2>
-        <div className="wallet-actions">
-          <button className="btn-secondary" onClick={handleGenerateWallet}>
-            Create New Wallet
-          </button>
-        </div>
-      </div>
-
-      <div className="wallet-balance">
-        <div className="balance-title">Wallet Balance</div>
-        <div className="balance-amount">${balance.toFixed(2)}</div>
-        <div className="wallet-address">
-          <span>Address: {walletAddress}</span>
-          {/* In a real app, you'd have a copy to clipboard button here */}
-        </div>
-      </div>
-
-      <div className="wallet-section">
-        <h3>Add Funds</h3>
-        <form className="add-funds-form" onSubmit={(e) => {
-          e.preventDefault();
-          handleAddFunds();
-        }}>
-          <div className="form-group">
-            <label htmlFor="amount">Amount ($)</label>
-            <input
-              type="number"
-              id="amount"
-              value={amountToAdd}
-              onChange={(e) => setAmountToAdd(e.target.value)}
-              placeholder="Enter amount to add"
-              min="0.01"
-              step="0.01"
-              required
-              disabled={isAddingFunds}
-            />
+      <div className="mb-4">
+        <h2 className="fw-bold">My Wallet <span className="text-muted">(Connected Wallet)</span></h2>
+        {walletAddress && (
+          <div className="d-flex justify-content-between align-items-center mt-2">
+            <span className="badge bg-primary bg-opacity-10 text-primary py-2 px-3 rounded-pill">
+              Address: {walletAddress.substring(0, 6)}...{walletAddress.slice(-4)}
+            </span>
+            {networkStatus && (
+              <span className="badge bg-info bg-opacity-10 text-info py-2 px-3 rounded-pill ms-2">
+                {networkStatus}
+              </span>
+            )}
           </div>
-          <button
-            type="submit"
-            className="btn-primary"
-            disabled={isAddingFunds || !amountToAdd || parseFloat(amountToAdd) <= 0}
-          >
-            {isAddingFunds ? 'Adding...' : 'Add Funds'}
-          </button>
-        </form>
-      </div>
-
-      <div className="wallet-section">
-        <h3>Transaction History</h3>
-        {transactionHistory.length > 0 ? (
-          <div className="transaction-list">
-            {transactionHistory.map(tx => (
-              <div key={tx.id} className={`transaction-item ${tx.type}`}>
-                <div className="transaction-info">
-                  <span className="transaction-type">
-                    {tx.type === 'deposit' ? 'Deposit' : tx.type === 'withdrawal' ? 'Withdrawal' : 'Earning'}
-                  </span>
-                  <span className="transaction-description">{tx.description}</span>
-                </div>
-                <div className="transaction-amount">
-                  {tx.type === 'deposit' ? `+$${tx.amount.toFixed(2)}` :
-                   tx.type === 'withdrawal' ? `-$${Math.abs(tx.amount).toFixed(2)}` :
-                   `$${tx.amount.toFixed(2)}`}
-                </div>
-                <div className="transaction-time">
-                  {new Date(tx.timestamp).toLocaleString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="empty-state">No transactions yet. Start earning with your agents to see transactions here.</p>
         )}
       </div>
 
-      <div className="wallet-section">
-        <h3>Quick Actions</h3>
-        <div className="quick-actions">
-          <button className="btn-outline" onClick={() => handleWithdraw(25)}>
-            Withdraw $25
-          </button>
-          <button className="btn-outline" onClick={() => handleWithdraw(50)}>
-            Withdraw $50
-          </button>
-          <button className="btn-outline" onClick={() => handleWithdraw(100)}>
-            Withdraw $100
-          </button>
+      <div className="row g-4">
+        {/* Wallet Balance Card */}
+        <div className="col-md-4">
+          <div className="card glass-effect border-0 shadow-lg h-100">
+            <div className="card-body p-4">
+              <h5 className="card-title mb-3">Wallet Balance</h5>
+              <div className="display-4 fw-bold mb-3">
+                ${balance.toFixed(2)}
+              </div>
+              <div className="d-flex justify-content-between">
+                <button
+                  onClick={() => handleWithdraw(25)}
+                  className="btn btn-outline-success me-2"
+                >
+                  -$25
+                </button>
+                <button
+                  onClick={() => handleWithdraw(50)}
+                  className="btn btn-outline-danger me-2"
+                >
+                  -$50
+                </button>
+                <button
+                  onClick={() => handleWithdraw(100)}
+                  className="btn btn-outline-danger"
+                >
+                  -$100
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Add Funds Card */}
+        <div className="col-md-4">
+          <div className="card glass-effect border-0 shadow-lg h-100">
+            <div className="card-body p-4">
+              <h5 className="card-title mb-3">Add Funds</h5>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                handleAddFunds();
+              }} className="needs-validation" noValidate>
+                <div className="mb-3">
+                  <label className="form-label">Amount ($)</label>
+                  <div className="input-group">
+                    <span className="input-group-text">$</span>
+                    <input
+                      type="number"
+                      className="form-control"
+                      value={amountToAdd}
+                      onChange={(e) => setAmountToAdd(e.target.value)}
+                      placeholder="Enter amount"
+                      min="0.01"
+                      step="0.01"
+                      required
+                      disabled={isAddingFunds}
+                    />
+                  </div>
+                  <div className="invalid-feedback">
+                    Please enter a valid amount.
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  className="btn btn-primary w-100"
+                  disabled={isAddingFunds || !amountToAdd || parseFloat(amountToAdd) <= 0}
+                >
+                  {isAddingFunds ? 'Adding...' : 'Add Funds'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {/* Transaction History Card */}
+        <div className="col-md-4">
+          <div className="card glass-effect border-0 shadow-lg h-100">
+            <div className="card-body p-4">
+              <h5 className="card-title mb-3">Recent Transactions</h5>
+              <div className="transaction-history">
+                {transactionItems}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

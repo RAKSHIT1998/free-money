@@ -24,6 +24,9 @@ class Config {
         }
       },
 
+      // JWT Configuration
+      jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+
       // Agent Manager Settings
       agentManager: {
         maxConcurrent: parseInt(process.env.MAX_CONCURRENT) || 50,
@@ -82,8 +85,8 @@ class Config {
 
       // System Limits
       limits: {
-        maxEarningsPerAgentPerHour: parseFloat(process.env.MAX_EARNINGS_PER_HOUR) || 10000,
-        maxOpportunitiesPerAgentPerHour: parseInt(process.env.MAX_OPPORTUNITIES_PER_HOUR) || 100,
+        maxEarningsPerAgentPerHour: parseFloat(process.env.MAX_EARNINGS_PER_AGENT_PER_HOUR) || 10000,
+        maxOpportunitiesPerAgentPerHour: parseInt(process.env.MAX_OPPORTUNITIES_PER_AGENT_PER_HOUR) || 100,
         minAgentLifetime: parseInt(process.env.MIN_AGENT_LIFETIME) || 60000
       },
 

@@ -1,1 +1,6 @@
 server.log
+node_modules/
+# Large executables
+fixed-free-money-app.exe
+free-money-app.exe
+src/agents/agentManager.js.bak
