@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import './Wallet.css';
 
 const Wallet = () => {
   const [walletAddress, setWalletAddress] = useState('');
