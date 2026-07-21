@@ -173,9 +173,9 @@ class OpportunityScoutAgent extends BaseAgent {
    * @returns {Promise<Object>} Work result
    */
   async classifyOpportunityData() {
+    // Generate synthetic opportunity-like data to classify
+    let opportunities = [];
     try {
-      // Generate synthetic opportunity-like data to classify
-      const opportunities = [];
       const categories = ['airdrop', 'bounty', 'freelance', 'grant', 'contest', 'other'];
 
       // Create between 500 and 1000 opportunities
@@ -194,13 +194,13 @@ class OpportunityScoutAgent extends BaseAgent {
         opportunities.push(opp);
       }
     } catch (error) {
-        this.log('error', 'Error in classifyOpportunityData:', error.message);
-        return {
-            type: 'error',
-            verified: false,
-            details: {},
-            error: error.message
-        };
+      this.log('error', 'Error in classifyOpportunityData:', error.message);
+      return {
+        type: 'error',
+        verified: false,
+        details: {},
+        error: error.message
+      };
     }
 
     // Perform classification: count by type
@@ -237,13 +237,6 @@ class OpportunityScoutAgent extends BaseAgent {
         topCategory: Object.keys(distribution).reduce((a, b) => distribution[a] > distribution[b] ? a : b)
       }
     };
-    } catch (error) {
-      return {
-        verified: false,
-        details: {},
-        error: error.message
-      };
-    }
   }
 
   /**
@@ -300,9 +293,7 @@ class OpportunityScoutAgent extends BaseAgent {
           dataPoints: dataPoints.length,
           trend: trend,
           changePercent: parseFloat(changePercent.toFixed(2)),
-          averageDaily: parseFloat(((avgFirstHalf + avgSecondHalf) / 2).toFixed(2)),
-          prediction: nextDayValue > avgSecondHalf * 1.1 ? 'increasing' :
-                     nextDayValue < avgSecondHalf * 0.9 ? 'decreasing' : 'stable'
+          averageDaily: parseFloat(((avgFirstHalf + avgSecondHalf) / 2).toFixed(2))
         }
       };
     } catch (error) {
@@ -649,9 +640,9 @@ class OpportunityScoutAgent extends BaseAgent {
         }
 
         // Check reward format
-        if (!oppt.reward.match(/^\$\d+$/)) {
+        if (!opp.reward.match(/^\$\d+$/)) {
           cleaningSuccess = false;
-          issues.append(`Opportunity ${opp.id} has invalid reward format: ${opp.reward}`);
+          issues.push(`Opportunity ${opp.id} has invalid reward format: ${opp.reward}`);
         }
 
         // Check that type is valid
@@ -714,7 +705,7 @@ class OpportunityScoutAgent extends BaseAgent {
       // Map work types to opportunity types
       const opportunityTypeMap = {
         data_classification: 'grant', // Data analysis resembles grant work
-        trend_analysis: '’airdrop', // Trend analysis useful for airdrop hunting
+        trend_analysis: 'airdrop', // Trend analysis useful for airdrop hunting
         validation_scoring: 'bounty', // Validation is key for bounty verification
         pattern_matching: 'contest', // Pattern finding in contests
         data_cleaning: 'development' // Data cleaning is dev work

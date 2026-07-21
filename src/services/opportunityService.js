@@ -1,15 +1,10 @@
 // Opportunity service with MongoDB persistence or in-memory fallback
-<<<<<<< HEAD
-=======
-const mongoose = require('mongoose');
-const Opportunity = require('../models/Opportunity');
->>>>>>> 4003e6a7854675a9ed11aed44d30be94c136ccbe
+
 const { Config } = require('../config/config');
 
 // Load configuration
 const configInstance = new Config();
 const persistenceEnabled = configInstance.get('agentManager.persistenceEnabled', true);
-<<<<<<< HEAD
 
 let mongoose;
 let Opportunity;
@@ -18,8 +13,6 @@ if (persistenceEnabled) {
   mongoose = require('mongoose');
   Opportunity = require('../models/Opportunity');
 }
-=======
->>>>>>> 4003e6a7854675a9ed11aed44d30be94c136ccbe
 
 class OpportunityService {
   constructor() {
@@ -426,11 +419,7 @@ class OpportunityService {
 
           const msPerDay = 1000 * 60 * 60 * 24;
           const daysOld = (new Date() - new Date(oldestOpportunity.postedAt)) / msPerDay;
-<<<<<<< HEAD
           opportunitiesPerDay = daysOld > 0 ? totalOpportunities / daysOld : totalOpportunities;
-=======
-          opportunitiesPerDay = daysOld > 0 ? totalOpportunities / daysTotal : totalOpportunity;
->>>>>>> 4003e6a7854675a9ed11aed44d30be94c136ccbe
         }
 
         return {
