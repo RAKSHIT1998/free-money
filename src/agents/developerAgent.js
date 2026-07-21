@@ -236,7 +236,12 @@ class DeveloperAgent extends BaseAgent {
           workId,
           inputSize: datasetSize,
           outputSize: processed.length,
-          metrics: { total: Number(total.toFixed(2)), average: Number(average.toFixed(2)), max: Number(max.toFixed(2)), min: Number(min.toFixed(2)) }
+          metrics: {
+            total: Number(total.toFixed(2)),
+            average: Number(average.toFixed(2)),
+            max: Number(max.toFixed(2)),
+            min: Number(min.toFixed(2))
+          }
         }
       };
     } catch (error) {
@@ -373,11 +378,11 @@ class DeveloperAgent extends BaseAgent {
       const pointsEvaluated = [];
 
       for (let i = 0; i < attempts; i++) {
-        # Random search in reasonable bounds
-        const x = Math.random() * 20 - 10; # -10 to 10
-        const y = Math.random() * 20 - 10; # -10 to 10
+        // Random search in reasonable bounds
+        const x = Math.random() * 20 - 10; // -10 to 10
+        const y = Math.random() * 20 - 10; // -10 to 10
 
-        # Calculate function value
+        // Calculate function value
         const value = Math.pow(x - 5, 2) + Math.pow(y - 3, 2) + Math.sin(x) * Math.cos(y);
 
         pointsEvaluated.push({ x, y, value });
@@ -389,11 +394,11 @@ class DeveloperAgent extends BaseAgent {
         }
       }
 
-      # Calculate how close we got to the true minimum (approximately at (5,3))
+      // Calculate how close we got to the true minimum (approximately at (5,3))
       const distanceToMinimum = Math.sqrt(Math.pow(bestX - 5, 2) + Math.pow(bestY - 3, 2));
-      const qualityScore = Math.max(0, 1 - distanceToMinimum / 10); # Closer = higher score
+      const qualityScore = Math.max(0, 1 - distanceToMinimum / 10); // Closer = higher score
 
-      # Store result
+      // Store result
       const workId = crypto.randomBytes(4).toString('hex');
       this.completedWork.push({
         id: workId,
@@ -407,7 +412,7 @@ class DeveloperAgent extends BaseAgent {
       });
 
       return {
-        verified: qualityScore > 0.5, # Verified if we got reasonably close to optimum
+        verified: qualityScore > 0.5, // Verified if we got reasonably close to optimum
         details: {
           workId,
           attempts,
@@ -433,18 +438,18 @@ class DeveloperAgent extends BaseAgent {
    */
   async verificationTask() {
     try {
-      # Create a simple mathematical verification problem
-      # Verify if a number is prime using a basic algorithm
+      // Create a simple mathematical verification problem
+      // Verify if a number is prime using a basic algorithm
 
       const testNumbers = [];
       const verificationResults = [];
 
-      # Generate 20 random numbers to test (between 10 and 1000)
+      // Generate 20 random numbers to test (between 10 and 1000)
       for (let i = 0; i < 20; i++) {
-        const num = Math.floor(Math.random() * 990) + 10; # 10-999
+        const num = Math.floor(Math.random() * 990) + 10; // 10-999
         testNumbers.push(num);
 
-        # Simple primality test
+        // Simple primality test
         let isPrime = true;
         if (num < 2) isPrime = false;
         else if (num === 2) isPrime = true;
@@ -461,14 +466,14 @@ class DeveloperAgent extends BaseAgent {
         verificationResults.push({ number: num, isPrime });
       }
 
-      # Verify our results by checking against known primes or doing a more thorough check
-      # For simplicity, we'll just recount using a slightly different method and see if we match
+      // Verify our results by checking against known primes or doing a more thorough check
+      // For simplicity, we'll just recount using a slightly different method and see if we match
       let correctCount = 0;
 
       for (const result of verificationResults) {
         const num = result.number;
 
-        # Alternative primality check (trial division up to sqrt)
+        // Alternative primality check (trial division up to sqrt)
         let altIsPrime = true;
         if (num < 2) altIsPrime = false;
         else if (num === 2) altIsPrime = true;
@@ -490,7 +495,7 @@ class DeveloperAgent extends BaseAgent {
 
       const accuracy = correctCount / verificationResults.length;
 
-      # Store result
+      // Store result
       const workId = crypto.randomBytes(4).toString('hex');
       this.completedWork.push({
         id: workId,
@@ -502,7 +507,7 @@ class DeveloperAgent extends BaseAgent {
       });
 
       return {
-        verified: accuracy > 0.8, # Verified if we were accurate in most cases
+        verified: accuracy > 0.8, // Verified if we were accurate in most cases
         details: {
           workId,
           numbersTested: verificationResults.length,
@@ -529,7 +534,7 @@ class DeveloperAgent extends BaseAgent {
    */
   async generateOpportunityRecord(workResult, earnedAmount) {
     try {
-      # Map work types to opportunity types
+      // Map work types to opportunity types
       const opportunityTypeMap = {
         data_processing: 'freelance',
         pattern_recognition: 'grant',
@@ -539,7 +544,7 @@ class DeveloperAgent extends BaseAgent {
 
       const oppType = opportunityTypeMap[workResult.type] || 'freelance';
 
-      # Create a realistic opportunity based on the actual work performed
+      // Create a realistic opportunity based on the actual work performed
       const opportunity = {
         title: `Completed ${workResult.type.replace('_', ' ')} task - ${workResult.details.workId.substring(0, 8)}`,
         description: `Successfully completed a verifiable ${workResult.type.replace('_', ' ')} task. ` +
@@ -552,7 +557,7 @@ class DeveloperAgent extends BaseAgent {
         tags: [workResult.type, 'verifiable_work', 'completed']
       };
 
-      # Add to opportunity service for tracking
+      // Add to opportunity service for tracking
       await this.opportunityService.addOpportunity(opportunity);
 
       this.log('info', `Generated opportunity record for completed work: ${workResult.type}`);
@@ -580,7 +585,7 @@ class DeveloperAgent extends BaseAgent {
    */
   async cleanup() {
     this.log('info', 'Cleaning up developer agent');
-    # In a real implementation, we might save work history, etc.
+    // In a real implementation, we might save work history, etc.
   }
 }
 
