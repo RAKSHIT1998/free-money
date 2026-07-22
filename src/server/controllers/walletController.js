@@ -1,5 +1,5 @@
 // Wallet controller for handling wallet operations
-const Wallet = require('../models/Wallet');
+const Wallet = require('../../models/Wallet');
 
 /**
  * Get wallet balance and info for device/user
@@ -71,9 +71,6 @@ exports.deposit = async (req, res) => {
       message: 'Funds deposited successfully',
       data: wallet
     });
-
-            error
-        });
   } catch (error) {
     res.status(500).json({
       success: false,

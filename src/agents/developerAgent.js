@@ -3,6 +3,7 @@ const BaseAgent = require('./baseAgent');
 const OpportunityService = require('../services/opportunityService');
 const LocalLLMService = require('../services/localLLMService');
 const crypto = require('crypto');
+const walletService = require('../services/walletService');
 
 class DeveloperAgent extends BaseAgent {
   constructor(options = {}) {
@@ -98,6 +99,18 @@ class DeveloperAgent extends BaseAgent {
         const baseRate = 5.0; // $5 per unit of work
         const difficultyMultiplier = this.config.workDifficulty;
         const earnedAmount = baseRate * difficultyMultiplier;
+
+        // Credit the wallet for this verified work
+        try {
+          await walletService.addEarnings(
+            earnedAmount,
+            `Earned from ${workResult.type} work`,
+            undefined, // opportunityId - we don't have one here unless we generate an opportunity
+            this.id // agentId
+          );
+        } catch (walletError) {
+          this.log('error', `Failed to credit wallet for work: ${walletError.message}`);
+        }
 
         // Optionally, we could still generate an opportunity record for tracking
         // but now it's based on REAL work, not simulation

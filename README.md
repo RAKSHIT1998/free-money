@@ -85,10 +85,12 @@ src/
 │   └── agentManager.js      # Central agent coordination
 ├── services/         # Business logic
 │   ├── opportunityService.js      # Opportunity management
+│   ├── walletService.js           # Wallet operations (earnings, deposits, withdrawals)
 │   └── localLLMService.js         # Optional LLM enhancement
 ├── models/           # Database models
 │   ├── Agent.js
-│   └── Opportunity.js
+│   ├── Opportunity.js
+│   └── Wallet.js     # Wallet balance and transaction tracking
 ├── server/           # API layer
 │   ├── controllers/  # Request handlers
 │   ├── middleware/   # Custom middleware (auth)
@@ -100,7 +102,7 @@ src/
 
 ## 💰 Wallet System
 
-The wallet system allows users to collect earnings from agents, deposit funds, and withdraw to external wallets.
+The wallet system allows users to collect earnings from agents, deposit funds, and withdraw to external wallets. It's fully integrated with the agent system, automatically crediting agents' earnings when they complete verifiable work.
 
 ### Wallet Endpoints (Requires Auth)
 
@@ -109,7 +111,75 @@ The wallet system allows users to collect earnings from agents, deposit funds, a
 - `POST /api/wallet/withdraw` - Remove funds from wallet
 - `POST /api/wallet/earnings` - (Used internally by agents) Add earnings from completed work
 
-The wallet is tied to a unique device ID generated at startup (stored in `.device-id`). Earnings from agents are automatically deposited when they complete verifiable work.
+### How It Works
+
+1. **Device Identification**: On startup, the system generates a unique device ID (stored in `.device-id` file) combining hostname, random string, and timestamp. This ID serves as the wallet owner identifier.
+
+2. **Automatic Earnings**: When agents complete verifiable work (cryptographic computations, signature validations, etc.), they automatically call the wallet service to deposit earnings:
+   - Crypto Hunter agents earn for hash verification work
+   - Opportunity Scout agents earn for data validation tasks  
+   - Developer agents earn for completing micro-tasks
+   - Manager agents don't earn directly but oversee the system
+
+3. **Transaction Tracking**: All wallet transactions (deposits, withdrawals, earnings) are recorded with:
+   - Transaction type (deposit, withdrawal, earning)
+   - Amount
+   - Description
+   - Timestamp
+   - Optional references to related opportunities/agents
+
+4. **Manual Operations**: Users can manually add or withdraw funds via the API endpoints for flexibility.
+
+### Wallet Model Structure
+
+```javascript
+{
+  userId: String (device ID),
+  balance: Number (current balance),
+  transactions: [{
+    type: String (deposit|withdrawal|earning),
+    amount: Number,
+    description: String,
+    opportunityId: ObjectId (optional),
+    agentId: ObjectId (optional),
+    timestamp: Date
+  }]
+}
+```
+
+### Integration with Agents
+
+Agents automatically credit the wallet when work is verified:
+- After completing a work cycle, agents calculate earnings based on work performed
+- They call `walletService.addEarnings()` with:
+  - Amount earned
+  - Description of work type
+  - Opportunity ID (if applicable)
+  - Agent ID
+- The wallet service creates an earning transaction and updates the balance
+
+### Usage Examples
+
+**Check wallet balance:**
+```bash
+curl -H "Authorization: Bearer <jwt_token>" http://localhost:5000/api/wallet
+```
+
+**Add funds manually:**
+```bash
+curl -X POST -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 10.50, "description": "Bonus reward"}' \
+  http://localhost:5000/api/wallet/deposit
+```
+
+**Withdraw funds:**
+```bash
+curl -X POST -H "Authorization: Bearer <jwt_token>" \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 5.00, "description": "Withdraw to external wallet"}' \
+  http://localhost:5000/api/wallet/withdraw
+```
 
 ## 🤖 How It Works
 

@@ -70,7 +70,7 @@ app.use(limiter);
 // Routes
 app.use('/api/auth', require('./src/server/routes/authRoutes'));
 app.use('/api/opportunities', require('./src/server/middleware/auth').authenticateToken, require('./src/server/routes/opportunityRoutes'));
-app.use('/api/agents', require('./src/server/routes/middleware/auth').authenticateToken, require('./src/server/routes/agentRoutes'));
+app.use('/api/agents', require('./src/server/middleware/auth').authenticateToken, require('./src/server/routes/agentRoutes'));
 app.use('/api/wallet', require('./src/server/routes/walletRoutes'));
 
 // Health check endpoint
@@ -100,7 +100,8 @@ app.use('*', (req, res) => {
 // Start server
 const startServer = async () => {
   // Load configuration
-  const configInstance = require('./src/config/config').Config;
+  const Config = require('./src/config/config').Config;
+  const configInstance = new Config();
 
   // Only connect to MongoDB if persistence is enabled
   const persistenceEnabled = configInstance.get('agentManager.persistenceEnabled', true);
