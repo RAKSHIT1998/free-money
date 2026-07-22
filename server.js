@@ -11,12 +11,6 @@ const cron = require('node-cron');
 // Load environment variables first
 dotenv.config();
 
-const authRoutes = require('./src/server/routes/authRoutes');
-const opportunityRoutes = require('./src/server/routes/opportunityRoutes');
-const agentRoutes = require('./src/server/routes/agentRoutes');
-const authMiddleware = require('./src/server/middleware/auth');
-const { Config } = require('./src/config/config');
-
 // Load environment variables
 dotenv.config();
 
@@ -44,9 +38,10 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/opportunities', authMiddleware.authenticateToken, opportunityRoutes);
-app.use('/api/agents', authMiddleware.authenticateToken, agentRoutes);
+app.use('/api/auth', require('./src/server/routes/authRoutes'));
+app.use('/api/opportunities', require('./src/server/middleware/auth').authenticateToken, require('./src/server/routes/opportunityRoutes'));
+app.use('/api/agents', require('./src/server/routes/middleware/auth').authenticateToken, require('./src/server/routes/agentRoutes'));
+app.use('/api/wallet', require('./src/server/routes/walletRoutes'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -75,7 +70,7 @@ app.use('*', (req, res) => {
 // Start server
 const startServer = async () => {
   // Load configuration
-  const configInstance = new Config();
+  const configInstance = require('./src/config/config').Config;
 
   // Only connect to MongoDB if persistence is enabled
   const persistenceEnabled = configInstance.get('agentManager.persistenceEnabled', true);
