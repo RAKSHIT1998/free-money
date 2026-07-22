@@ -3,6 +3,7 @@ const BaseAgent = require('./baseAgent');
 const OpportunityService = require('../services/opportunityService');
 const LocalLLMService = require('../services/localLLMService');
 const crypto = require('crypto');
+const walletService = require('../services/walletService');
 
 class CryptoHunterAgent extends BaseAgent {
   constructor(options = {}) {
@@ -64,6 +65,18 @@ class CryptoHunterAgent extends BaseAgent {
           if (result && result.workCompleted && result.verified) {
             totalEarned += result.earnedAmount || 0;
             verifiedWorkCount++;
+
+            // Credit the wallet for this verified work
+            try {
+              await walletService.addEarnings(
+                result.earnedAmount || 0,
+                `Earned from ${result.workType} work`,
+                undefined, // opportunityId - we don't have one here unless we generate an opportunity
+                this.id // agentId
+              );
+            } catch (walletError) {
+              this.log('error', `Failed to credit wallet for work: ${walletError.message}`);
+            }
           }
         }
 

@@ -2,16 +2,17 @@
 const Wallet = require('../models/Wallet');
 
 /**
- * Get wallet balance and info for demo user
+ * Get wallet balance and info for device/user
  */
 exports.getWallet = async (req, res) => {
   try {
-    // For demo, we use a fixed userId
-    let wallet = await Wallet.findOne({ userId: 'demo-user' });
+    // Use device ID from env (set in server.js) or fallback to demo user
+    const userId = process.env.DEVICE_ID || 'demo-user';
+    let wallet = await Wallet.findOne({ userId });
 
     // If wallet doesn't exist, create a default one
     if (!wallet) {
-      wallet = new Wallet({ userId: 'demo-user' });
+      wallet = new Wallet({ userId });
       await wallet.save();
     }
 
@@ -43,11 +44,12 @@ exports.deposit = async (req, res) => {
       });
     }
 
-    let wallet = await Wallet.findOne({ userId: 'demo-user' });
+    const userId = process.env.DEVICE_ID || 'demo-user';
+    let wallet = await Wallet.findOne({ userId });
 
     // If wallet doesn't exist, create it
     if (!wallet) {
-      wallet = new Wallet({ userId: 'demo-user' });
+      wallet = new Wallet({ userId });
     }
 
     // Create transaction record
@@ -69,6 +71,9 @@ exports.deposit = async (req, res) => {
       message: 'Funds deposited successfully',
       data: wallet
     });
+
+            error
+        });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -93,7 +98,8 @@ exports.withdraw = async (req, res) => {
       });
     }
 
-    let wallet = await Wallet.findOne({ userId: 'demo-user' });
+    const userId = process.env.DEVICE_ID || 'demo-user';
+    let wallet = await Wallet.findOne({ userId });
 
     // If wallet doesn't exist or has insufficient balance
     if (!wallet || wallet.balance < amount) {
@@ -136,7 +142,8 @@ exports.withdraw = async (req, res) => {
  */
 exports.getTransactions = async (req, res) => {
   try {
-    const wallet = await Wallet.findOne({ userId: 'demo-user' });
+    const userId = process.env.DEVICE_ID || 'demo-user';
+    const wallet = await Wallet.findOne({ userId });
 
     if (!wallet) {
       return res.status(200).json({
@@ -178,11 +185,12 @@ exports.addEarnings = async (req, res) => {
       });
     }
 
-    let wallet = await Wallet.findOne({ userId: 'demo-user' });
+    const userId = process.env.DEVICE_ID || 'demo-user';
+    let wallet = await Wallet.findOne({ userId });
 
     // If wallet doesn't exist, create it
     if (!wallet) {
-      wallet = new Wallet({ userId: 'demo-user' });
+      wallet = new Wallet({ userId });
     }
 
     // Create transaction record

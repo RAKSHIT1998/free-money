@@ -7,16 +7,46 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 // Load environment variables first
 dotenv.config();
 
-// Load environment variables
-dotenv.config();
+// Load environment variables (duplicate line removed)
+// dotenv.config();
+
+// Function to get or generate a unique device ID
+function getOrCreateDeviceId() {
+  const idFile = path.join(process.cwd(), '.device-id');
+  let deviceId;
+  try {
+    if (fs.existsSync(idFile)) {
+      deviceId = fs.readFileSync(idFile, 'utf8').trim();
+    } else {
+      // Generate a semi-unique ID: hostname + random + timestamp
+      const hostname = os.hostname().replace(/[^a-z0-9]/gi, '-').toLowerCase();
+      const random = Math.random().toString(36).substring(2, 9);
+      const timestamp = Date.now().toString(36);
+      deviceId = `${hostname}-${random}-${timestamp}`;
+      fs.writeFileSync(idFile, deviceId, { encoding: 'utf8' });
+    }
+  } catch (err) {
+    console.warn('Could not read/write device ID file, falling back to random ID:', err);
+    deviceId = `dev-${Math.random().toString(36).substring(2, 15)}-${Date.now()}`;
+  }
+  return deviceId;
+}
 
 // Initialize express app
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Generate/set device ID early so it's available throughout the app
+const DEVICE_ID = getOrCreateDeviceId();
+process.env.DEVICE_ID = DEVICE_ID;
+console.log(`Device ID: ${DEVICE_ID}`);
 
 // Middleware setup
 app.use(cors({

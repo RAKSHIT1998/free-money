@@ -3,6 +3,7 @@ const BaseAgent = require('./baseAgent');
 const OpportunityService = require('../services/opportunityService');
 const LocalLLMService = require('../services/localLLMService');
 const crypto = require('crypto');
+const walletService = require('../services/walletService');
 
 class OpportunityScoutAgent extends BaseAgent {
   constructor(options = {}) {
@@ -124,7 +125,7 @@ class OpportunityScoutAgent extends BaseAgent {
 
       if (availableTypes.length === 0) {
         // Fallback to all types if none configured
-        availablePoints.push(...workTypes);
+        availableTypes.push(...workTypes);
       }
 
       // Select work type randomly
@@ -139,6 +140,18 @@ class OpportunityScoutAgent extends BaseAgent {
         const baseRate = 2.5; // $2.50 per verified work unit (slightly lower)
         const difficultyMultiplier = this.config.workDifficulty;
         const earnedAmount = baseRate * difficultyMultiplier;
+
+        // Credit the wallet for this verified work
+        try {
+          await walletService.addEarnings(
+            earnedAmount,
+            `Earned from ${result.workType} work`,
+            undefined, // opportunityId - we don't have one here unless we generate an opportunity
+            this.id // agentId
+          );
+        } catch (walletError) {
+          this.log('error', `Failed to credit wallet for work: ${walletError.message}`);
+        }
 
         // Optionally, we could still generate an opportunity record for tracking
         // but now it's based on REAL work, not simulation
