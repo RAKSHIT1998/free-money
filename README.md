@@ -98,6 +98,19 @@ src/
 └── utils/            # Utility functions
 ```
 
+## 💰 Wallet System
+
+The wallet system allows users to collect earnings from agents, deposit funds, and withdraw to external wallets.
+
+### Wallet Endpoints (Requires Auth)
+
+- `GET /api/wallet` - Get wallet balance and transaction history
+- `POST /api/wallet/deposit` - Add funds to wallet
+- `POST /api/wallet/withdraw` - Remove funds from wallet
+- `POST /api/wallet/earnings` - (Used internally by agents) Add earnings from completed work
+
+The wallet is tied to a unique device ID generated at startup (stored in `.device-id`). Earnings from agents are automatically deposited when they complete verifiable work.
+
 ## 🤖 How It Works
 
 ### Agent Types
@@ -163,6 +176,7 @@ Earnings are based on real computational work completed, not random generation.
 - ✅ **Security best practices** (Helmet, CORS, rate limiting)
 - ✅ **Optional LLM integration** for enhanced, varied content generation (zero cost with local models)
 - ✅ **Comprehensive test suite**
+- ✅ **Integrated wallet system** for collecting agent earnings
 
 ## 🐳 Running with Docker (Optional)
 
