@@ -191,7 +191,7 @@ const Agent3DVisualization = () => {
 };
 
 // Optimized AgentNode component with React.memo
-const AgentNode = React.memo(({ position, color, size, pulse }) => {
+const AgentNode = React.memo(({ position, color, size, pulse, label }) => {
   const pulseRef = React.useRef(0);
 
   React.useEffect(() => {

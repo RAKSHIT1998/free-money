@@ -105,7 +105,7 @@ class ManagerAgent extends BaseAgent {
           agent,
           score: this.calculatePerformanceScore(agent)
         }))
-        .sort((a, b) => b.score - a.score); // Descending order (best first))
+        .sort((a, b) => b.score - a.score); // Descending order (best first)
 
       // Apply survival logic
       await this.applySurvivalLogic(evaluatedAgents);

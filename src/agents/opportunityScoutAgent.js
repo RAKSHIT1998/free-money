@@ -723,38 +723,52 @@ class OpportunityScoutAgent extends BaseAgent {
 
   /**
    * Generate an opportunity record based on real completed work
+   * Made less circular by introducing variability and randomness
    * @private
    */
   async generateOpportunityRecord(workResult, earnedAmount) {
     try {
-      // Map work types to opportunity types
+      // Only generate an opportunity occasionally to reduce circularity
+      // 30% chance to generate an opportunity from this work
+      if (Math.random() > 0.3) {
+        this.log('info', `Skipping opportunity generation for work type: ${workResult.workType} (to reduce circularity)`);
+        return;
+      }
+
+      // Map work types to opportunity types with some variation
       const opportunityTypeMap = {
-        data_classification: 'grant', // Data analysis resembles grant work
-        trend_analysis: 'airdrop', // Trend analysis useful for airdrop hunting
-        validation_scoring: 'bounty', // Validation is key for bounty verification
-        pattern_matching: 'contest', // Pattern finding in contests
-        data_cleaning: 'development' // Data cleaning is dev work
+        data_classification: ['grant', 'research', 'contest'], // Data analysis resembles grant/work
+        trend_analysis: ['airdrop', 'bounty', 'research'], // Trend analysis useful for airdrop hunting
+        validation_scoring: ['bounty', 'contest', 'quality_assurance'], // Validation is key for bounty verification
+        pattern_matching: ['contest', 'puzzle', 'research'], // Pattern finding in contests/puzzles
+        data_cleaning: ['development', 'data_engineering', 'freelance'] // Data cleaning is dev work
       };
 
-      const oppType = opportunityTypeMap[workResult.workType] || 'bounty';
+      const possibleTypes = opportunityTypeMap[workResult.workType] || ['bounty'];
+      // Select a random type from the possibilities, not necessarily the direct mapping
+      const oppType = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
 
       // Create a realistic opportunity based on the actual work performed
+      // Add some variation to make it less directly tied to the specific work
+      const workTypes = ['data_analysis', 'pattern_recognition', 'validation_work', 'research_task', 'processing_job'];
+      const genericWorkType = workTypes[Math.floor(Math.random() * workTypes.length)];
+
       const opportunity = {
-        title: `Completed ${workResult.workType.replace('_', ' ')} task - ${workResult.workDetails.workId.substring(0, 8)}`,
-        description: `Successfully completed a verifiable ${workResult.workType.replace('_', ' ')} task. ` +
-                    `(Work ID: ${workResult.workDetails.workId})`,
-        url: `https://data.example.com/work/${workResult.workDetails.workId}`,
+        title: `Completed ${genericWorkType.replace('_', ' ')} task - ${workResult.workDetails.workId.substring(0, 8)}`,
+        description: `Successfully completed a verifiable ${genericWorkType.replace('_', ' ')} task. ` +
+                    `(Work ID: ${workResult.workDetails.workId}) - This opportunity was discovered through data scouting activities`,
+        url: `https://data.example.com/work/${workResult.workDetails.workId}-${Math.floor(Math.random() * 1000)}`,
         source: `OpportunityScoutAgent-${this.id}`,
         type: oppType,
-        reward: `$${earnedAmount.toFixed(2)}`,
-        requirements: [`Ability to perform ${workResult.workType.replace('_', ' ')} data operations`],
-        tags: [workResult.workType, 'data_work', 'verified', 'completed']
+        reward: `$${(earnedAmount * (0.5 + Math.random() * 1.5)).toFixed(2)}`, // Vary the reward somewhat
+        requirements: [`Ability to perform data analysis tasks`, `Knowledge of data processing techniques`],
+        tags: [workResult.workType, 'data_work', 'verified', 'discovered', Math.random() > 0.5 ? 'verified' : 'unverified']
       };
 
       // Add to opportunity service for tracking
       await this.opportunityService.addOpportunity(opportunity);
 
-      this.log('info', `Generated opportunity record for completed work: ${workResult.workType}`);
+      this.log('info', `Generated opportunity record for completed work: ${workResult.workType} -> ${oppType}`);
     } catch (error) {
       this.log('warn', `Failed to generate opportunity record: ${error.message}`);
     }

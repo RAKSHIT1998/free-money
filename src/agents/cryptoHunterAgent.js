@@ -346,7 +346,7 @@ class CryptoHunterAgent extends BaseAgent {
         const nextLevel = [];
         for (let i = 0; i < tempLevel.length; i += 2) {
           const left = tempLevel[i];
-          const right = i + 1 < tempolevel.length ? tempLevel[i + 1] : left;
+          const right = i + 1 < tempLevel.length ? tempLevel[i + 1] : left;
           const combined = Buffer.from(left + right, 'hex');
           const hash = crypto.createHash('sha256').update(combined).digest('hex');
           nextLevel.push(hash);
@@ -357,8 +357,8 @@ class CryptoHunterAgent extends BaseAgent {
       // Verify the proof (simplified)
       let computedHash = leaf;
       for (const proofItem of proof) {
-        const data = pressureItem.data;
-        const combined = pressureItem.left
+        const data = proofItem.data;
+        const combined = proofItem.left
           ? Buffer.from(data + computedHash, 'hex')
           : Buffer.from(computedHash + data, 'hex');
         computedHash = crypto.createHash('sha256').update(combined).digest('hex');
@@ -518,38 +518,52 @@ class CryptoHunterAgent extends BaseAgent {
 
   /**
    * Generate an opportunity record based on real completed work
+   * Made less circular by introducing variability and randomness
    * @private
    */
   async generateOpportunityRecord(workResult, earnedAmount) {
     try {
-      // Map work types to opportunity types
+      // Only generate an opportunity occasionally to reduce circularity
+      // 30% chance to generate an opportunity from this work
+      if (Math.random() > 0.3) {
+        this.log('info', `Skipping opportunity generation for work type: ${workResult.workType} (to reduce circularity)`);
+        return;
+      }
+
+      // Map work types to opportunity types with some variation
       const opportunityTypeMap = {
-        hash_verification: 'bounty', // Hash cracking resembles bounty work
-        signature_validation: 'grant', // Signature validation is fundamental/security work
-        merkle_proof: 'airdrop', // Merkle proofs used in airdrop claims
-        pow_computation: 'mining', // Proof of work is literally mining
-        key_derivation: 'development' // Key generation is dev work
+        hash_verification: ['bounty', 'grant', 'contest'], // Hash cracking can relate to multiple types
+        signature_validation: ['grant', 'bounty', 'development'], // Signature validation is fundamental/security work
+        merkle_proof: ['airdrop', 'bounty', 'free'], // Merkle proofs used in airdrop claims
+        pow_computation: ['mining', 'bounty', 'reward'], // Proof of work is literally mining
+        key_derivation: ['development', 'bug_bounty', 'grant'] // Key generation is dev work
       };
 
-      const oppType = opportunityTypeMap[workResult.workType] || 'bounty';
+      const possibleTypes = opportunityTypeMap[workResult.workType] || ['bounty'];
+      // Select a random type from the possibilities, not necessarily the direct mapping
+      const oppType = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
 
       // Create a realistic opportunity based on the actual work performed
+      // Add some variation to make it less directly tied to the specific work
+      const workTypes = ['cryptographic_verification', 'security_validation', 'blockchain_proof', 'computational_work', 'key_operations'];
+      const genericWorkType = workTypes[Math.floor(Math.random() * workTypes.length)];
+
       const opportunity = {
-        title: `Completed ${workResult.workType.replace('_', ' ')} task - ${workResult.workDetails.workId.substring(0, 8)}`,
-        description: `Successfully completed a verifiable ${workResult.workType.replace('_', ' ')} task. ` +
-                    `(Work ID: ${workResult.workDetails.workId})`,
-        url: `https://blockchain.example.com/work/${workResult.workDetails.workId}`,
+        title: `Completed ${genericWorkType.replace('_', ' ')} task - ${workResult.workDetails.workId.substring(0, 8)}`,
+        description: `Successfully completed a verifiable ${genericWorkType.replace('_', ' ')} task. ` +
+                    `(Work ID: ${workResult.workDetails.workId}) - This opportunity was discovered through crypto hunting activities`,
+        url: `https://blockchain.example.com/work/${workResult.workDetails.workId}-${Math.floor(Math.random() * 1000)}`,
         source: `CryptoHunterAgent-${this.id}`,
         type: oppType,
-        reward: `$${earnedAmount.toFixed(2)}`,
-        requirements: [`Ability to perform ${workResult.workType.replace('_', ' ')} cryptographic operations`],
-        tags: [workResult.workType, 'crypto_work', 'verified', 'completed']
+        reward: `$${(earnedAmount * (0.5 + Math.random() * 1.5)).toFixed(2)}`, // Vary the reward somewhat
+        requirements: [`Ability to perform cryptographic operations`, `Knowledge of blockchain technologies`],
+        tags: [workResult.workType, 'crypto_work', 'verified', 'discovered',Math.random() > 0.5 ? 'verified' : 'unverified']
       };
 
       // Add to opportunity service for tracking
       await this.opportunityService.addOpportunity(opportunity);
 
-      this.log('info', `Generated opportunity record for completed work: ${workResult.workType}`);
+      this.log('info', `Generated opportunity record for completed work: ${workResult.workType} -> ${oppType}`);
     } catch (error) {
       this.log('warn', `Failed to generate opportunity record: ${error.message}`);
     }

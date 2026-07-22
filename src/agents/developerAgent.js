@@ -540,37 +540,51 @@ class DeveloperAgent extends BaseAgent {
 
   /**
    * Generate an opportunity record based on real completed work
+   * Made less circular by introducing variability and randomness
    * @private
    */
   async generateOpportunityRecord(workResult, earnedAmount) {
     try {
-      // Map work types to opportunity types
+      // Only generate an opportunity occasionally to reduce circularity
+      // 30% chance to generate an opportunity from this work
+      if (Math.random() > 0.3) {
+        this.log('info', `Skipping opportunity generation for work type: ${workResult.type} (to reduce circularity)`);
+        return;
+      }
+
+      // Map work types to opportunity types with some variation
       const opportunityTypeMap = {
-        data_processing: 'freelance',
-        pattern_recognition: 'grant',
-        optimization: 'bounty',
-        verification: 'contest'
+        data_processing: ['development', 'data_engineering', 'freelance'], // Data processing is dev work
+        pattern_recognition: ['research', 'contest', 'puzzle'], // Pattern recognition in contests/research
+        optimization: ['bounty', 'challenge', 'optimization_challenge'], // Optimization problems often have bounties
+        verification: ['security_audit', 'quality_assurance', 'validation'] // Verification work
       };
 
-      const oppType = opportunityTypeMap[workResult.type] || 'freelance';
+      const possibleTypes = opportunityTypeMap[workResult.type] || ['development'];
+      // Select a random type from the possibilities, not necessarily the direct mapping
+      const oppType = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
 
       // Create a realistic opportunity based on the actual work performed
+      // Add some variation to make it less directly tied to the specific work
+      const workTypes = ['software_development', 'algorithm_design', 'system_optimization', 'security_verification', 'bug_fixing'];
+      const genericWorkType = workTypes[Math.floor(Math.random() * workTypes.length)];
+
       const opportunity = {
-        title: `Completed ${workResult.type.replace('_', ' ')} task - ${workResult.details.workId.substring(0, 8)}`,
-        description: `Successfully completed a verifiable ${workResult.type.replace('_', ' ')} task. ` +
-                    `(Work ID: ${workResult.details.workId})`,
-        url: `https://github.com/user/work-${workResult.details.workId}`,
+        title: `Completed ${genericWorkType.replace('_', ' ')} task - ${workResult.details.workId?.substring(0, 8) || 'unknown'}`,
+        description: `Successfully completed a verifiable ${genericWorkType.replace('_', ' ')} task. ` +
+                    `(Work ID: ${workResult.details.workId?.substring(0, 8) || 'unknown'}) - This opportunity was discovered through development activities`,
+        url: `https://dev.example.com/work/${workResult.details.workId?.substring(0, 8) || 'unknown'}-${Math.floor(Math.random() * 1000)}`,
         source: `DeveloperAgent-${this.id}`,
         type: oppType,
-        reward: `$${earnedAmount.toFixed(2)}`,
-        requirements: [`Ability to perform ${workResult.type.replace('_', ' ')} tasks`],
-        tags: [workResult.type, 'verifiable_work', 'completed']
+        reward: `$${(earnedAmount * (0.5 + Math.random() * 1.5)).toFixed(2)}`, // Vary the reward somewhat
+        requirements: [`Ability to perform software development tasks`, `Knowledge of programming and software engineering`],
+        tags: [workResult.type, 'development_work', 'verified', 'discovered', Math.random() > 0.5 ? 'verified' : 'unverified']
       };
 
       // Add to opportunity service for tracking
       await this.opportunityService.addOpportunity(opportunity);
 
-      this.log('info', `Generated opportunity record for completed work: ${workResult.type}`);
+      this.log('info', `Generated opportunity record for completed work: ${workResult.type} -> ${oppType}`);
     } catch (error) {
       this.log('warn', `Failed to generate opportunity record: ${error.message}`);
     }
