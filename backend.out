@@ -1,0 +1,3 @@
+MongoDB persistence disabled - using in-memory storage for opportunities
+Skipping opportunity sync - persistence disabled
+Starting agent management system...

@@ -7,6 +7,10 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const cron = require('node-cron');
+
+// Load environment variables first
+dotenv.config();
+
 const authRoutes = require('./src/server/routes/authRoutes');
 const opportunityRoutes = require('./src/server/routes/opportunityRoutes');
 const agentRoutes = require('./src/server/routes/agentRoutes');
@@ -16,12 +20,9 @@ const { Config } = require('./src/config/config');
 // Load environment variables
 dotenv.config();
 
-// Load configuration
-const configInstance = new Config();
-
 // Initialize express app
 const app = express();
-const PORT = configInstance.get('server.port') || 5000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware setup
 app.use(cors({
@@ -42,14 +43,12 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Authentication routes (public)
+// Routes
 app.use('/api/auth', authRoutes);
-
-// Apply authentication middleware to all API routes except auth
 app.use('/api/opportunities', authMiddleware.authenticateToken, opportunityRoutes);
 app.use('/api/agents', authMiddleware.authenticateToken, agentRoutes);
 
-// Health check endpoint (public)
+// Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -73,8 +72,11 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Connect to MongoDB and start server
+// Start server
 const startServer = async () => {
+  // Load configuration
+  const configInstance = new Config();
+
   // Only connect to MongoDB if persistence is enabled
   const persistenceEnabled = configInstance.get('agentManager.persistenceEnabled', true);
   if (persistenceEnabled) {

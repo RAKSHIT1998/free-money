@@ -49,7 +49,7 @@ const Wallet = () => {
         setIsMetaMaskInstalled(true);
         try {
           // Check if accounts are already connected
-          const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
           if (accounts.length > 0) {
             setWalletAddress(accounts[0]);
             // Get network info
@@ -127,8 +127,6 @@ const Wallet = () => {
 
   const handleConnectWallet = useCallback(async () => {
     if (!window.ethereum) {
-      useCallback(async () => {
-    if (!window.ethereum) {
       alert('MetaMask is not installed. Please install MetaMask to use this feature.');
       return;
     }
@@ -136,7 +134,7 @@ const Wallet = () => {
     setIsConnecting(true);
     try {
       // Request account access
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       if (accounts.length > 0) {
         setWalletAddress(accounts[0]);
 
