@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, extend } from '@react-three/fiber';
 import { OrbitControls, Stars, Text } from '@react-three/drei';
 import * as THREE from 'three';
+
+// Extend the THREE namespace with Stars from drei
+extend({ Stars });
 
 const Agent3DVisualization = () => {
   const [agents, setAgents] = useState([]);
