@@ -54,9 +54,7 @@ class AgentManager {
     this.cleanupInterval = setInterval(() => this.cleanup(), this.options.cleanupInterval);
 
     // Bind methods
-    this.spawnAgent = this.spawnAgent = this.spawnAgent.bind(this);
-    this.removeAgent = this.removeAgent.bind(this);
-    this.spawnAgent.bind(this);
+    this.spawnAgent = this.spawnAgent.bind(this);
     this.removeAgent = this.removeAgent.bind(this);
     this.getAgent = this.getAgent.bind(this);
     this.getAllAgents = this.getAllAgents.bind(this);
