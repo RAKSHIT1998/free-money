@@ -2,12 +2,18 @@
 const AgentManager = require('../../agents/agentManager');
 const OpportunityService = require('../../services/opportunityService');
 
-// Get agent manager instance
-const agentManager = AgentManager.getInstance();
+// Get agent manager instance (lazy initialization)
+let agentManager = null;
+const getAgentManager = () => {
+  if (agentManager === null) {
+    agentManager = AgentManager.getInstance();
+  }
+  return agentManager;
+};
 
 exports.getAllAgents = async (req, res) => {
   try {
-    const agents = agentManager.getAllAgents();
+    const agents = getAgentManager().getAllAgents();
     const agentData = agents.map(agent => ({
       id: agent.id,
       type: agent.type,
@@ -18,7 +24,7 @@ exports.getAllAgents = async (req, res) => {
       performance: agent.performance
     }));
 
-    const stats = agentManager.getStatistics();
+    const stats = getAgentManager().getStatistics();
 
     res.json({
       success: true,
@@ -40,7 +46,7 @@ exports.getAllAgents = async (req, res) => {
 exports.getAgentById = async (req, res) => {
   try {
     const agentId = parseInt(req.params.id);
-    const agent = agentManager.getAgent(agentId);
+    const agent = getAgentManager().getAgent(agentId);
 
     if (!agent) {
       return res.status(404).json({
@@ -83,7 +89,7 @@ exports.spawnAgent = async (req, res) => {
       });
     }
 
-    const agent = await agentManager.spawnAgent(type, options);
+    const agent = await getAgentManager().spawnAgent(type, options);
 
     res.status(201).json({
       success: true,
@@ -108,7 +114,7 @@ exports.spawnAgent = async (req, res) => {
 exports.terminateAgent = async (req, res) => {
   try {
     const agentId = parseInt(req.params.id);
-    const result = await agentManager.removeAgent(agentId);
+    const result = await getAgentManager().removeAgent(agentId);
 
     if (!result) {
       return res.status(404).json({
@@ -136,7 +142,7 @@ exports.updateAgentConfig = async (req, res) => {
     const agentId = parseInt(req.params.id);
     const config = req.body;
 
-    const result = await agentManager.updateAgentConfig(agentId, config);
+    const result = await getAgentManager().updateAgentConfig(agentId, config);
 
     if (!result) {
       return res.status(404).json({
@@ -161,7 +167,7 @@ exports.updateAgentConfig = async (req, res) => {
 
 exports.getAgentStatistics = async (req, res) => {
   try {
-    const stats = agentManager.getStatistics();
+    const stats = getAgentManager().getStatistics();
 
     res.json({
       success: true,

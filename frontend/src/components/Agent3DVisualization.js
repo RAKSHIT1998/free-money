@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Stars } from '@react-three/drei';
+import { OrbitControls, Stars, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 const Agent3DVisualization = () => {
@@ -217,12 +217,12 @@ const AgentNode = React.memo(({ position, color, size, pulse, label }) => {
 
       {/* Label */}
       <group position={[0, 1.2, 0]} scale={[0.008, 0.008, 0.008]}>
-        <text
+        <Text
           fontSize={1}
           color="white"
         >
           {label}
-        </text>
+        </Text>
       </group>
     </group>
   );
