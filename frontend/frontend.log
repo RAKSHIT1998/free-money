@@ -2,20 +2,65 @@
 > money-maker-dashboard@1.0.0 start
 > react-scripts start
 
-(node:17280) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+(node:11652) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
 (Use `node --trace-deprecation ...` to show where the warning was created)
-(node:17280) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
-(node:17280) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:11652) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
+(node:11652) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
 Starting the development server...
 
-Compiled successfully!
+Failed to compile.
 
-You can now view money-maker-dashboard in the browser.
+[eslint] 
+src\components\Wallet.js
+Syntax error: Unexpected token, expected "from" (1:60) (1:60)
+[1m[31mERROR[39m[22m in [1m./src/components/Wallet.js[39m[22m
+Module build failed (from ./node_modules/babel-loader/lib/index.js):
+SyntaxError: C:\Users\rakshit\Downloads\free money\free-money-1\frontend\src\components\Wallet.js: Unexpected token, expected "from" (1:60)
 
-  Local:            http://localhost:3000
-  On Your Network:  http://192.168.29.81:3000
+[0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m [33mReact[39m[33m,[39m { useState[33m,[39m useCallback[33m,[39m useMemo[33m,[39m useEffect } [33m=[39m [32m');[39m
+ [90m   |[39m                                                             [31m[1m^[22m[39m
+ [90m 2 |[39m
+ [90m 3 |[39m [33mWallet[39m [33m=[39m () [33m=>[39m {
+ [90m 4 |[39m   [36mlet[39m walletAddressAddress[33m,[39m [36mset[39m setWalletWalletAddressAddress] [33m=[39m [33m=[39m useuseStateState([32m''[39m)[33m;[39m[0m
+    at constructor (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:365:19)
+    at FlowParserMixin.raise (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:6616:19)
+    at FlowParserMixin.unexpected (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:6636:16)
+    at FlowParserMixin.expectContextual (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:6895:12)
+    at FlowParserMixin.parseImportSpecifiersAndAfter (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:14260:10)
+    at FlowParserMixin.parseImport (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:14252:17)
+    at FlowParserMixin.parseStatementContent (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:12893:27)
+    at FlowParserMixin.parseStatementLike (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:12784:17)
+    at FlowParserMixin.parseStatementLike (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:2930:24)
+    at FlowParserMixin.parseModuleItem (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:12761:17)
+    at FlowParserMixin.parseBlockOrModuleBlockBody (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:13333:36)
+    at FlowParserMixin.parseBlockBody (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:13326:10)
+    at FlowParserMixin.parseProgram (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:12639:10)
+    at FlowParserMixin.parseTopLevel (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:12629:25)
+    at FlowParserMixin.parseTopLevel (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:3697:28)
+    at FlowParserMixin.parse (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:14505:25)
+    at parse (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\parser\lib\index.js:14539:38)
+    at parser (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\core\lib\parser\index.js:41:34)
+    at parser.next (<anonymous>)
+    at normalizeFile (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\core\lib\transformation\normalize-file.js:51:37)
+    at normalizeFile.next (<anonymous>)
+    at run (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\core\lib\transformation\index.js:22:50)
+    at run.next (<anonymous>)
+    at transform (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\core\lib\transform.js:22:33)
+    at transform.next (<anonymous>)
+    at step (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\gensync\index.js:261:32)
+    at C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\gensync\index.js:273:13
+    at async.call.result.err.err (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\gensync\index.js:223:11)
+    at C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\gensync\index.js:189:28
+    at C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\@babel\core\lib\gensync-utils\async.js:67:7
+    at C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\gensync\index.js:113:33
+    at step (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\gensync\index.js:287:14)
+    at C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\gensync\index.js:273:13
+    at async.call.result.err.err (C:\Users\rakshit\Downloads\free money\free-money-1\frontend\node_modules\gensync\index.js:223:11)
 
-Note that the development build is not optimized.
-To create a production build, use npm run build.
+[1m[31mERROR[39m[22m in [1m[eslint] 
+src\components\Wallet.js
+  Line 1:60:  Parsing [1m[31merror[39m[22m[1m: [1m[31mUnexpected[39m[22m[1m token, expected "from" (1:60)
 
-webpack compiled [1m[32msuccessfully[39m[22m
+[39m[22m
+
+webpack compiled with [1m[31m2 errors[39m[22m

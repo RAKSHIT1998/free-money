@@ -24,7 +24,7 @@ function App() {
         }
 
         // No token found, try to get one via demo login
-        const response = await axios.post('http://localhost:5000/api/auth/login', {
+        const response = await axios.post('http://localhost:5001/api/auth/login', {
           username: 'demo',
           password: 'demo'
         });
