@@ -124,7 +124,7 @@ const startServer = async () => {
   // Start the agent management system
   console.log('Starting agent management system...');
   const AgentManager = require('./src/agents/agentManager');
-  const agentManager = new AgentManager({
+  const agentManager = AgentManager.initialize({
     config: configInstance
   });
 

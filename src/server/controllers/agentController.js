@@ -2,12 +2,8 @@
 const AgentManager = require('../../agents/agentManager');
 const OpportunityService = require('../../services/opportunityService');
 
-// Create agent manager instance
-const agentManager = new AgentManager({
-  maxConcurrent: 50,
-  spawnDelay: 1000,
-  cleanupInterval: 60000
-});
+// Get agent manager instance
+const agentManager = AgentManager.getInstance();
 
 exports.getAllAgents = async (req, res) => {
   try {

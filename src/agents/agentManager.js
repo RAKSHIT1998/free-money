@@ -6,8 +6,15 @@ const DeveloperAgent = require('./developerAgent');
 const { Config } = require('../config/config');
 const Agent = require('../models/Agent');
 
+// Singleton instance
+let instance = null;
+
 class AgentManager {
   constructor(options = {}) {
+    if (instance) {
+      throw new Error('AgentManager is a singleton. Use getInstance() or initialize()');
+    }
+
     // Load configuration
     const config = new Config(options.config || {});
     this.config = config;
@@ -47,13 +54,34 @@ class AgentManager {
     this.cleanupInterval = setInterval(() => this.cleanup(), this.options.cleanupInterval);
 
     // Bind methods
-    this.spawnAgent = this.spawnAgent.bind(this);
+    this.spawnAgent = this.spawnAgent = this.spawnAgent.bind(this);
+    this.removeAgent = this.removeAgent.bind(this);
+    this.spawnAgent.bind(this);
     this.removeAgent = this.removeAgent.bind(this);
     this.getAgent = this.getAgent.bind(this);
     this.getAllAgents = this.getAllAgents.bind(this);
     this.updateAgentConfig = this.updateAgentConfig.bind(this);
     this.saveAgentToDatabase = this.saveAgentToDatabase.bind(this);
     this.loadAgentsFromDatabase = this.loadAgentsFromDatabase.bind(this);
+
+    // Set the instance
+    instance = this;
+  }
+
+  // Static method to initialize the singleton
+  static initialize(options = {}) {
+    if (!instance) {
+      instance = new AgentManager(options);
+    }
+    return instance;
+  }
+
+  // Static method to get the instance
+  static getInstance() {
+    if (!instance) {
+      throw new Error('AgentManager not initialized. Call initialize() first.');
+    }
+    return instance;
   }
 
   /**
