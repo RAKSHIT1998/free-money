@@ -2,7 +2,7 @@
   "wallets": [
     {
       "userId": "desktop-a0oeuir-s3dzc1r-mrwauy2r",
-      "balance": 1866,
+      "balance": 1963.5,
       "transactions": [
         {
           "type": "earning",
@@ -1298,6 +1298,72 @@
           "type": "earning",
           "amount": 9,
           "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
           "agentId": 1
         }
       ],
