@@ -2,7 +2,7 @@
   "wallets": [
     {
       "userId": "desktop-a0oeuir-s3dzc1r-mrwauy2r",
-      "balance": 4366.5,
+      "balance": 4374,
       "transactions": [
         {
           "type": "earning",
@@ -3027,6 +3027,12 @@
           "amount": 9,
           "description": "Earned from signature_validation work",
           "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
         }
       ],
       "_id": "1784831083051"
