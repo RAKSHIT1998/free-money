@@ -2,7 +2,7 @@
   "wallets": [
     {
       "userId": "desktop-a0oeuir-s3dzc1r-mrwauy2r",
-      "balance": 4534.5,
+      "balance": 6180,
       "transactions": [
         {
           "type": "earning",
@@ -3141,6 +3141,1158 @@
           "amount": 9,
           "description": "Earned from hash_verification work",
           "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from verification work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from optimization work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from optimization work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from pattern_recognition work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from optimization work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from verification work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from optimization work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from verification work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from verification work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "description": "Earned from undefined work",
+          "agentId": 2
         }
       ],
       "_id": "1784831083051"
