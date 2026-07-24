@@ -35,17 +35,71 @@ const Dashboard = () => {
   const fetchStats = useCallback(async () => {
     try {
       setLoading(true);
-      // Fetch agent stats
-      const agentRes = await api.getAgentStats();
-      setAgentStats(agentRes.data);
+      // Fetch agents to calculate stats
+      const agentsRes = await api.getAgents();
+      const agentsData = agentsRes.data || [];
+      setAgents(agentsData);
 
-      // Fetch opportunity stats
-      const oppRes = await api.getOpportunityStats();
-      setOpportunityStats(oppRes.data);
+      // Calculate agent stats from the agents data
+      const totalAgents = agentsData.length;
+      const activeAgents = agentsData.filter(a => a.state === 'active').length;
 
-      // Fetch all agents to calculate total earnings
-      const agentsRes = await api.getAllAgents();
-      setAgents(agentsRes.data.agents || []);
+      // Calculate total earnings
+      const totalEarnings = agentsData.reduce((sum, agent) => {
+        return sum + (agent.performance?.totalEarnings || 0);
+      }, 0);
+
+      // Calculate average earnings per hour
+      const avgEarningsPerHour = agentsData.reduce((sum, agent) => {
+        return sum + (agent.performance?.earningsPerHour || 0);
+      }, 0) / Math.max(1, agentsData.length);
+
+      // Calculate average opportunities per hour
+      const avgOpportunitiesPerHour = agentsData.reduce((sum, agent) => {
+        return sum + (agent.performance?.opportunitiesFound || 0);
+      }, 0) / Math.max(1, agentsData.length);
+
+      // Calculate average success rate
+      const avgSuccessRate = agentsData.reduce((sum, agent) => {
+        return sum + (agent.performance?.successRate || 0);
+      }, 0) / Math.max(1, agentsData.length);
+
+      setAgentStats({
+        total: totalAgents,
+        active: activeAgents,
+        idle: agentsData.filter(a => a.state === 'idle').length,
+        error: agentsData.filter(a => a.state === 'error').length,
+        byType: {
+          cryptoHunter: agentsData.filter(a => a.type === 'cryptoHunter').length,
+          opportunityScout: agentsData.filter(a => a.type === 'opportunityScout').length,
+          developer: agentsData.filter(a => a.type === 'developer').length,
+          manager: agentsData.filter(a => a.type === 'manager').length
+        },
+        averagePerformance: {
+          earnings: avgEarningsPerHour,
+          opportunitiesFound: avgOpportunitiesPerHour,
+          actionsTaken: agentsData.reduce((sum, agent) => {
+            return sum + (agent.performance?.actionsTaken || 0);
+          }, 0) / Math.max(1, agentsData.length),
+          successRate: avgSuccessRate
+        }
+      });
+
+      // Fetch opportunities for stats
+      const oppRes = await api.getOpportunities({ limit: 100 }); // Get a good sample for stats
+      const opportunities = oppRes.data || [];
+
+      // Group opportunities by type for stats
+      const oppByType = {};
+      opportunities.forEach(opp => {
+        oppByType[opp.type] = (oppByType[opp.type] || 0) + 1;
+      });
+
+      setOpportunityStats({
+        totalOpportunities: opportunities.length,
+        byType: oppByType,
+        recent: opportunities.slice(0, 5) // Most recent 5
+      });
 
       setError(null);
     } catch (err) {
@@ -61,8 +115,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchStats();
-    // Refresh every 60 seconds
-    const interval = setInterval(fetchStats, 60000);
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchStats, 30000);
     return () => clearInterval(interval);
   }, [fetchStats]);
 

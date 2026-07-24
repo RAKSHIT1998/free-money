@@ -10,7 +10,7 @@ const AgentsTable = () => {
     try {
       setLoading(true);
       const res = await api.getAgents();
-      setAgents(res.data.agents || []);
+      setAgents(Array.isArray(res.data) ? res.data : []);
       setError(null);
     } catch (err) {
       console.error('Failed to fetch agents:', err);

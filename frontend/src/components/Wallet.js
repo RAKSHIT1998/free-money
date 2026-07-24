@@ -113,8 +113,15 @@ const Wallet = () => {
     const loadWallet = async () => {
       try {
         // In a real app, this would fetch from backend
-        // For demo, we'll use sample data
-        setTransactionHistory(sampleTransactions);
+        const walletData = await api.getWallet();
+        if (walletData.data) {
+          setBalance(walletData.data.balance || 0);
+          setTransactionHistory(walletData.data.transactions || []);
+          setWalletAddress(walletData.data.userId || '');
+        } else {
+          // Fallback to sample data
+          setTransactionHistory(sampleTransactions);
+        }
       } catch (error) {
         console.error('Failed to load wallet:', error);
         // Fallback to sample data
@@ -123,6 +130,7 @@ const Wallet = () => {
     };
 
     loadWallet();
+  }, []);
   }, []);
 
   const handleConnectWallet = useCallback(async () => {

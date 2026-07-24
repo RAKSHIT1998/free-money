@@ -10,7 +10,7 @@ const OpportunitiesList = () => {
     try {
       setLoading(true);
       const res = await api.getOpportunities({ limit: 10 });
-      setOpportunities(res.data || []);
+      setOpportunities(Array.isArray(res.data) ? res.data : []);
       setError(null);
     } catch (err) {
       console.error('Failed to fetch opportunities:', err);
