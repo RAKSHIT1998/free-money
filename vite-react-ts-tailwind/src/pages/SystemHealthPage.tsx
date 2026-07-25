@@ -2,13 +2,13 @@ import { useSystemHealth } from '../hooks';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { FiActivity, FiCpu, FiMemory, FiZap, FiServer, FiCheckCircle, FiAlertTriangle, FiCalendar, FiRefreshCw } from 'react-icons/fi';
+import { FiActivity, FiCpu, FiZap, FiServer, FiCheckCircle, FiAlertTriangle, FiRefreshCw } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 
 const SystemHealthPage = () => {
   const { health, loading, error, refresh } = useSystemHealth();
   const [metrics, setMetrics] = useState<Array<{ label: string; value: string; status: string }>>([]);
-  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+  const [refreshInterval, setRefreshInterval] = useState<number | null>(null);
 
   useEffect(() => {
     // Start auto-refresh every 30 seconds
@@ -129,7 +129,7 @@ const SystemHealthPage = () => {
                   {metric.label === 'CPU Usage' ? (
                     <FiCpu size={20} className="text-blue-500" />
                   ) : metric.label === 'Memory Usage' ? (
-                    <FiMemory size={20} className="text-green-500" />
+                    <FiActivity size={20} className="text-green-500" />
                   ) : metric.label === 'Disk Usage' ? (
                     <FiServer size={20} className="text-red-500" />
                   ) : metric.label === 'Network I/O' ? (

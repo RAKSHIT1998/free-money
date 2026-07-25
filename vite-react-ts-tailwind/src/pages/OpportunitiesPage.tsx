@@ -2,8 +2,10 @@ import { useOpportunities } from '../hooks';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { FiTruck, FiPlus, FiRefreshCw, FiList, FiCheckCircle, FiCalendar, FiSettings } from 'react-icons/fi';
+import { FiTruck, FiRefreshCw, FiList, FiCheckCircle, FiCalendar, FiSettings } from 'react-icons/fi';
 import { useState } from 'react';
+
+// Ensure file is saved to trigger tsc update
 
 const OpportunitiesPage = () => {
   const { opportunities, opportunityStats, loading, error, fetchOpportunities, syncOpportunities } = useOpportunities();

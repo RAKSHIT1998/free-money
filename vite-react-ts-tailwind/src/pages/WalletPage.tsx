@@ -3,7 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { FiActivity, FiDownload, FiUpload, FiRefreshCw } from 'react-icons/fi';
+import { FiActivity, FiDownload, FiUpload } from 'react-icons/fi';
 import { Toaster } from 'react-hot-toast';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
