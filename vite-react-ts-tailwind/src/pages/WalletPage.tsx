@@ -3,10 +3,10 @@ import { formatDistanceToNow } from 'date-fns';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { Badge } from '../components/ui/Badge';
-import { FiCreditCard, FiExchangeDown, FiExchangeUp, FiActivity } from 'react-icons/fi';
+import { FiActivity, FiDownload, FiUpload, FiRefreshCw } from 'react-icons/fi';
 import { Toaster } from 'react-hot-toast';
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 
 const WalletPage = () => {
   const { balance, transactions, loading, error, deposit, withdraw, refresh } = useWallet();
@@ -21,16 +21,24 @@ const WalletPage = () => {
     e.preventDefault();
     const amount = parseFloat(depositAmount);
     if (isNaN(amount) || amount <= 0) {
-      // Show error toast
+      toast.error('Please enter a valid amount');
       return;
     }
 
-    const success = await deposit(amount, depositDescription || 'Deposit');
-    if (success) {
-      setDepositModalOpen(false);
-      setDepositAmount('');
-      setDepositDescription('');
-      // Show success toast
+    try {
+      const success = await deposit(amount, depositDescription || 'Deposit');
+      if (success) {
+        setDepositModalOpen(false);
+        setDepositAmount('');
+        setDepositDescription('');
+        toast.success('Deposit successful');
+        // Optionally refetch balance
+        // await refreshBalance();
+      } else {
+        toast.error('Deposit failed');
+      }
+    } catch (err) {
+      toast.error('Deposit failed');
     }
   };
 
@@ -38,16 +46,22 @@ const WalletPage = () => {
     e.preventDefault();
     const amount = parseFloat(withdrawAmount);
     if (isNaN(amount) || amount <= 0) {
-      // Show error toast
+      toast.error('Please enter a valid amount');
       return;
     }
 
-    const success = await withdraw(amount, withdrawDescription || 'Withdrawal');
-    if (success) {
-      setWithdrawModalOpen(false);
-      setWithdrawAmount('');
-      setWithdrawDescription('');
-      // Show success toast
+    try {
+      const success = await withdraw(amount, withdrawDescription || 'Withdrawal');
+      if (success) {
+        setWithdrawModalOpen(false);
+        setWithdrawAmount('');
+        setWithdrawDescription('');
+        toast.success('Withdrawal successful');
+      } else {
+        toast.error('Withdrawal failed');
+      }
+    } catch (err) {
+      toast.error('Withdrawal failed');
     }
   };
 
@@ -66,6 +80,11 @@ const WalletPage = () => {
   return (
     <div>
       <Toaster position="top-right" />
+      {error && (
+        <div className="p-4 mb-4 bg-red-50 border-l-4 border-red-500 text-red-700">
+          <p>{error}</p>
+        </div>
+      )}
 
       {/* Page Header */}
       <div className="mb-6">
@@ -115,6 +134,124 @@ const WalletPage = () => {
           )}
         </Card>
       </div>
+
+      {/* Deposit Modal */}
+      {depositModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h3 className="text-lg font-semibold mb-4">Deposit Funds</h3>
+            <form onSubmit={handleDeposit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={depositAmount}
+                  onChange={(e) => setDepositAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description (optional)</label>
+                <input
+                  type="text"
+                  value={depositDescription}
+                  onChange={(e) => setDepositDescription(e.target.value)}
+                  placeholder="Add a description"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setDepositModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="default"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <span className="mr-2">Processing...</span>
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                      </svg>
+                    </>
+                  ) : (
+                    'Deposit'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Withdrawal Modal */}
+      {withdrawModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h3 className="text-lg font-semibold mb-4">Withdraw Funds</h3>
+            <form onSubmit={handleWithdraw} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  placeholder="Enter amount"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description (optional)</label>
+                <input
+                  type="text"
+                  value={withdrawDescription}
+                  onChange={(e) => setWithdrawDescription(e.target.value)}
+                  placeholder="Add a description"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus-ring-primary"
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setWithdrawModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  type="submit"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <span className="mr-2">Processing...</span>
+                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                      </svg>
+                    </>
+                  ) : (
+                    'Withdraw'
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Transaction Filters */}
       <div className="mb-6">
@@ -185,9 +322,9 @@ const WalletPage = () => {
                   <div key={tx.id} className="flex items-start space-x-3 p-4 border-t border-gray-200">
                     <div className="flex-shrink-0">
                       {tx.type === 'deposit' ? (
-                        <FiExchangeUp size={24} className="text-green-500" />
+                        <FiUpload size={24} className="text-green-500" />
                       ) : tx.type === 'withdrawal' ? (
-                        <FiExchangeDown size={24} className="text-red-500" />
+                        <FiDownload size={24} className="text-red-500" />
                       ) : (
                         <FiActivity size={24} className="text-yellow-500" />
                       )}

@@ -2,13 +2,13 @@ import { useSystemHealth } from '../hooks';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { FiActivity, FiCpu, FiMemory, FiZap, FiServer, FiCheckCircle, FiAlertTriangle, FiCalendar } from 'react-icons/fi';
+import { FiActivity, FiCpu, FiMemory, FiZap, FiServer, FiCheckCircle, FiAlertTriangle, FiCalendar, FiRefreshCw } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 
 const SystemHealthPage = () => {
   const { health, loading, error, refresh } = useSystemHealth();
-  const [metrics, setMetrics] = useState([]);
-  const [refreshInterval, setRefreshInterval] = useState<any>(null);
+  const [metrics, setMetrics] = useState<Array<{ label: string; value: string; status: string }>>([]);
+  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Start auto-refresh every 30 seconds
@@ -59,9 +59,16 @@ const SystemHealthPage = () => {
       {/* Page Header */}
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">System Health</h1>
-        <Button variant="outline" onClick={refresh}>
-          <FiActivity size={20} className="mr-2" /> Refresh
-        </Button>
+        {error ? (
+          <div className="flex items-center space-x-2 text-red-600">
+            <FiAlertTriangle size={20} />
+            <span>{error}</span>
+          </div>
+        ) : (
+          <Button variant="outline" onClick={refresh}>
+            <FiActivity size={20} className="mr-2" /> Refresh
+          </Button>
+        )}
       </div>
 
       {/* Status Overview */}

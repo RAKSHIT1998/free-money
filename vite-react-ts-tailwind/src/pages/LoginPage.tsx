@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { FiCreditCard, FiUser, FiLock, FiActivity } from 'react-icons/fi';
+import { FiUser, FiLock, FiActivity } from 'react-icons/fi';
 import { Toaster } from 'react-hot-toast';
 
 const LoginPage = () => {
@@ -89,7 +89,7 @@ const LoginPage = () => {
                 Password
               </label>
               <div className="relative">
-                <FLock size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <FiLock size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="password"
                   id="password"

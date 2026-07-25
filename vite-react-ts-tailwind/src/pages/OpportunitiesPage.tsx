@@ -2,7 +2,7 @@ import { useOpportunities } from '../hooks';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { FiTruck, FiPlus, FiRefreshCw, FiList, FiCheckCircle, FiCalendar } from 'react-icons/fi';
+import { FiTruck, FiPlus, FiRefreshCw, FiList, FiCheckCircle, FiCalendar, FiSettings } from 'react-icons/fi';
 import { useState } from 'react';
 
 const OpportunitiesPage = () => {
@@ -62,9 +62,9 @@ const OpportunitiesPage = () => {
 
   const sortedOpportunities = [...opportunities].sort((a, b) => {
     if (sortOrder === 'asc') {
-      return new Date(a[sortBy as keyof typeof a]).getTime() - new Date(b[sortBy as keyof typeof b]).getTime();
+      return new Date(a[sortBy as keyof typeof a] as string | number).getTime() - new Date(b[sortBy as keyof typeof b] as string | number).getTime();
     } else {
-      return new Date(b[sortBy as keyof typeof b]).getTime() - new Date(a[sortBy as keyof typeof a]).getTime();
+      return new Date(b[sortBy as keyof typeof b] as string | number).getTime() - new Date(a[sortBy as keyof typeof a] as string | number).getTime();
     }
   });
 
@@ -80,10 +80,17 @@ const OpportunitiesPage = () => {
           <Button variant="outline" onClick={() => {
             // Show filter/sort modal
           }}>
-            <FiSlider size={20} className="mr-2" /> Filter
+            <FiSettings size={20} className="mr-2" /> Filter
           </Button>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
+          <p>{error}</p>
+        </div>
+      )}
 
       {/* Stats Overview */}
       {!loading && opportunityStats ? (
