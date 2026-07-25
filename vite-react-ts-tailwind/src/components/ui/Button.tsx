@@ -1,13 +1,11 @@
 import * as React from 'react';
 import cn from './utils';
 
-interface ButtonProps {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   asChild?: boolean;
   className?: string;
-  children: React.ReactNode;
-  onClick?: () => void;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -16,8 +14,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     size = 'default',
     asChild = false,
     className = '',
+    type = 'button',
     children,
-    onClick,
     ...props
   }, ref) => {
     const Comp = asChild ? 'span' : 'button';
@@ -43,7 +41,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         ref={ref}
-        onClick={onClick}
+        type={type}
         {...props}
       >
         {children}
