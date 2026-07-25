@@ -181,6 +181,61 @@ const DashboardPage = () => {
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   };
 
+  if (walletLoading || agentsLoading || opportunitiesLoading) {
+    return (
+      <div className="space-y-6">
+        {/* Loading skeleton for overview cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="h-32">
+            <Skeleton height={20} width="full" />
+            <Skeleton height={16} width="1/2" className="mt-2" />
+          </Card>
+          <Card className="h-32">
+            <Skeleton height={20} width="full" />
+            <Skeleton height={16} width="1/2" className="mt-2" />
+          </Card>
+          <Card className="h-32">
+            <Skeleton height={20} width="full" />
+            <Skeleton height={16} width="1/2" className="mt-2" />
+          </Card>
+          <Card className="h-32">
+            <Skeleton height={20} width="full" />
+            <Skeleton height={16} width="1/2" className="mt-2" />
+          </Card>
+        </div>
+
+        {/* Loading skeleton for charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="h-48">
+            <Skeleton height={20} width="full" className="mb-2" />
+            <Skeleton height={16} width="3/4" className="mb-1" />
+            <Skeleton height={16} width="1/2" className="mb-1" />
+            <Skeleton height={16} width="1/4" className="mb-1" />
+          </Card>
+          <Card className="h-48">
+            <Skeleton height={20} width="full" className="mb-2" />
+            <Skeleton height={16} width="3/4" className="mb-1" />
+            <Skeleton height={16} width="1/2" className="mb-1" />
+            <Skeleton height={16} width="1/4" className="mb-1" />
+          </Card>
+        </div>
+
+        {/* Loading skeleton for activity feed */}
+        <Card className="h-64">
+          <Skeleton height={20} width="full" className="mb-3" />
+          <div className="space-y-3 h-full">
+            <Skeleton height={16} width="2/3" />
+            <Skeleton height={16} width="1/2" />
+            <Skeleton height={16} width="2/3" />
+            <Skeleton height={16} width="1/2" />
+            <Skeleton height={16} width="2/3" />
+            <Skeleton height={16} width="1/2" />
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     return (
       <div className="space-y-6">
@@ -345,9 +400,17 @@ const DashboardPage = () => {
           </div>
           <div className="px-4 pb-4 text-sm text-gray-600">
             {balance ? (
-              <span className="text-green-500">
-                +{calculateTodayEarningsChange()}% from yesterday
-              </span>
+              <>
+                {calculateTodayEarningsChange() >= 0 ? (
+                  <span className="text-green-500">
+                    +{calculateTodayEarningsChange().toFixed(1)}% from yesterday
+                  </span>
+                ) : (
+                  <span className="text-red-500">
+                    {calculateTodayEarningsChange().toFixed(1)}% from yesterday
+                  </span>
+                )}
+              </>
             ) : (
               'Loading...'
             )}
@@ -454,7 +517,7 @@ const DashboardPage = () => {
                 <div key={activity.id} className="p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0">
-                      {activity.icon && <activity.icon size={20} className={`${activity.color} `} />}
+                      {activity.icon && <activity.icon size={20} className={activity.color} />}
                     </div>
                     <div className="flex-1">
                       <p className="font-medium">{activity.description}</p>
