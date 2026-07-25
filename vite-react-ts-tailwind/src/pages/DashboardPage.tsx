@@ -12,30 +12,48 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
 
 const DashboardPage = () => {
-  const { balance, loading: walletLoading } = useWallet();
-  const { agents, agentStats, loading: agentsLoading } = useAgents();
-  const { opportunityStats, loading: opportunitiesLoading } = useOpportunities();
+  const { balance, transactions, loading: walletLoading, refresh: refreshWallet } = useWallet();
+  const { agents, agentStats, loading: agentsLoading, refresh: refreshAgents } = useAgents();
+  const { opportunityStats, loading: opportunitiesLoading, refresh: refreshOpportunities } = useOpportunities();
   const [earningsData, setEarningsData] = useState<{ date: string; earnings: number }[]>([]);
   const [agentPerformanceData, setAgentPerformanceData] = useState<{ name: string; earnings: number; opportunities: number }[]>([]);
   const [opportunityTypeData, setOpportunityTypeData] = useState<{ name: string; value: number }[]>([]);
+  const [activityFeed, setActivityFeed] = useState<Array<any>>([]);
 
-  // Generate mock earnings data for the chart (in a real app, this would come from API)
+  // Generate earnings data from wallet transactions (last 7 days)
   useEffect(() => {
-    // Generate sample data for the last 7 days
-    const data = [];
-    const today = new Date();
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      // Random earnings between $10 and $100
-      const earnings = Math.floor(Math.random() * 90) + 10;
-      data.push({
-        date: date.toISOString().split('T')[0],
-        earnings,
+    if (transactions && transactions.length > 0) {
+      // Group transactions by date and calculate daily earnings
+      const dailyEarnings: Record<string, number> = {};
+
+      transactions.forEach((tx: any) => {
+        const date = tx.timestamp.split('T')[0]; // YYYY-MM-DD format
+        if (!dailyEarnings[date]) {
+          dailyEarnings[date] = 0;
+        }
+
+        // Only count earnings (deposits and earnings, not withdrawals)
+        if (tx.type === 'deposit' || tx.type === 'earning') {
+          dailyEarnings[date] += tx.amount;
+        }
       });
+
+      // Convert to array and sort by date
+      const data = Object.entries(dailyEarnings)
+        .map(([date, earnings]) => ({ date, earnings }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      // Keep only last 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const filteredData = data.filter(item =>
+        new Date(item.date) >= sevenDaysAgo
+      );
+
+      setEarningsData(filteredData);
     }
-    setEarningsData(data);
-  }, []);
+  }, [transactions]);
 
   // Generate agent performance data for bar chart
   useEffect(() => {
@@ -62,6 +80,99 @@ const DashboardPage = () => {
     }
   }, [opportunityStats]);
 
+  // Generate activity feed from various sources
+  useEffect(() => {
+    const activities: Array<any> = [];
+
+    // Add wallet transactions as activities
+    if (transactions && transactions.length > 0) {
+      transactions.slice(0, 10).forEach((tx: any) => {
+        let icon: any = FiActivity;
+        let color = 'text-blue-500';
+        let description = '';
+
+        if (tx.type === 'deposit') {
+          icon = FiCreditCard;
+          color = 'text-green-500';
+          description = `Deposit of $${tx.amount.toFixed(2)}`;
+        } else if (tx.type === 'withdrawal') {
+          icon = FiCreditCard;
+          color = 'text-red-500';
+          description = `Withdrawal of $${tx.amount.toFixed(2)}`;
+        } else if (tx.type === 'earning') {
+          icon = FiActivity;
+          color = 'text-yellow-500';
+          description = `Earnings: $${tx.amount.toFixed(2)}`;
+        }
+
+        activities.push({
+          id: tx.id,
+          type: 'transaction',
+          icon,
+          color,
+          description,
+          timestamp: tx.timestamp,
+          agentName: tx.type === 'earning' ? 'Unknown Agent' : undefined
+        });
+      });
+    }
+
+    // Sort by timestamp descending (newest first)
+    activities.sort((a: any, b: any) =>
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    // Take top 10 activities
+    setActivityFeed(activities.slice(0, 10));
+  }, [transactions]);
+
+  // Helper function to calculate today's earnings
+  const calculateTodayEarnings = () => {
+    if (!transactions || transactions.length === 0) return 0;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return transactions
+      .filter((tx: any) => {
+        const txDate = new Date(tx.timestamp);
+        txDate.setHours(0, 0, 0, 0);
+        return txDate.getTime() === today.getTime() &&
+               (tx.type === 'deposit' || tx.type === 'earning');
+      })
+      .reduce((sum, tx: any) => sum + tx.amount, 0);
+  };
+
+  // Helper function to calculate yesterday's earnings for percentage change
+  const calculateYesterdayEarnings = () => {
+    if (!transactions || transactions.length === 0) return 0;
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0);
+
+    return transactions
+      .filter((tx: any) => {
+        const txDate = new Date(tx.timestamp);
+        txDate.setHours(0, 0, 0, 0);
+        return txDate.getTime() === yesterday.getTime() &&
+               (tx.type === 'deposit' || tx.type === 'earning');
+      })
+      .reduce((sum, tx: any) => sum + tx.amount, 0);
+  };
+
+  // Helper function to calculate percentage change
+  const calculateTodayEarningsChange = () => {
+    const todayEarnings = calculateTodayEarnings();
+    const yesterdayEarnings = calculateYesterdayEarnings();
+
+    if (yesterdayEarnings === 0) {
+      return todayEarnings > 0 ? 100 : 0;
+    }
+
+    return ((todayEarnings - yesterdayEarnings) / yesterdayEarnings) * 100;
+  };
+
   const formatCurrency = (amount: number) => {
     return `$${amount.toFixed(2)}`;
   };
@@ -70,7 +181,7 @@ const DashboardPage = () => {
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   };
 
-  if (walletLoading || agentsLoading || opportunitiesLoading) {
+  return (
     return (
       <div className="space-y-6">
         {/* Loading skeleton for overview cards */}
@@ -224,14 +335,22 @@ const DashboardPage = () => {
           <div className="flex items-center justify-between p-4">
             <div>
               <h3 className="text-sm font-medium text-gray-500">Earnings Today</h3>
-              <p className="text-2xl font-bold">{formatCurrency(23.50)}</p>
+              <p className="text-2xl font-bold">
+                {balance ? formatCurrency(calculateTodayEarnings()) : '$0.00'}
+              </p>
             </div>
             <div className="p-2 bg-yellow-100 rounded-full">
               <FiActivity size={24} className="text-yellow-600" />
             </div>
           </div>
           <div className="px-4 pb-4 text-sm text-gray-600">
-            <span className="text-green-500">+12.5% from yesterday</span>
+            {balance ? (
+              <span className="text-green-500">
+                +{calculateTodayEarningsChange()}% from yesterday
+              </span>
+            ) : (
+              'Loading...'
+            )}
           </div>
         </Card>
       </div>
@@ -330,52 +449,35 @@ const DashboardPage = () => {
             </Button>
           </div>
           <div className="space-y-3">
-            {/* Sample activity items - in a real app, these would come from an API */}
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0">
-                  <FiActivity size={20} className="text-blue-500" />
+            {activityFeed.length > 0 ? (
+              activityFeed.map((activity: any) => (
+                <div key={activity.id} className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      {activity.icon && <activity.icon size={20} className={`${activity.color} `} />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">{activity.description}</p>
+                      <p className="text-sm text-gray-500">
+                        {activity.agentName ?
+                          `${activity.agentName} • ` : ''
+                        }
+                        {formatDate(activity.timestamp)}
+                      </p>
+                      {activity.agentName && (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-medium">New opportunity discovered: FreeToken Airdrop</p>
-                  <p className="text-sm text-gray-500">
-                    Found by Opportunity Scout • {formatDate(new Date().toISOString())}
-                  </p>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    Active
-                  </span>
-                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No recent activity</p>
               </div>
-            </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0">
-                  <FiCreditCard size={20} className="text-green-500" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">Earnings added: $12.50 from freelance task</p>
-                  <p className="text-sm text-gray-500">
-                    Wallet transaction • {formatDate(new Date(Date.now() - 3600000).toISOString())}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0">
-                  <FiBriefcase size={20} className="text-purple-500" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">Agent spawned: Developer Agent Alpha</p>
-                  <p className="text-sm text-gray-500">
-                    Agent management • {formatDate(new Date(Date.now() - 7200000).toISOString())}
-                  </p>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    Active
-                  </span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </Card>
       </div>
