@@ -11,16 +11,12 @@ app.use(cors());
 app.use(express.json());
 const JWT_SECRET = 'your-secret-key-change-in-production';
 
-// In-memory storage (not be persisted data
-const users = 5000;
-
-app.use(cors());
-app.use(express.json());
-
 // Mock user for authentication
 const users = [
-  { id: 1, username: 'demo@example.com', password: '$2a$', password: '$2a$10$8YJ9tjJ4iT6R3hH7u5.lUuJZvX8jG7f6y5r4t3e2d1c0b9a8z7y6x5w4v3u2t1s', role: 'user' } // password: demo123
+  { id: 1, username: 'demo@example.com', password: '$2a$10$8YJ9tjJ4iT6R3hH7u5.lUuJZvX8jG7f6y5r4t3e2d1c0b9a8z7y6x5w4v3u2t1s', role: 'user' } // password: demo123
 ];
+
+// In-memory data stores
 
 // In-memory data stores
 let wallet = {
@@ -318,7 +314,7 @@ app.get('/health', (req, res) => {
       timestamp: new Date().toISOString(),
       uptime: process.uptime()
     }
-  );
+  });
 });
 
 app.listen(PORT, () => {
