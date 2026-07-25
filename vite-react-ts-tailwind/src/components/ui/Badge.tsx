@@ -1,4 +1,5 @@
-import { cn } from './utils';
+import React from 'react';
+import cn from './utils';
 
 interface BadgeProps {
   variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error';
@@ -6,7 +7,7 @@ interface BadgeProps {
   children: React.ReactNode;
 }
 
-const Badge = ({
+export const Badge = ({
   variant = 'default',
   className = '',
   children,
@@ -30,5 +31,3 @@ const Badge = ({
     </span>
   );
 };
-
-export default Badge;

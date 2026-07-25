@@ -1,4 +1,5 @@
-import { cn } from './utils';
+import React from 'react';
+import cn from './utils';
 
 interface CardProps {
   className?: string;
@@ -7,7 +8,7 @@ interface CardProps {
   children: React.ReactNode;
 }
 
-const Card = ({
+export const Card = ({
   className = '',
   header,
   footer,
@@ -24,5 +25,3 @@ const Card = ({
     </div>
   );
 };
-
-export default Card;

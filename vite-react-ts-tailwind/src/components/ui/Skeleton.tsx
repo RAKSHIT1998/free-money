@@ -1,4 +1,4 @@
-import { cn } from './utils';
+import cn from './utils';
 
 interface SkeletonProps {
   className?: string;
@@ -8,7 +8,7 @@ interface SkeletonProps {
   animate?: boolean;
 }
 
-const Skeleton = ({
+export const Skeleton = ({
   className = '',
   height = 16,
   width = 'full',
@@ -35,5 +35,3 @@ const Skeleton = ({
     />
   );
 };
-
-export default Skeleton;

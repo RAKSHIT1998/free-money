@@ -132,7 +132,7 @@ const LoginPage = () => {
               ) : (
                 <span>Sign In</span>
               )}
-            </button>
+            </Button>
           </form>
         </Card>
 

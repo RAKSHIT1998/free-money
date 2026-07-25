@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 
@@ -35,12 +34,15 @@ function App() {
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
                 {/* Protected routes */}
-                <Route element={<>}>
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/wallet" element={<WalletPage />} />
-                  <Route path="/agents" element={<AgentsPage />} />
-                  <Route path="/opportunities" element={<OpportunitiesPage />} />
-                  <Route path="/system-health" element={<SystemHealthPage />} />
+                <Route element={
+                  <>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/wallet" element={<WalletPage />} />
+                    <Route path="/agents" element={<AgentsPage />} />
+                    <Route path="/opportunities" element={<OpportunitiesPage />} />
+                    <Route path="/system-health" element={<SystemHealthPage />} />
+                  </>
+                }>
                 </Route>
               </Routes>
             </main>

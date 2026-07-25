@@ -1,4 +1,5 @@
-import { cn } from './utils';
+import * as React from 'react';
+import cn from './utils';
 
 interface ButtonProps {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';

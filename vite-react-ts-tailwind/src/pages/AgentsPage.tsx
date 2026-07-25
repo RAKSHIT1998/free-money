@@ -3,7 +3,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Badge } from '../components/ui/Badge';
-import { FBriefcase, FChevronRight, FPlus, FTrash, FCircle, FMinusCircle, FActivity, FUsers, FCheckCircle, FSlidersHorizontal } from 'react-icons/fi';
+import { FiBriefcase, FiChevronRight, FiPlus, FiTrash, FiCircle, FiMinusCircle, FiActivity, FiUsers, FiCheckCircle, FiSlidersHorizontal, FiCreditCard, FiRefreshCw } from 'react-icons/fi';
 import { useState } from 'react';
 
 const AgentsPage = () => {
@@ -67,7 +67,7 @@ const AgentsPage = () => {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Agent Management</h1>
         <Button variant="outline" onClick={() => setSpawnModalOpen(true)}>
-          <FPlus size={20} className="mr-2" /> Spawn New Agent
+          <FiPlus size={20} className="mr-2" /> Spawn New Agent
         </Button>
       </div>
 
@@ -81,7 +81,7 @@ const AgentsPage = () => {
                 <p className="text-2xl font-bold">{agentStats.total}</p>
               </div>
               <div className="p-2 bg-gray-100 rounded-full">
-                <FBriefcase size={24} className="text-gray-600" />
+                <FiBriefcase size={24} className="text-gray-600" />
               </div>
             </div>
           </Card>
@@ -91,11 +91,11 @@ const AgentsPage = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Active Agents</h3>
                 <p className="text-2xl font-bold">
-                  {agentStats.total - (agentStats.byType?.cryptoHunter || 0) - (agentStats.byType?.opportunityScout || 0) - (agentStats.byType?.developer || 0) - (agentStats.byType?.manager || 0)}
+                  {agentStats.active || 0}
                 </p>
               </div>
               <div className="p-2 bg-green-100 rounded-full">
-                <FCheckCircle size={24} className="text-green-600" />
+                <FiCheckCircle size={24} className="text-green-600" />
               </div>
             </div>
           </Card>
@@ -107,7 +107,7 @@ const AgentsPage = () => {
                 <p className="text-2xl font-bold">${(agentStats.averagePerformance?.earnings || 0) * (agentStats.total || 0)}</p>
               </div>
               <div className="p-2 bg-yellow-100 rounded-full">
-                <FCreditCard size={24} className="text-yellow-600" />
+                <FiCreditCard size={24} className="text-yellow-600" />
               </div>
             </div>
           </Card>
@@ -121,7 +121,7 @@ const AgentsPage = () => {
                 </p>
               </div>
               <div className="p-2 bg-purple-100 rounded-full">
-                <FSlidersHorizontal size={24} className="text-purple-600" />
+                <FiSlidersHorizontal size={24} className="text-purple-600" />
               </div>
             </div>
           </Card>
@@ -147,7 +147,7 @@ const AgentsPage = () => {
         <div className="flex items-center justify-between pb-4">
           <h3 className="text-lg font-semibold">Active Agents</h3>
           <Button variant="outline" size="sm" onClick={fetchAgents}>
-            <FRefreshCw size={16} className="mr-2" /> Refresh
+            <FiRefreshCw size={16} className="mr-2" /> Refresh
           </Button>
         </div>
 
@@ -169,7 +169,7 @@ const AgentsPage = () => {
               <div className="text-center py-8 text-gray-500">
                 <p>No agents found</p>
                 <Button variant="outline" onClick={() => setSpawnModalOpen(true)}>
-                  <FPlus size={20} className="mr-2" /> Spawn First Agent
+                  <FiPlus size={20} className="mr-2" /> Spawn First Agent
                 </Button>
               </div>
             ) : (
@@ -179,7 +179,7 @@ const AgentsPage = () => {
                     <div className="flex-shrink-0">
                       <div className={`w-10 h-10 flex items-center justify-${agent.state === 'active' ? 'center' : 'flex-start'} rounded-full ${agent.state === 'active' ? 'bg-green-500' : agent.state === 'idle' ? 'bg-yellow-500' : agent.state === 'resting' ? 'bg-blue-500' : 'bg-red-500'}`}>
                         {agent.state === 'active' ? (
-                          <FActivity size={10} className="animate-pulse" />
+                          <FiActivity size={10} className="animate-pulse" />
                         ) : null}
                       </div>
                     </div>
@@ -215,7 +215,7 @@ const AgentsPage = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2 text-xs text-gray-500">
-                        <FActivity size={14} className="mr-1" />
+                        <FiActivity size={14} className="mr-1" />
                         <span>Last active: {new Date(agent.lastActive).toLocaleTimeString()}</span>
                       </div>
                     </div>
@@ -227,7 +227,7 @@ const AgentsPage = () => {
                           // Show agent details modal
                         }}
                       >
-                        <FChevronRight size={16} />
+                        <FiChevronRight size={16} />
                       </Button>
                       <Button
                         variant="ghost"
@@ -235,7 +235,7 @@ const AgentsPage = () => {
                         onClick={() => handleDeleteAgent(agent.id)}
                         className="text-red-500 hover:text-red-700"
                       >
-                        <FTrash size={16} />
+                        <FiTrash size={16} />
                       </Button>
                     </div>
                   </div>

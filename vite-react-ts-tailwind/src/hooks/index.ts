@@ -272,7 +272,7 @@ export const useSystemHealth = () => {
     fetchHealth();
 
     // Set up interval to refresh health every 30 seconds
-    const interval = setInterval(fetchHistory, 30000);
+    const interval = setInterval(fetchHealth, 30000);
     return () => clearInterval(interval);
   }, [fetchHealth]);
 

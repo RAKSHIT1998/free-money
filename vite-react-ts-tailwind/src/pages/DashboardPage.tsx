@@ -6,7 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { BarChart, Bar } from 'recharts';
 import { PieChart, Pie, Cell } from 'recharts';
-import { FCreditCard, FBriefcase, FTruck, FActivity, FCpu, FUsers } from 'react-icons/fi';
+import { FiCreditCard, FiBriefcase, FiTruck, FiActivity, FiCpu, FiUsers } from 'react-icons/fi';
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Badge } from '../components/ui/Badge';
@@ -138,7 +138,7 @@ const DashboardPage = () => {
               <p className="text-2xl font-bold">{balance ? formatCurrency(balance.balance) : '$0.00'}</p>
             </div>
             <div className="p-2 bg-green-100 rounded-full">
-              <FCreditCard size={24} className="text-green-600" />
+              <FiCreditCard size={24} className="text-green-600" />
             </div>
           </div>
           <div className="px-4 pb-4 text-sm text-gray-600">
@@ -156,7 +156,7 @@ const DashboardPage = () => {
               </p>
             </div>
             <div className="p-2 bg-blue-100 rounded-full">
-              <FBriefcase size={24} className="text-blue-600" />
+              <FiBriefcase size={24} className="text-blue-600" />
             </div>
           </div>
           <div className="px-4 pb-4 text-sm text-gray-600">
@@ -195,7 +195,7 @@ const DashboardPage = () => {
               </p>
             </div>
             <div className="p-2 bg-orange-100 rounded-full">
-              <FTruck size={24} className="text-orange-600" />
+              <FiTruck size={24} className="text-orange-600" />
             </div>
           </div>
           <div className="px-4 pb-4 text-sm text-gray-600">
@@ -228,7 +228,7 @@ const DashboardPage = () => {
               <p className="text-2xl font-bold">{formatCurrency(23.50)}</p>
             </div>
             <div className="p-2 bg-yellow-100 rounded-full">
-              <FActivity size={24} className="text-yellow-600" />
+              <FiActivity size={24} className="text-yellow-600" />
             </div>
           </div>
           <div className="px-4 pb-4 text-sm text-gray-600">
@@ -244,7 +244,7 @@ const DashboardPage = () => {
           <div className="flex items-center justify-between pb-4">
             <h3 className="text-lg font-semibold">Earnings Trend (7 Days)</h3>
             <Button variant="ghost" size="sm">
-              <FActivity size={16} /> Refresh
+              <FiActivity size={16} /> Refresh
             </Button>
           </div>
           <ResponsiveContainer width="100%" height={250}>
@@ -264,7 +264,7 @@ const DashboardPage = () => {
           <div className="flex items-center justify-between pb-4">
             <h3 className="text-lg font-semibold">Agent Performance</h3>
             <Button variant="ghost" size="sm">
-              <FUsers size={16} /> Details
+              <FiUsers size={16} /> Details
             </Button>
           </div>
           {agentPerformanceData.length > 0 ? (
@@ -294,7 +294,7 @@ const DashboardPage = () => {
           <div className="flex items-center justify-between pb-4">
             <h3 className="text-lg font-semibold">Opportunity Types</h3>
             <Button variant="ghost" size="sm">
-              <FTruck size={16} /> View All
+              <FiTruck size={16} /> View All
             </Button>
           </div>
           {opportunityTypeData.length > 0 ? (
@@ -327,7 +327,7 @@ const DashboardPage = () => {
           <div className="flex items-center justify-between pb-4">
             <h3 className="text-lg font-semibold">Recent Activity</h3>
             <Button variant="ghost" size="sm">
-              <FActivity size={16} /> View All
+              <FiActivity size={16} /> View All
             </Button>
           </div>
           <div className="space-y-3">
@@ -335,7 +335,7 @@ const DashboardPage = () => {
             <div className="p-3 bg-gray-50 rounded-lg">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
-                  <FActivity size={20} className="text-blue-500" />
+                  <FiActivity size={20} className="text-blue-500" />
                 </div>
                 <div className="flex-1">
                   <p className="font-medium">New opportunity discovered: FreeToken Airdrop</p>
@@ -351,7 +351,7 @@ const DashboardPage = () => {
             <div className="p-3 bg-gray-50 rounded-lg">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
-                  <FCreditCard size={20} className="text-green-500" />
+                  <FiCreditCard size={20} className="text-green-500" />
                 </div>
                 <div className="flex-1">
                   <p className="font-medium">Earnings added: $12.50 from freelance task</p>
@@ -364,7 +364,7 @@ const DashboardPage = () => {
             <div className="p-3 bg-gray-50 rounded-lg">
               <div className="flex items-start space-x-3">
                 <div className="flex-shrink-0">
-                  <FBriefcase size={20} className="text-purple-500" />
+                  <FiBriefcase size={20} className="text-purple-500" />
                 </div>
                 <div className="flex-1">
                   <p className="font-medium">Agent spawned: Developer Agent Alpha</p>

@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Badge } from '../components/ui/Badge';
-import { FCreditCard, FExchangeDown, FExchangeUp, FActivity } from 'react-icons/fi';
+import { FiCreditCard, FiExchangeDown, FiExchangeUp, FiActivity } from 'react-icons/fi';
 import { Toaster } from 'react-hot-toast';
 import { useState } from 'react';
 
@@ -113,7 +113,7 @@ const WalletPage = () => {
               )}
             </>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* Transaction Filters */}
@@ -143,8 +143,8 @@ const WalletPage = () => {
           >
             Earnings
           </button>
-          <Button variant="outline" size="sm">
-            <FActivity size={16} className="mr-2" /> Refresh
+          <Button variant="outline" size="sm" onClick={refresh}>
+            <FiActivity size={16} className="mr-2" /> Refresh
           </Button>
         </div>
       </div>
@@ -185,11 +185,11 @@ const WalletPage = () => {
                   <div key={tx.id} className="flex items-start space-x-3 p-4 border-t border-gray-200">
                     <div className="flex-shrink-0">
                       {tx.type === 'deposit' ? (
-                        <FExchangeUp size={24} className="text-green-500" />
+                        <FiExchangeUp size={24} className="text-green-500" />
                       ) : tx.type === 'withdrawal' ? (
-                        <FExchangeDown size={24} className="text-red-500" />
+                        <FiExchangeDown size={24} className="text-red-500" />
                       ) : (
-                        <FActivity size={24} className="text-yellow-500" />
+                        <FiActivity size={24} className="text-yellow-500" />
                       )}
                     </div>
                     <div className="flex-1 space-y-1">
@@ -216,7 +216,7 @@ const WalletPage = () => {
 
         <div className="flex justify-end pt-4">
           <Button variant="outline" size="sm" onClick={refresh}>
-            <FActivity size={16} className="mr-2" /> Refresh
+            <FiActivity size={16} className="mr-2" /> Refresh
           </Button>
         </div>
       </Card>

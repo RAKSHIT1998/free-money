@@ -3,7 +3,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Badge } from '../components/ui/Badge';
-import { FTruck, FSearch, FPlus, FRefreshCw, FSlider, FList, FCheckCircle, FCalendar } from 'react-icons/fi';
+import { FiTruck, FiSearch, FiPlus, FiRefreshCw, FiSlider, FiList, FiCheckCircle, FiCalendar } from 'react-icons/fi';
 import { useState } from 'react';
 
 const OpportunitiesPage = () => {
@@ -76,12 +76,12 @@ const OpportunitiesPage = () => {
         <h1 className="text-2xl font-bold">Opportunities</h1>
         <div className="flex items-center space-x-3">
           <Button variant="outline" onClick={handleSyncOpportunities}>
-            <FRefreshCw size={20} className="mr-2" /> Sync
+            <FiRefreshCw size={20} className="mr-2" /> Sync
           </Button>
           <Button variant="outline" onClick={() => {
             // Show filter/sort modal
           }}>
-            <FSlider size={20} className="mr-2" /> Filter
+            <FiSlider size={20} className="mr-2" /> Filter
           </Button>
         </div>
       </div>
@@ -96,7 +96,7 @@ const OpportunitiesPage = () => {
                 <p className="text-2xl font-bold">{opportunityStats.totalOpportunities}</p>
               </div>
               <div className="p-2 bg-gray-100 rounded-full">
-                <FTruck size={24} className="text-gray-600" />
+                <FiTruck size={24} className="text-gray-600" />
               </div>
             </div>
           </Card>
@@ -108,7 +108,7 @@ const OpportunitiesPage = () => {
                 <p className="text-2xl font-bold">{opportunityStats.byStatus?.active || 0}</p>
               </div>
               <div className="p-2 bg-green-100 rounded-full">
-                <FCheckCircle size={24} className="text-green-600" />
+                <FiCheckCircle size={24} className="text-green-600" />
               </div>
             </div>
           </Card>
@@ -120,7 +120,7 @@ const OpportunitiesPage = () => {
                 <p className="text-2xl font-bold">{opportunityStats.opportunitiesPerDay.toFixed(1)}</p>
               </div>
               <div className="p-2 bg-blue-100 rounded-full">
-                <FCalendar size={24} className="text-blue-600" />
+                <FiCalendar size={24} className="text-blue-600" />
               </div>
             </div>
           </Card>
@@ -235,7 +235,7 @@ const OpportunitiesPage = () => {
               <div className="text-center py-8 text-gray-500">
                 <p>No opportunities found</p>
                 <Button variant="outline" onClick={handleSyncOpportunities}>
-                  <FRefreshCw size={20} className="mr-2" /> Sync Opportunities
+                  <FiRefreshCw size={20} className="mr-2" /> Sync Opportunities
                 </Button>
               </div>
             ) : (
@@ -244,7 +244,7 @@ const OpportunitiesPage = () => {
                   <div key={opp.id} className="flex items-start space-x-3 p-4 border-t border-gray-200">
                     <div className="flex-shrink-0">
                       <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50">
-                        <FTruck size={20} className="text-blue-500" />
+                        <FiTruck size={20} className="text-blue-500" />
                       </div>
                     </div>
                     <div className="flex-1 space-y-1">
@@ -292,7 +292,7 @@ const OpportunitiesPage = () => {
                           // View opportunity details
                         }}
                       >
-                        <FList size={16} className="mr-1" /> Details
+                        <FiList size={16} className="mr-1" /> Details
                       </Button>
                       <Button
                         variant="ghost"
@@ -302,7 +302,7 @@ const OpportunitiesPage = () => {
                         }}
                         className="text-green-500 hover:text-green-700"
                       >
-                        <FCheckCircle size={16} className="mr-1" /> Claim
+                        <FiCheckCircle size={16} className="mr-1" /> Claim
                       </Button>
                     </div>
                   </div>
@@ -314,7 +314,7 @@ const OpportunitiesPage = () => {
 
         <div className="flex justify-end pt-4">
           <Button variant="outline" size="sm" onClick={fetchOpportunities}>
-            <FRefreshCw size={16} className="mr-2" /> Refresh
+            <FiRefreshCw size={16} className="mr-2" /> Refresh
           </Button>
         </div>
       </Card>

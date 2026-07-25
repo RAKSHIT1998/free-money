@@ -2,13 +2,13 @@ import { useSystemHealth } from '../hooks';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { FActivity, FCpu, FMemory, FZap, FServer, FCheckCircle, FAlertTriangle, FCalendar } from 'react-icons/fi';
+import { FiActivity, FiCpu, FiMemory, FiZap, FiServer, FiCheckCircle, FiAlertTriangle, FiCalendar } from 'react-icons/fi';
 import { useState, useEffect } from 'react';
 
 const SystemHealthPage = () => {
   const { health, loading, error, refresh } = useSystemHealth();
   const [metrics, setMetrics] = useState([]);
-  const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+  const [refreshInterval, setRefreshInterval] = useState<any>(null);
 
   useEffect(() => {
     // Start auto-refresh every 30 seconds
@@ -47,10 +47,10 @@ const SystemHealthPage = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'normal': return <FCheckCircle size={16} className="text-green-600" />;
-      case 'warning': return <FAlertTriangle size={16} className="text-yellow-600" />;
-      case 'critical': return <FAlertTriangle size={16} className="text-red-600" />;
-      default: return <FCheckCircle size={16} className="text-gray-600" />;
+      case 'normal': return <FiCheckCircle size={16} className="text-green-600" />;
+      case 'warning': return <FiAlertTriangle size={16} className="text-yellow-600" />;
+      case 'critical': return <FiAlertTriangle size={16} className="text-red-600" />;
+      default: return <FiCheckCircle size={16} className="text-gray-600" />;
     }
   };
 
@@ -60,7 +60,7 @@ const SystemHealthPage = () => {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">System Health</h1>
         <Button variant="outline" onClick={refresh}>
-          <FActivity size={20} className="mr-2" /> Refresh
+          <FiActivity size={20} className="mr-2" /> Refresh
         </Button>
       </div>
 
@@ -80,12 +80,12 @@ const SystemHealthPage = () => {
                   <h2 className="text-3xl font-bold mb-2">
                     {health.status === 'OK' ? (
                       <>
-                        <FCheckCircle size={24} className="text-green-600 mr-2" />
+                        <FiCheckCircle size={24} className="text-green-600 mr-2" />
                         Operational
                       </>
                     ) : (
                       <>
-                        <FAlertTriangle size={24} className="text-red-600 mr-2" />
+                        <FiAlertTriangle size={24} className="text-red-600 mr-2" />
                         Issues Detected
                       </>
                     )}
@@ -102,7 +102,7 @@ const SystemHealthPage = () => {
               )}
             </>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* System Metrics */}
@@ -110,7 +110,7 @@ const SystemHealthPage = () => {
         <div className="flex items-center justify-between pb-4">
           <h3 className="text-lg font-semibold">System Metrics</h3>
           <Button variant="outline" size="sm">
-            <FRefreshCw size={16} className="mr-2" /> Refresh Metrics
+            <FiRefreshCw size={16} className="mr-2" /> Refresh Metrics
           </Button>
         </div>
 
@@ -120,15 +120,15 @@ const SystemHealthPage = () => {
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0">
                   {metric.label === 'CPU Usage' ? (
-                    <FCpu size={20} className="text-blue-500" />
+                    <FiCpu size={20} className="text-blue-500" />
                   ) : metric.label === 'Memory Usage' ? (
-                    <FMemory size={20} className="text-green-500" />
+                    <FiMemory size={20} className="text-green-500" />
                   ) : metric.label === 'Disk Usage' ? (
-                    <FServer size={20} className="text-red-500" />
+                    <FiServer size={20} className="text-red-500" />
                   ) : metric.label === 'Network I/O' ? (
-                    <FZap size={20} className="text-yellow-500" />
+                    <FiZap size={20} className="text-yellow-500" />
                   ) : (
-                    <FActivity size={20} className="text-gray-500" />
+                    <FiActivity size={20} className="text-gray-500" />
                   )}
                 </div>
                 <div>
@@ -155,7 +155,7 @@ const SystemHealthPage = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-3">
-              <FCheckCircle size={20} className="text-green-600" />
+              <FiCheckCircle size={20} className="text-green-600" />
               <div>
                 <h4 className="font-medium">API Service</h4>
                 <p className="text-sm text-gray-500">Operational</p>
@@ -165,7 +165,7 @@ const SystemHealthPage = () => {
           </div>
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-3">
-              <FCheckCircle size={20} className="text-green-600" />
+              <FiCheckCircle size={20} className="text-green-600" />
               <div>
                 <h4 className="font-medium">Database</h4>
                 <p className="text-sm text-gray-500">Connected</p>
@@ -175,7 +175,7 @@ const SystemHealthPage = () => {
           </div>
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-3">
-              <FActivity size={20} className="text-blue-600" />
+              <FiActivity size={20} className="text-blue-600" />
               <div>
                 <h4 className="font-medium">Agent System</h4>
                 <p className="text-sm text-gray-500">Running</p>

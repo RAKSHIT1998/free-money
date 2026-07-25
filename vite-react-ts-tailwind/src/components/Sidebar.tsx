@@ -1,21 +1,14 @@
-import { FiLogOut, FRocketStart, FCreditCard, FBriefcase, FTruck, FSettings } from 'react-icons/fi';
-import { NavLink, useNavigationError, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { FiActivity, FiCreditCard, FiBriefcase, FiTruck, FiSettings, FiLogOut } from 'react-icons/fi';
+import { NavLink, useNavigation, useLocation } from 'react-router-dom';
 
 const Sidebar = () => {
   const location = useLocation();
-  const error = useNavigationError();
-
-  useEffect(() => {
-    if (error) {
-      console.error('Navigation error:', error);
-    }
-  }, [error]);
+  const navigate = useNavigation();
 
   return (
     <aside className="w-64 bg-gray-900 text-white p-4 h-full flex flex-col">
       <div className="flex items-center space-x-3 mb-6">
-        <FRocketStart size={24} />
+        <FiActivity size={24} />
         <span className="font-bold text-xl">Free Money App</span>
       </div>
 
@@ -28,7 +21,7 @@ const Sidebar = () => {
             transition-colors
           `}
         >
-          <FChevronRight size={20} className="mr-3" />
+          <FiChevronRight size={20} className="mr-3" />
           Dashboard
         </NavLink>
 
@@ -40,7 +33,7 @@ const Sidebar = () => {
             transition-colors
           `}
         >
-          <FCreditCard size={20} className="mr-3" />
+          <FiCreditCard size={20} className="mr-3" />
           Wallet
         </NavLink>
 
@@ -52,7 +45,7 @@ const Sidebar = () => {
             transition-colors
           `}
         >
-          <FBriefcase size={20} className="mr-3" />
+          <FiBriefcase size={20} className="mr-3" />
           Agents
         </NavLink>
 
@@ -64,7 +57,7 @@ const Sidebar = () => {
             transition-colors
           `}
         >
-          <FTruck size={20} className="mr-3" />
+          <FiTruck size={20} className="mr-3" />
           Opportunities
         </NavLink>
 
@@ -76,7 +69,7 @@ const Sidebar = () => {
             transition-colors
           `}
         >
-          <FSettings size={20} className="mr-3" />
+          <FiSettings size={20} className="mr-3" />
           System Health
         </NavLink>
       </nav>
