@@ -1,4 +1,4 @@
-import { FiLogOut, FiCreditCard, FiBriefcase, FiTruck, FiSettings, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiLogOut, FiChevronLeft } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 
 const NavBar = () => {

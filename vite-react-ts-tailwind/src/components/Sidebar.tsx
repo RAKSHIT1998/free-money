@@ -1,10 +1,7 @@
-import { FiActivity, FiCreditCard, FiBriefcase, FiTruck, FiSettings, FiLogOut } from 'react-icons/fi';
-import { NavLink, useNavigation, useLocation } from 'react-router-dom';
+import { FiActivity, FiCreditCard, FiBriefcase, FiTruck, FiSettings, FiLogOut, FiChevronRight } from 'react-icons/fi';
+import { NavLink } from 'react-router-dom';
 
 const Sidebar = () => {
-  const location = useLocation();
-  const navigate = useNavigation();
-
   return (
     <aside className="w-64 bg-gray-900 text-white p-4 h-full flex flex-col">
       <div className="flex items-center space-x-3 mb-6">

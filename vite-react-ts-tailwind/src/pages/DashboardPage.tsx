@@ -6,19 +6,18 @@ import { formatDistanceToNow } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { BarChart, Bar } from 'recharts';
 import { PieChart, Pie, Cell } from 'recharts';
-import { FiCreditCard, FiBriefcase, FiTruck, FiActivity, FiCpu, FiUsers } from 'react-icons/fi';
+import { FiCreditCard, FiBriefcase, FiTruck, FiActivity, FiUsers } from 'react-icons/fi';
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
-import { Badge } from '../components/ui/Badge';
 import { Card } from '../components/ui/Card';
 
 const DashboardPage = () => {
-  const { balance, transactions, loading: walletLoading } = useWallet();
+  const { balance, loading: walletLoading } = useWallet();
   const { agents, agentStats, loading: agentsLoading } = useAgents();
-  const { opportunities, opportunityStats, loading: opportunitiesLoading } = useOpportunities();
-  const [earningsData, setEarningsData] = useState([]);
-  const [agentPerformanceData, setAgentPerformanceData] = useState([]);
-  const [opportunityTypeData, setOpportunityTypeData] = useState([]);
+  const { opportunityStats, loading: opportunitiesLoading } = useOpportunities();
+  const [earningsData, setEarningsData] = useState<{ date: string; earnings: number }[]>([]);
+  const [agentPerformanceData, setAgentPerformanceData] = useState<{ name: string; earnings: number; opportunities: number }[]>([]);
+  const [opportunityTypeData, setOpportunityTypeData] = useState<{ name: string; value: number }[]>([]);
 
   // Generate mock earnings data for the chart (in a real app, this would come from API)
   useEffect(() => {
@@ -63,11 +62,11 @@ const DashboardPage = () => {
     }
   }, [opportunityStats]);
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount: number) => {
     return `$${amount.toFixed(2)}`;
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   };
 
@@ -152,7 +151,7 @@ const DashboardPage = () => {
             <div>
               <h3 className="text-sm font-medium text-gray-500">Active Agents</h3>
               <p className="text-2xl font-bold">
-                {agentStats ? agentStats.total : 0}
+                {agentStats ? agents.filter(agent => agent.state === 'active').length : 0}
               </p>
             </div>
             <div className="p-2 bg-blue-100 rounded-full">
@@ -275,8 +274,8 @@ const DashboardPage = () => {
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
                 <Legend verticalAlign="top" height={36} />
-                <Bar dataKey="earnings" label="Earnings ($)" stackId="a" fill="#3B82F6" />
-                <Bar dataKey="opportunities" label="Opportunities" stackId="a" fill="#10B981" />
+                <Bar dataKey="earnings" label={true} stackId="a" fill="#3B82F6" />
+                <Bar dataKey="opportunities" label={true} stackId="a" fill="#10B981" />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -309,7 +308,7 @@ const DashboardPage = () => {
                   labelLine={false}
                   label={{ position: 'inside' }}
                 >
-                  {opportunityTypeData.map((entry, index) => (
+                  {opportunityTypeData.map((_, index) => (
                     <Cell key={`cell-${index}`} color={['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'][index % 6]} />
                   ))}
                 </Pie>

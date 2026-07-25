@@ -2,21 +2,18 @@ import { useAgents } from '../hooks';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { Badge } from '../components/ui/Badge';
-import { FiBriefcase, FiChevronRight, FiPlus, FiTrash, FiCircle, FiMinusCircle, FiActivity, FiUsers, FiCheckCircle, FiSlidersHorizontal, FiCreditCard, FiRefreshCw } from 'react-icons/fi';
+import { FiBriefcase, FiSettings, FiChevronRight, FiPlus, FiTrash, FiActivity, FiCheckCircle, FiCreditCard, FiRefreshCw } from 'react-icons/fi';
 import { useState } from 'react';
 
 const AgentsPage = () => {
-  const { agents, agentStats, loading, error, fetchAgents, spawnAgent, deleteAgent } = useAgents();
-  const [spawnModalOpen, setSpawnModalOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState<'cryptoHunter' | 'opportunityScout' | 'developer' | 'manager'>('cryptoHunter');
+  const { agents, agentStats, loading, fetchAgents, spawnAgent, deleteAgent } = useAgents();
   const [agentName, setAgentName] = useState('');
   const [scanInterval, setScanInterval] = useState(30000);
   const [maxResults, setMaxResults] = useState(10);
 
   const handleSpawnAgent = async () => {
-    const newAgent = await spawnAgent(selectedType, {
-      name: agentName || `${selectedType} Agent ${Date.now()}`,
+    const newAgent = await spawnAgent('cryptoHunter', {
+      name: agentName || `Crypto Hunter Agent ${Date.now()}`,
       config: {
         scanInterval,
         maxResultsPerScan: maxResults
@@ -24,11 +21,11 @@ const AgentsPage = () => {
     });
 
     if (newAgent) {
-      setSpawnModalOpen(false);
+      // Reset form
       setAgentName('');
       setScanInterval(30000);
       setMaxResults(10);
-      // Show success toast
+      // Show success toast (to be implemented)
     }
   };
 
@@ -66,7 +63,7 @@ const AgentsPage = () => {
       {/* Page Header */}
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Agent Management</h1>
-        <Button variant="outline" onClick={() => setSpawnModalOpen(true)}>
+        <Button variant="outline" onClick={handleSpawnAgent}>
           <FiPlus size={20} className="mr-2" /> Spawn New Agent
         </Button>
       </div>
@@ -91,7 +88,7 @@ const AgentsPage = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Active Agents</h3>
                 <p className="text-2xl font-bold">
-                  {agentStats.active || 0}
+                  {agents.filter(agent => agent.state === 'active').length}
                 </p>
               </div>
               <div className="p-2 bg-green-100 rounded-full">
@@ -104,7 +101,12 @@ const AgentsPage = () => {
             <div className="flex items-center justify-between p-4">
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Total Earnings</h3>
-                <p className="text-2xl font-bold">${(agentStats.averagePerformance?.earnings || 0) * (agentStats.total || 0)}</p>
+                <p className="text-2xl font-bold">
+                  ${(
+                    (agentStats.averagePerformance?.earnings ?? 0) *
+                    (agentStats.total ?? 0)
+                  ).toFixed(2)}
+                </p>
               </div>
               <div className="p-2 bg-yellow-100 rounded-full">
                 <FiCreditCard size={24} className="text-yellow-600" />
@@ -117,11 +119,12 @@ const AgentsPage = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-500">Avg Success Rate</h3>
                 <p className="text-2xl font-bold">
-                  {agentStats.averagePerformance?.successRate?.toFixed(1) || 0}%
+                  {(agentStats.averagePerformance?.successRate?.toFixed(1) ?? 0)}%
                 </p>
               </div>
               <div className="p-2 bg-purple-100 rounded-full">
-                <FiSlidersHorizontal size={24} className="text-purple-600" />
+                {/* Using FiSettings as alternative since specific slider icons don't exist */}
+                <FiSettings size={24} className="text-purple-600" />
               </div>
             </div>
           </Card>
@@ -168,7 +171,7 @@ const AgentsPage = () => {
             {agents.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <p>No agents found</p>
-                <Button variant="outline" onClick={() => setSpawnModalOpen(true)}>
+                <Button variant="outline" onClick={handleSpawnAgent}>
                   <FiPlus size={20} className="mr-2" /> Spawn First Agent
                 </Button>
               </div>

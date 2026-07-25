@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { FCreditCard, FUser, FLock, FActivity } from 'react-icons/fi';
+import { FiCreditCard, FiUser, FiLock, FiActivity } from 'react-icons/fi';
 import { Toaster } from 'react-hot-toast';
 
 const LoginPage = () => {
@@ -58,7 +58,7 @@ const LoginPage = () => {
       <div className="w-full max-w-md space-y-6">
         <div className="flex items-center justify-center">
           <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center">
-            <FActivity size={24} className="text-white" />
+            <FiActivity size={24} className="text-white" />
           </div>
           <h1 className="text-3xl font-bold text-center ml-4">Free Money App</h1>
         </div>
@@ -70,7 +70,7 @@ const LoginPage = () => {
                 Email Address
               </label>
               <div className="relative">
-                <FUser size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <FiUser size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="email"
                   id="email"

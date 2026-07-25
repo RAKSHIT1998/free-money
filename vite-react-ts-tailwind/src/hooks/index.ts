@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import apiClient from '../services/api';
-import {
+import type {
   WalletData,
   WalletBalance,
   WalletTransaction,
@@ -8,7 +8,8 @@ import {
   AgentStatistics,
   Opportunity,
   OpportunityStatistics,
-  SystemHealth
+  SystemHealth,
+  ApiResponse
 } from '../types';
 
 // Wallet hooks
