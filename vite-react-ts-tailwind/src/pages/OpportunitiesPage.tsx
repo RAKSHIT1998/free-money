@@ -2,8 +2,7 @@ import { useOpportunities } from '../hooks';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { Badge } from '../components/ui/Badge';
-import { FiTruck, FiSearch, FiPlus, FiRefreshCw, FiSlider, FiList, FiCheckCircle, FiCalendar } from 'react-icons/fi';
+import { FiTruck, FiPlus, FiRefreshCw, FiList, FiCheckCircle, FiCalendar } from 'react-icons/fi';
 import { useState } from 'react';
 
 const OpportunitiesPage = () => {
