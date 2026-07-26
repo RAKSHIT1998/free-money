@@ -13,7 +13,7 @@ const JWT_SECRET = 'your-secret-key-change-in-production';
 
 // Mock user for authentication
 const users = [
-  { id: 1, username: 'demo@example.com', password: '$2a$10$8YJ9tjJ4iT6R3hH7u5.lUuJZvX8jG7f6y5r4t3e2d1c0b9a8z7y6x5w4v3u2t1s', role: 'user' } // password: demo123
+    { id: 1, username: 'demo@example.com', password: '$2a$10$HlKVkpE3nXIeUhamFdK7l.RXr39FVxtVyLrW7zJZQgQHv9y90Qn22', role: 'user' }
 ];
 
 // In-memory data stores
@@ -67,7 +67,7 @@ app.post('/api/auth/login', (req, res) => {
   if (!user) return res.status(400).json({ success: false, message: 'Invalid credentials' });
 
   bcrypt.compare(password, user.password, (err, result) => {
-    if (!result) return res.status(400).json({ success: false, message: 'Invalid credentials' });
+    if (err || !result) return res.status(400).json({ success: false, message: 'Invalid credentials' });
 
     const accessToken = jwt.sign({ username: user.username, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
     res.json({
