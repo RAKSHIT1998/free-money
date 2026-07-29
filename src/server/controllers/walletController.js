@@ -221,8 +221,12 @@ exports.withdrawCryptocurrency = async (req, res) => {
       });
     }
 
+    // Import walletService locally to avoid potential issues
+    const walletServiceLocal = require('../../services/walletService');
+
     const userId = process.env.DEVICE_ID || 'demo-user';
-    let wallet = await walletService.getOrCreateWallet(userId);
+
+    let wallet = await walletServiceLocal.getOrCreateWallet(userId);
 
     // If wallet doesn't exist, create it
     if (!wallet) {
@@ -230,15 +234,15 @@ exports.withdrawCryptocurrency = async (req, res) => {
     }
 
     // Check if cryptocurrency is supported
-    if (!walletService.cryptoCurrencyConfig.isCoinSupported(currency)) {
+    if (!walletServiceLocal.cryptoCurrencyConfig || !walletServiceLocal.cryptoCurrencyConfig.isCoinSupported(currency)) {
       return res.status(400).json({
         success: false,
-        message: `Unsupported cryptocurrency: ${currency}. Supported currencies: ${walletService.cryptoCurrencyConfig.supportedCoins.join(', ')}`
+        message: `Unsupported cryptocurrency: ${currency}. Supported currencies: ${walletServiceLocal.cryptoCurrencyConfig?.supportedCoins?.join(', ') || 'BTC, ETH, BNB, USDT, USDC'}`
       });
     }
 
     // Withdraw cryptocurrency
-    const result = await walletService.withdrawCryptocurrency(
+    const result = await walletServiceLocal.withdrawCryptocurrency(
       amount,
       currency,
       destinationAddress,
@@ -261,6 +265,7 @@ exports.withdrawCryptocurrency = async (req, res) => {
       });
     }
   } catch (error) {
+    console.error('Error in withdrawCryptocurrency:', error);
     res.status(500).json({
       success: false,
       message: 'Error processing cryptocurrency withdrawal',
