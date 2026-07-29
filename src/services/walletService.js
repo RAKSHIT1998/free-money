@@ -488,7 +488,7 @@ async function withdrawCryptocurrency(amountUsd, cryptoCurrency, destinationAddr
     }
 
     // Return result
-    return {
+    let result = {
       success: transactionStatus === 'completed',
       transactionId,
       status: transactionStatus,
