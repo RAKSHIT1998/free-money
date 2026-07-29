@@ -3,7 +3,7 @@
     {
       "userId": "desktop-a0oeuir-s3dzc1r-mrwauy2r",
       "balances": {
-        "USD": 4809.5
+        "USD": 6669.5
       },
       "transactions": [
         {
@@ -3832,6 +3832,1499 @@
           "amount": 9,
           "currency": "USD",
           "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from optimization work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "deposit",
+          "amount": 25,
+          "currency": "USD",
+          "description": "Test deposit after fix"
+        },
+        {
+          "type": "withdrawal",
+          "amount": 10,
+          "currency": "USD",
+          "description": "Test withdrawal"
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from optimization work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from verification work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from pattern_recognition work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from optimization work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "deposit",
+          "amount": 25,
+          "currency": "USD",
+          "description": "Test deposit"
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "deposit",
+          "amount": 10,
+          "currency": "USD",
+          "description": "Test deposit"
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "withdrawal",
+          "amount": 5,
+          "currency": "USD",
+          "description": "Test withdrawal"
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from optimization work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from verification work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from optimization work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from optimization work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 15,
+          "currency": "USD",
+          "description": "Earned from data_processing work",
+          "agentId": 3
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
           "agentId": 1
         }
       ],

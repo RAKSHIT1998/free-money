@@ -230,7 +230,6 @@ exports.withdrawCryptocurrency = async (req, res) => {
     }
 
     // Check if cryptocurrency is supported
-    const walletService = require('../../services/walletService');
     if (!walletService.cryptoCurrencyConfig.isCoinSupported(currency)) {
       return res.status(400).json({
         success: false,
