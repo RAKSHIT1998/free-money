@@ -145,6 +145,7 @@ class OpportunityScoutAgent extends BaseAgent {
         try {
           await walletService.addEarnings(
             earnedAmount,
+            'USD', // Default to USD earnings, could be made configurable
             `Earned from ${result.workType} work`,
             undefined, // opportunityId - we don't have one here unless we generate an opportunity
             this.id // agentId

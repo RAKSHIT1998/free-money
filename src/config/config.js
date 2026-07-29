@@ -56,7 +56,10 @@ class Config {
           minRewardThreshold: parseFloat(process.env.CRYPTO_HUNTER_MIN_REWARD) || 10,
           useLLM: process.env.USE_LLM === "true",
           llmModel: process.env.LLM_MODEL || "local-default",
-          llmEndpoint: process.env.LLM_ENDPOINT || "http://localhost:11434"
+          llmEndpoint: process.env.LLM_ENDPOINT || "http://localhost:11434",
+          // Cryptocurrency earning options
+          earnInCrypto: process.env.CRYPTO_HUNTER_EARN_IN_CRYPTO === "true",
+          cryptoCurrency: process.env.CRYPTO_HUNTER_CRYPTO_CURRENCY || "BNB"
         },
         opportunityScout: {
           scanInterval: parseInt(process.env.OPPORTUNITY_SCOUT_SCAN_INTERVAL) || 45000,
@@ -64,11 +67,17 @@ class Config {
           minRewardThreshold: parseFloat(process.env.OPPORTUNITY_SCOUT_MIN_REWARD) || 5,
           useLLM: process.env.USE_LLM === "true",
           llmModel: process.env.LLM_MODEL || "local-default",
-          llmEndpoint: process.env.LLM_ENDPOINT || "http://localhost:11434"
+          llmEndpoint: process.env.LLM_ENDPOINT || "http://localhost:11434",
+          // Cryptocurrency earning options
+          earnInCrypto: process.env.OPPORTUNITY_SCOUT_EARN_IN_CRYPTO === "true",
+          cryptoCurrency: process.env.OPPORTUNITY_SCOUT_CRYPTO_CURRENCY || "BNB"
         },
         developer: {
           taskInterval: parseInt(process.env.DEVELOPER_TASK_INTERVAL) || 60000,
-          maxTasksPerCycle: parseInt(process.env.DEVELOPER_MAX_TASKS) || 3
+          maxTasksPerCycle: parseInt(process.env.DEVELOPER_MAX_TASKS) || 3,
+          // Cryptocurrency earning options
+          earnInCrypto: process.env.DEVELOPER_EARN_IN_CRYPTO === "true",
+          cryptoCurrency: process.env.DEVELOPER_CRYPTO_CURRENCY || "BNB"
         },
         manager: {
           evaluationInterval: parseInt(process.env.MANAGER_EVAL_INTERVAL) || 300000
@@ -94,6 +103,58 @@ class Config {
       logging: {
         level: process.env.LOG_LEVEL || 'info',
         timestampFormat: 'ISO'
+      },
+
+      // Cryptocurrency Configuration
+      cryptocurrency: {
+        // Enable/disable cryptocurrency features
+        enabled: process.env.CRYPTO_ENABLED === 'true',
+
+        // Default cryptocurrency for payments (BTC, ETH, BNB, etc.)
+        defaultCurrency: process.env.DEFAULT_CRYPTO_CURRENCY || 'BNB',
+
+        // Wallet configuration
+        wallets: {
+          // Binance wallet
+          binance: {
+            apiKey: process.env.BINANCE_API_KEY || '',
+            apiSecret: process.env.BINANCE_API_SECRET || '',
+            enabled: process.env.BINANCE_ENABLED === 'true'
+          }
+        },
+
+        // Transaction settings
+        transaction: {
+          // Minimum amount to send (in USD equivalent)
+          minSendAmount: parseFloat(process.env.CRYPTO_MIN_SEND_AMOUNT) || 10,
+
+          // Fee handling
+          feeMode: process.env.CRYPTO_FEE_MODE || 'network', // 'network' or 'deduct_from_amount'
+
+          // Confirmation requirements
+          requiredConfirmations: parseInt(process.env.CRYPTO_REQUIRED_CONFIRMATIONS) || 1
+        },
+
+        // Simulation mode (when no real API keys are provided)
+        simulation: {
+          enabled: process.env.CRYPTO_SIMULATION_MODE === 'true' || !(process.env.BINANCE_API_KEY && process.env.BINANCE_API_SECRET),
+          delayMs: parseInt(process.env.CRYPTO_SIMULATION_DELAY_MS) || 2000, // Simulate network delay
+          successRate: parseFloat(process.env.CRYPTO_SIMULATION_SUCCESS_RATE) || 0.95 // 95% success rate in simulation
+        }
+      },
+
+      // Payment Configuration
+      payment: {
+        // Enable/disable payment features
+        enabled: process.env.PAYPAL_ENABLED === 'true',
+
+        // PayPal configuration
+        paypal: {
+          clientId: process.env.PAYPAL_CLIENT_ID || '',
+          clientSecret: process.env.PAYPAL_CLIENT_SECRET || '',
+          mode: process.env.PAYPAL_MODE || 'sandbox', // 'sandbox' or 'live'
+          enabled: process.env.PAYPAL_ENABLED === 'true'
+        }
       }
     };
 

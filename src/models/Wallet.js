@@ -11,6 +11,11 @@ const transactionSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  currency: {
+    type: String,
+    required: true,
+    default: 'USD'
+  },
   description: {
     type: String,
     default: ''
@@ -36,9 +41,10 @@ const walletSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  balance: {
-    type: Number,
-    default: 0
+  balances: {
+    type: Map,
+    of: Number,
+    default: {}
   },
   transactions: [transactionSchema]
 }, {
@@ -47,5 +53,25 @@ const walletSchema = new mongoose.Schema({
 
 // Index for faster user lookup
 walletSchema.index({ userId: 1 });
+
+// Helper method to get balance for a specific currency
+walletSchema.methods.getBalance = function(currency) {
+  return this.balances.get(currency) || 0;
+};
+
+// Helper method to add to balance for a specific currency
+walletSchema.methods.addBalance = function(currency, amount) {
+  const current = this.balances.get(currency) || 0;
+  this.balances.set(currency, current + amount);
+};
+
+// Helper method to subtract from balance for a specific currency
+walletSchema.methods.subtractBalance = function(currency, amount) {
+  const current = this.balances.get(currency) || 0;
+  if (current < amount) {
+    throw new Error(`Insufficient funds in ${currency}`);
+  }
+  this.balances.set(currency, current - amount);
+};
 
 module.exports = mongoose.model('Wallet', walletSchema);
