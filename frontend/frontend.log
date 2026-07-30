@@ -1,21 +1,10 @@
-
-> money-maker-dashboard@1.0.0 start
-> react-scripts start
-
-(node:10224) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
+npm notice run money-maker-dashboard@1.0.0 start
+npm notice run react-scripts start
+(node:6052) [DEP0176] DeprecationWarning: fs.F_OK is deprecated, use fs.constants.F_OK instead
 (Use `node --trace-deprecation ...` to show where the warning was created)
-(node:10224) [DEP_WEBPACK_DEV_SERVER_ON_AFTER_SETUP_MIDDLEWARE] DeprecationWarning: 'onAfterSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
-(node:10224) [DEP_WEBPACK_DEV_SERVER_ON_BEFORE_SETUP_MIDDLEWARE] DeprecationWarning: 'onBeforeSetupMiddleware' option is deprecated. Please use the 'setupMiddlewares' option.
-Starting the development server...
-
-Compiled successfully!
-
-You can now view money-maker-dashboard in the browser.
-
-  Local:            http://localhost:3000
-  On Your Network:  http://192.168.29.81:3000
-
-Note that the development build is not optimized.
-To create a production build, use npm run build.
-
-webpack compiled [1m[32msuccessfully[39m[22m
+Something is already running on port 3000.
+npm notice
+npm notice New patch version of npm available! 12.0.1 -> 12.0.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+npm notice To update run: npm install -g npm@12.0.2
+npm notice

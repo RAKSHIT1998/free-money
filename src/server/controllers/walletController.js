@@ -2,6 +2,7 @@
 const Wallet = require('../../models/Wallet');
 const paymentService = require('../../services/paymentService');
 const walletService = require('../../services/walletService');
+const { cryptoCurrencyConfig } = require('../../config/cryptocurrency');
 
 /**
  * Get wallet balance and info for device/user
@@ -221,28 +222,28 @@ exports.withdrawCryptocurrency = async (req, res) => {
       });
     }
 
-    // Import walletService locally to avoid potential issues
-    const walletServiceLocal = require('../../services/walletService');
+    // Check if cryptocurrency is supported
+    if (!cryptoCurrencyConfig || !cryptoCurrencyConfig.isCoinSupported(currency)) {
+      return res.status(400).json({
+        success: false,
+        message: `Unsupported cryptocurrency: ${currency}. Supported currencies: ${cryptoCurrencyConfig?.supportedCoins?.join(', ') || 'BTC, ETH, BNB, USDT, USDC'}`
+      });
+    }
 
     const userId = process.env.DEVICE_ID || 'demo-user';
 
-    let wallet = await walletServiceLocal.getOrCreateWallet(userId);
+    let wallet = await walletService.getOrCreateWallet(userId);
 
     // If wallet doesn't exist, create it
     if (!wallet) {
       wallet = new Wallet({ userId });
     }
 
-    // Check if cryptocurrency is supported
-    if (!walletServiceLocal.cryptoCurrencyConfig || !walletServiceLocal.cryptoCurrencyConfig.isCoinSupported(currency)) {
-      return res.status(400).json({
-        success: false,
-        message: `Unsupported cryptocurrency: ${currency}. Supported currencies: ${walletServiceLocal.cryptoCurrencyConfig?.supportedCoins?.join(', ') || 'BTC, ETH, BNB, USDT, USDC'}`
-      });
-    }
+    // Convert amount from cryptocurrency to USD
+    const amountInUsd = parseFloat(amount) * cryptoCurrencyConfig.getUsdPerCoin(currency);
 
     // Withdraw cryptocurrency
-    const result = await walletServiceLocal.withdrawCryptocurrency(
+    const result = await walletService.withdrawCryptocurrency(
       amount,
       currency,
       destinationAddress,

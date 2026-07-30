@@ -131,7 +131,6 @@ const Wallet = () => {
 
     loadWallet();
   }, []);
-  }, []);
 
   const handleConnectWallet = useCallback(async () => {
     if (!window.ethereum) {

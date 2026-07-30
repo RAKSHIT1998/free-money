@@ -533,6 +533,7 @@ module.exports = {
   addEarnings,
   getOrCreateWallet,
   getTotalBalanceInUSD,
+  withdrawCryptocurrency,
   saveWallet: async (wallet) => {
     const userId = process.env.DEVICE_ID || 'demo-user';
 
