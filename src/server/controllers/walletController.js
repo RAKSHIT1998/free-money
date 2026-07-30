@@ -3,6 +3,8 @@ const Wallet = require('../../models/Wallet');
 const paymentService = require('../../services/paymentService');
 const walletService = require('../../services/walletService');
 const { cryptoCurrencyConfig } = require('../../config/cryptocurrency');
+const axios = require('axios');
+const crypto = require('crypto');
 
 /**
  * Get wallet balance and info for device/user
@@ -271,6 +273,69 @@ exports.withdrawCryptocurrency = async (req, res) => {
       success: false,
       message: 'Error processing cryptocurrency withdrawal',
       error: error.message
+    });
+  }
+};
+
+/**
+ * Get deposit address for a cryptocurrency from Binance
+ */
+exports.getDepositAddress = async (req, res) => {
+  try {
+    const { coin } = req.params;
+    const { network } = req.query; // optional
+
+    if (!coin) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a coin parameter (e.g., BTC, ETH, BNB)'
+      });
+    }
+
+    const timestamp = Date.now();
+    // Build query string
+    let queryString = `coin=${coin.toUpperCase()}`;
+    if (network) {
+      queryString += `&network=${network}`;
+    }
+    queryString += `&timestamp=${timestamp}`;
+
+    // Create signature
+    const signature = crypto.createHmac('sha256', process.env.BINANCE_API_SECRET)
+      .update(queryString)
+      .digest('hex');
+
+    const url = `https://api.binance.com/sapi/v1/capital/deposit/address?${queryString}&signature=${signature}`;
+
+    const response = await axios.get(url, {
+      headers: {
+        'X-MBX-APIKEY': process.env.BINANCE_API_KEY
+      }
+    });
+
+    if (response.data && response.data.address) {
+      res.status(200).json({
+        success: true,
+        data: {
+          address: response.data.address,
+          coin: response.data.coin,
+          tag: response.data.tag || null,
+          url: response.data.url || null
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        message: 'Failed to retrieve deposit address',
+        error: response.data?.msg || 'Unknown error'
+      });
+    }
+  } catch (error) {
+    console.error('Error in getDepositAddress:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching deposit address',
+      error: error.response ? error.response.data : error.message
     });
   }
 };
