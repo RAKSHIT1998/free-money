@@ -253,14 +253,20 @@ const Connection = React.memo(({ startPos, endPos, color, opacity, pulse }) => {
     cloned.add(perpendicular);
   }, [start, end]);
 
-  const points = [start, cloned, end];
-  const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
   return (
     <line>
-      <bufferGeometry
-        attributes={{ position: new THREE.Float32BufferAttribute(geometry.attributes.position.array, 3) }}
-      />
+      <bufferGeometry>
+        <bufferAttribute
+          attr="position"
+          count={3}
+          array={new Float32Array([
+            start.x, start.y, start.z,
+            cloned.x, cloned.y, cloned.z,
+            end.x, end.y, end.z
+          ])}
+          itemSize={3}
+        />
+      </bufferGeometry>
       <lineDashedMaterial
         color={color}
         linewidth={2}
