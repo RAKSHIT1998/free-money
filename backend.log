@@ -988,3 +988,207 @@ Initial agents spawned from configuration
 [1] [2026-07-30T06:36:19.766Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
 [1] [2026-07-30T06:36:19.766Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
 [1] [2026-07-30T06:36:19.807Z] Work cycle completed. Verified work: 4, Earned: $36.00
+[2] [2026-07-30T06:36:32.312Z] Generated opportunity record for completed work: data_classification -> research
+[2] [2026-07-30T06:36:32.312Z] Work cycle completed. Verified work: 1, Earned: $7.50
+[1] [2026-07-30T06:36:49.613Z] Generated opportunity record for completed work: hash_verification -> grant
+[1] [2026-07-30T06:36:50.328Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:36:50.364Z] Work cycle completed. Verified work: 2, Earned: $18.00
+[2] [2026-07-30T06:37:17.318Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:37:17.318Z] Work cycle completed. Verified work: 1, Earned: $7.50
+[3] [2026-07-30T06:37:17.364Z] Skipping opportunity generation for work type: verification (to reduce circularity)
+[3] [2026-07-30T06:37:17.364Z] Work cycle completed. Earned: $15 for verification
+[1] [2026-07-30T06:37:19.680Z] Generated opportunity record for completed work: signature_validation -> bounty
+[1] [2026-07-30T06:37:19.758Z] Generated opportunity record for completed work: signature_validation -> development
+[1] [2026-07-30T06:37:19.831Z] Work cycle completed. Verified work: 2, Earned: $18.00
+[1] [2026-07-30T06:37:49.630Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:37:49.642Z] Work cycle completed. Verified work: 1, Earned: $9.00
+[2] [2026-07-30T06:38:02.354Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:38:02.354Z] Work cycle completed. Verified work: 1, Earned: $7.50
+[3] [2026-07-30T06:38:17.398Z] Skipping opportunity generation for work type: data_processing (to reduce circularity)
+[3] [2026-07-30T06:38:17.399Z] Work cycle completed. Earned: $15 for data_processing
+[1] [2026-07-30T06:38:19.638Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:38:19.744Z] Work cycle completed. Verified work: 1, Earned: $9.00
+[2] [2026-07-30T06:38:47.357Z] Generated opportunity record for completed work: trend_analysis -> airdrop
+[2] [2026-07-30T06:38:47.369Z] Generated opportunity record for completed work: trend_analysis -> research
+[2] [2026-07-30T06:38:47.382Z] Skipping opportunity generation for work type: data_cleaning (to reduce circularity)
+[2] [2026-07-30T06:38:47.394Z] Generated opportunity record for completed work: data_classification -> research
+[2] [2026-07-30T06:38:47.404Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:38:47.413Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:38:47.464Z] Generated opportunity record for completed work: validation_scoring -> quality_assurance
+[2] [2026-07-30T06:38:47.464Z] Work cycle completed. Verified work: 7, Earned: $52.50
+[1] [2026-07-30T06:38:49.651Z] Generated opportunity record for completed work: hash_verification -> grant
+[1] [2026-07-30T06:38:49.673Z] Work cycle completed. Verified work: 1, Earned: $9.00
+[3] [2026-07-30T06:39:17.419Z] Skipping opportunity generation for work type: data_processing (to reduce circularity)
+[3] [2026-07-30T06:39:17.419Z] Work cycle completed. Earned: $15 for data_processing
+[1] [2026-07-30T06:39:19.659Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:39:19.721Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:39:19.721Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:39:19.754Z] Work cycle completed. Verified work: 3, Earned: $27.00
+[2] [2026-07-30T06:39:32.350Z] Generated opportunity record for completed work: pattern_matching -> puzzle
+[2] [2026-07-30T06:39:32.361Z] Generated opportunity record for completed work: data_cleaning -> data_engineering
+[2] [2026-07-30T06:39:32.361Z] Work cycle completed. Verified work: 2, Earned: $15.00
+[1] [2026-07-30T06:39:49.837Z] Generated opportunity record for completed work: signature_validation -> development
+[1] [2026-07-30T06:39:49.837Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:39:49.930Z] Generated opportunity record for completed work: signature_validation -> development
+[1] [2026-07-30T06:39:49.930Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:39:49.930Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:39:49.985Z] Work cycle completed. Verified work: 5, Earned: $45.00
+[2] [2026-07-30T06:40:17.352Z] Skipping opportunity generation for work type: data_cleaning (to reduce circularity)
+[2] [2026-07-30T06:40:17.361Z] Skipping opportunity generation for work type: trend_analysis (to reduce circularity)
+[2] [2026-07-30T06:40:17.372Z] Generated opportunity record for completed work: data_classification -> grant
+[2] [2026-07-30T06:40:17.382Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:40:17.391Z] Skipping opportunity generation for work type: data_classification (to reduce circularity)
+[2] [2026-07-30T06:40:17.407Z] Generated opportunity record for completed work: pattern_matching -> research
+[2] [2026-07-30T06:40:17.417Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:40:17.427Z] Skipping opportunity generation for work type: data_cleaning (to reduce circularity)
+[2] [2026-07-30T06:40:17.427Z] Work cycle completed. Verified work: 8, Earned: $60.00
+[3] [2026-07-30T06:40:17.439Z] Generated opportunity record for completed work: data_processing -> freelance
+[3] [2026-07-30T06:40:17.439Z] Work cycle completed. Earned: $15 for data_processing
+[1] [2026-07-30T06:40:19.669Z] Generated opportunity record for completed work: hash_verification -> bounty
+[1] [2026-07-30T06:40:19.746Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:40:19.765Z] Work cycle completed. Verified work: 2, Earned: $18.00
+[1] [2026-07-30T06:40:49.741Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:40:49.749Z] Work cycle completed. Verified work: 1, Earned: $9.00
+[2] [2026-07-30T06:41:02.364Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:41:02.378Z] Skipping opportunity generation for work type: data_classification (to reduce circularity)
+[2] [2026-07-30T06:41:02.390Z] Skipping opportunity generation for work type: data_cleaning (to reduce circularity)
+[2] [2026-07-30T06:41:02.403Z] Generated opportunity record for completed work: validation_scoring -> bounty
+[2] [2026-07-30T06:41:02.419Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:41:02.431Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:41:02.443Z] Skipping opportunity generation for work type: data_classification (to reduce circularity)
+[2] [2026-07-30T06:41:02.454Z] Generated opportunity record for completed work: data_classification -> contest
+[2] [2026-07-30T06:41:02.455Z] Work cycle completed. Verified work: 8, Earned: $60.00
+[3] [2026-07-30T06:41:17.456Z] Skipping opportunity generation for work type: optimization (to reduce circularity)
+[3] [2026-07-30T06:41:17.456Z] Work cycle completed. Earned: $15 for optimization
+[2] [2026-07-30T06:41:47.380Z] Skipping opportunity generation for work type: data_classification (to reduce circularity)
+[2] [2026-07-30T06:41:47.391Z] Generated opportunity record for completed work: data_classification -> contest
+[2] [2026-07-30T06:41:47.391Z] Work cycle completed. Verified work: 2, Earned: $15.00
+[1] [2026-07-30T06:41:49.694Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:41:49.694Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:41:49.694Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:41:49.724Z] Work cycle completed. Verified work: 3, Earned: $27.00
+[3] [2026-07-30T06:42:17.465Z] Skipping opportunity generation for work type: data_processing (to reduce circularity)
+[3] [2026-07-30T06:42:17.465Z] Work cycle completed. Earned: $15 for data_processing
+[1] [2026-07-30T06:42:19.778Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:42:19.782Z] Generated opportunity record for completed work: hash_verification -> contest
+[1] [2026-07-30T06:42:19.856Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:42:19.856Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:42:20.026Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:42:20.078Z] Work cycle completed. Verified work: 5, Earned: $45.00
+[2] [2026-07-30T06:42:32.383Z] Skipping opportunity generation for work type: data_cleaning (to reduce circularity)
+[2] [2026-07-30T06:42:32.397Z] Skipping opportunity generation for work type: trend_analysis (to reduce circularity)
+[2] [2026-07-30T06:42:32.397Z] Work cycle completed. Verified work: 2, Earned: $15.00
+[1] [2026-07-30T06:42:49.706Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:42:49.716Z] Work cycle completed. Verified work: 1, Earned: $9.00
+[2] [2026-07-30T06:43:17.388Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:43:17.397Z] Generated opportunity record for completed work: data_classification -> contest
+[2] [2026-07-30T06:43:17.407Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:43:17.408Z] Work cycle completed. Verified work: 3, Earned: $22.50
+[3] [2026-07-30T06:43:17.468Z] Skipping opportunity generation for work type: data_processing (to reduce circularity)
+[3] [2026-07-30T06:43:17.469Z] Work cycle completed. Earned: $15 for data_processing
+[1] [2026-07-30T06:43:19.803Z] Generated opportunity record for completed work: signature_validation -> bounty
+[1] [2026-07-30T06:43:19.803Z] Generated opportunity record for completed work: hash_verification -> grant
+[1] [2026-07-30T06:43:19.824Z] Work cycle completed. Verified work: 2, Earned: $18.00
+[1] [2026-07-30T06:43:49.720Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:43:49.730Z] Work cycle completed. Verified work: 1, Earned: $9.00
+[2] [2026-07-30T06:44:02.396Z] Skipping opportunity generation for work type: trend_analysis (to reduce circularity)
+[2] [2026-07-30T06:44:02.409Z] Generated opportunity record for completed work: data_classification -> grant
+[2] [2026-07-30T06:44:02.419Z] Skipping opportunity generation for work type: trend_analysis (to reduce circularity)
+[2] [2026-07-30T06:44:02.429Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:44:02.430Z] Work cycle completed. Verified work: 4, Earned: $30.00
+[3] [2026-07-30T06:44:17.469Z] Generated opportunity record for completed work: optimization -> challenge
+[3] [2026-07-30T06:44:17.469Z] Work cycle completed. Earned: $15 for optimization
+[2] [2026-07-30T06:44:47.406Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:44:47.427Z] Skipping opportunity generation for work type: data_cleaning (to reduce circularity)
+[2] [2026-07-30T06:44:47.439Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:44:47.450Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:44:47.459Z] Skipping opportunity generation for work type: data_cleaning (to reduce circularity)
+[2] [2026-07-30T06:44:47.459Z] Work cycle completed. Verified work: 5, Earned: $37.50
+[1] [2026-07-30T06:44:49.735Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:44:49.843Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:44:49.982Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:44:50.010Z] Work cycle completed. Verified work: 3, Earned: $27.00
+[3] [2026-07-30T06:45:17.474Z] Skipping opportunity generation for work type: pattern_recognition (to reduce circularity)
+[3] [2026-07-30T06:45:17.474Z] Work cycle completed. Earned: $15 for pattern_recognition
+[1] [2026-07-30T06:45:19.841Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:45:19.841Z] Generated opportunity record for completed work: hash_verification -> bounty
+[1] [2026-07-30T06:45:19.841Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:45:19.870Z] Work cycle completed. Verified work: 3, Earned: $27.00
+[2] [2026-07-30T06:45:32.408Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:45:32.419Z] Skipping opportunity generation for work type: data_cleaning (to reduce circularity)
+[2] [2026-07-30T06:45:32.419Z] Work cycle completed. Verified work: 2, Earned: $15.00
+[1] [2026-07-30T06:45:49.883Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:45:49.884Z] Generated opportunity record for completed work: hash_verification -> bounty
+[1] [2026-07-30T06:45:50.084Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:45:50.117Z] Work cycle completed. Verified work: 3, Earned: $27.00
+[2] [2026-07-30T06:46:17.421Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:46:17.431Z] Generated opportunity record for completed work: data_cleaning -> development
+[2] [2026-07-30T06:46:17.442Z] Generated opportunity record for completed work: data_classification -> research
+[2] [2026-07-30T06:46:17.453Z] Skipping opportunity generation for work type: trend_analysis (to reduce circularity)
+[2] [2026-07-30T06:46:17.463Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:46:17.473Z] Skipping opportunity generation for work type: trend_analysis (to reduce circularity)
+[2] [2026-07-30T06:46:17.484Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:46:17.484Z] Work cycle completed. Verified work: 7, Earned: $52.50
+[3] [2026-07-30T06:46:17.501Z] Skipping opportunity generation for work type: optimization (to reduce circularity)
+[3] [2026-07-30T06:46:17.501Z] Work cycle completed. Earned: $15 for optimization
+[1] [2026-07-30T06:46:19.767Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:46:19.776Z] Work cycle completed. Verified work: 1, Earned: $9.00
+[1] [2026-07-30T06:46:49.954Z] Generated opportunity record for completed work: signature_validation -> grant
+[1] [2026-07-30T06:46:50.033Z] Generated opportunity record for completed work: signature_validation -> bounty
+[1] [2026-07-30T06:46:50.033Z] Generated opportunity record for completed work: hash_verification -> contest
+[1] [2026-07-30T06:46:50.063Z] Work cycle completed. Verified work: 3, Earned: $27.00
+[2] [2026-07-30T06:47:02.428Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:47:02.439Z] Generated opportunity record for completed work: validation_scoring -> quality_assurance
+[2] [2026-07-30T06:47:02.449Z] Generated opportunity record for completed work: trend_analysis -> airdrop
+[2] [2026-07-30T06:47:02.459Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:47:02.480Z] Skipping opportunity generation for work type: trend_analysis (to reduce circularity)
+[2] [2026-07-30T06:47:02.480Z] Work cycle completed. Verified work: 5, Earned: $37.50
+[3] [2026-07-30T06:47:17.501Z] Skipping opportunity generation for work type: verification (to reduce circularity)
+[3] [2026-07-30T06:47:17.501Z] Work cycle completed. Earned: $15 for verification
+[1] [2026-07-30T06:47:19.773Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:47:19.835Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:47:19.835Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:47:19.887Z] Work cycle completed. Verified work: 3, Earned: $27.00
+[2] [2026-07-30T06:47:47.478Z] Generated opportunity record for completed work: validation_scoring -> bounty
+[2] [2026-07-30T06:47:47.502Z] Generated opportunity record for completed work: validation_scoring -> bounty
+[2] [2026-07-30T06:47:47.515Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:47:47.542Z] Skipping opportunity generation for work type: data_classification (to reduce circularity)
+[2] [2026-07-30T06:47:47.553Z] Skipping opportunity generation for work type: data_cleaning (to reduce circularity)
+[2] [2026-07-30T06:47:47.609Z] Generated opportunity record for completed work: data_classification -> grant
+[2] [2026-07-30T06:47:47.623Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:47:47.634Z] Skipping opportunity generation for work type: trend_analysis (to reduce circularity)
+[2] [2026-07-30T06:47:47.635Z] Work cycle completed. Verified work: 8, Earned: $60.00
+[1] [2026-07-30T06:47:49.893Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:47:49.971Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:47:50.059Z] Work cycle completed. Verified work: 2, Earned: $18.00
+[3] [2026-07-30T06:48:17.557Z] Skipping opportunity generation for work type: verification (to reduce circularity)
+[3] [2026-07-30T06:48:17.558Z] Work cycle completed. Earned: $15 for verification
+[1] [2026-07-30T06:48:19.903Z] Generated opportunity record for completed work: signature_validation -> bounty
+[1] [2026-07-30T06:48:19.903Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:48:19.922Z] Work cycle completed. Verified work: 2, Earned: $18.00
+[2] [2026-07-30T06:48:32.470Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:48:32.505Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:48:32.533Z] Skipping opportunity generation for work type: trend_analysis (to reduce circularity)
+[2] [2026-07-30T06:48:32.551Z] Skipping opportunity generation for work type: data_cleaning (to reduce circularity)
+[2] [2026-07-30T06:48:32.562Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:48:32.572Z] Skipping opportunity generation for work type: pattern_matching (to reduce circularity)
+[2] [2026-07-30T06:48:32.583Z] Skipping opportunity generation for work type: trend_analysis (to reduce circularity)
+[2] [2026-07-30T06:48:32.583Z] Work cycle completed. Verified work: 7, Earned: $52.50
+[2] [2026-07-30T06:49:17.512Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:49:17.524Z] Generated opportunity record for completed work: data_classification -> contest
+[2] [2026-07-30T06:49:17.543Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
+[2] [2026-07-30T06:49:17.552Z] Generated opportunity record for completed work: data_cleaning -> data_engineering
+[2] [2026-07-30T06:49:17.561Z] Generated opportunity record for completed work: pattern_matching -> contest
+[2] [2026-07-30T06:49:17.571Z] Generated opportunity record for completed work: pattern_matching -> contest
+[2] [2026-07-30T06:49:17.571Z] Work cycle completed. Verified work: 6, Earned: $45.00
+[3] [2026-07-30T06:49:17.580Z] Skipping opportunity generation for work type: pattern_recognition (to reduce circularity)
+[3] [2026-07-30T06:49:17.580Z] Work cycle completed. Earned: $15 for pattern_recognition
+[1] [2026-07-30T06:49:19.920Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:49:19.920Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:49:20.030Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:49:20.062Z] Work cycle completed. Verified work: 3, Earned: $27.00
+[1] [2026-07-30T06:49:49.836Z] Skipping opportunity generation for work type: hash_verification (to reduce circularity)
+[1] [2026-07-30T06:49:49.958Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:49:50.009Z] Work cycle completed. Verified work: 2, Earned: $18.00
+[2] [2026-07-30T06:50:02.480Z] Generated opportunity record for completed work: data_cleaning -> data_engineering
+[2] [2026-07-30T06:50:02.480Z] Work cycle completed. Verified work: 1, Earned: $7.50
