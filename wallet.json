@@ -3,7 +3,7 @@
     {
       "userId": "desktop-a0oeuir-s3dzc1r-mrwauy2r",
       "balances": {
-        "USD": 8502
+        "USD": 8580
       },
       "transactions": [
         {
@@ -6850,6 +6850,76 @@
           "amount": 9,
           "currency": "USD",
           "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 7.5,
+          "currency": "USD",
+          "description": "Earned from undefined work",
+          "agentId": 2
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from signature_validation work",
+          "agentId": 1
+        },
+        {
+          "type": "earning",
+          "amount": 9,
+          "currency": "USD",
+          "description": "Earned from hash_verification work",
           "agentId": 1
         }
       ],
