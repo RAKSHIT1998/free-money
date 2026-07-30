@@ -20,7 +20,13 @@ async function loadWalletFromFile(userId) {
   try {
     if (fs.existsSync(walletFilePath)) {
       const data = fs.readFileSync(walletFilePath, 'utf8');
-      const walletData = JSON.parse(data);
+      let walletData;
+      try {
+        walletData = JSON.parse(data);
+      } catch (parseError) {
+        console.warn('Wallet file contains invalid JSON, initializing with empty wallets array');
+        walletData = { wallets: [] };
+      }
       // Find wallet for this user
       let wallet = walletData.wallets.find(w => w.userId === userId);
       if (!wallet) {
