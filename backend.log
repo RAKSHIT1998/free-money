@@ -562,3 +562,7 @@ Initial agents spawned from configuration
 [2] [2026-07-30T06:05:02.075Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
 [2] [2026-07-30T06:05:02.086Z] Skipping opportunity generation for work type: validation_scoring (to reduce circularity)
 [2] [2026-07-30T06:05:02.086Z] Work cycle completed. Verified work: 6, Earned: $45.00
+[3] [2026-07-30T06:05:17.026Z] Skipping opportunity generation for work type: pattern_recognition (to reduce circularity)
+[3] [2026-07-30T06:05:17.026Z] Work cycle completed. Earned: $15 for pattern_recognition
+[1] [2026-07-30T06:05:19.257Z] Skipping opportunity generation for work type: signature_validation (to reduce circularity)
+[1] [2026-07-30T06:05:19.276Z] Work cycle completed. Verified work: 1, Earned: $9.00
