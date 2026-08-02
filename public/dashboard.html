@@ -6,22 +6,27 @@
     <title>Multi-Agent Money-Making System Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@500;600;700&display=swap');
 
+        /* Warm trading-terminal palette — amber-on-black, Bloomberg-adjacent. No glow,
+           no scanlines, no bracket corners: a real terminal is flat and utilitarian,
+           not futuristic. Every number uses tabular monospace figures on purpose. */
         :root {
-            --void: #05070d;
-            --panel: #0a0f1c;
-            --panel-2: #0e1626;
-            --edge: rgba(0, 229, 255, 0.28);
-            --edge-dim: rgba(0, 229, 255, 0.12);
-            --cyan: #00e5ff;
-            --cyan-soft: #7de8ff;
-            --magenta: #ff2d6d;
-            --green: #00ff9c;
-            --amber: #ffb020;
-            --text: #d9f4ff;
-            --text-dim: #6d84a0;
-            --text-dimmer: #47566b;
+            --bg: #100d09;
+            --panel: #17130d;
+            --panel-2: #1d1810;
+            --hair: #3a3226;
+            --hair-soft: #2a2419;
+            --amber: #e0a730;
+            --amber-soft: #f0c470;
+            --amber-dim: #8a6b2e;
+            --green: #4caf50;
+            --green-soft: #7dd382;
+            --red: #d9534f;
+            --red-soft: #e8827e;
+            --text: #ede4d3;
+            --text-dim: #a89778;
+            --text-dimmer: #6b5f49;
         }
 
         * {
@@ -30,184 +35,117 @@
             box-sizing: border-box;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
-
         body {
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--void);
+            font-family: 'IBM Plex Mono', monospace;
+            font-variant-numeric: tabular-nums;
+            background: var(--bg);
             color: var(--text);
-            line-height: 1.6;
+            line-height: 1.55;
             min-height: 100vh;
-            position: relative;
         }
 
-        /* Ambient HUD atmosphere: scanlines + vignette, fixed behind everything */
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-            background:
-                repeating-linear-gradient(0deg, rgba(0, 229, 255, 0.025) 0px, rgba(0, 229, 255, 0.025) 1px, transparent 1px, transparent 3px),
-                radial-gradient(ellipse at 50% -10%, rgba(0, 229, 255, 0.08), transparent 55%),
-                radial-gradient(ellipse at 100% 100%, rgba(255, 45, 109, 0.05), transparent 45%);
-        }
-
-        ::selection {
-            background: var(--cyan);
-            color: var(--void);
-        }
-
+        ::selection { background: var(--amber); color: var(--bg); }
         ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-track { background: var(--void); }
-        ::-webkit-scrollbar-thumb { background: var(--edge-dim); border: 1px solid var(--edge); }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--hair); }
 
         .container {
             max-width: 1280px;
             margin: 0 auto;
-            padding: 24px 20px 60px;
-            position: relative;
-            z-index: 1;
+            padding: 20px 20px 60px;
         }
 
         h1, .section-title, .chart-title {
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 0.03em;
+            font-family: 'IBM Plex Sans', sans-serif;
         }
 
+        /* Signature element: a masthead like a financial-report letterhead — a single
+           heavy amber rule top and bottom, small caps ticker-style subtitle, no
+           gradients or animation. */
         header {
-            background: linear-gradient(160deg, #0b1220 0%, #08101c 60%, #05070d 100%);
+            background: var(--panel);
             color: var(--text);
-            padding: 28px 24px;
+            padding: 22px 24px 18px;
             text-align: center;
-            border: 1px solid var(--edge);
-            border-radius: 4px;
-            margin-bottom: 24px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 0 40px rgba(0, 229, 255, 0.08), inset 0 0 60px rgba(0, 229, 255, 0.04);
-        }
-
-        header::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-            animation: sweep 4s linear infinite;
-        }
-
-        @keyframes sweep {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            border-top: 3px solid var(--amber);
+            border-bottom: 1px solid var(--hair);
+            margin-bottom: 20px;
         }
 
         h1 {
-            margin-bottom: 10px;
-            font-size: 2.1rem;
-            font-weight: 900;
-            color: var(--cyan);
-            text-shadow: 0 0 18px rgba(0, 229, 255, 0.55);
-            text-transform: uppercase;
+            margin-bottom: 8px;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--amber-soft);
+            letter-spacing: 0.01em;
         }
 
         .subtitle {
-            opacity: 0.75;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: var(--text-dim);
-            letter-spacing: 0.04em;
+            letter-spacing: 0.03em;
         }
 
-        /* Signature element: HUD bracket-cornered panels used across every section */
-        .stats-grid, .charts-container { display: grid; gap: 16px; margin-bottom: 24px; }
+        .stats-grid, .charts-container { display: grid; gap: 1px; margin-bottom: 20px; background: var(--hair); border: 1px solid var(--hair); }
         .stats-grid { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
-        .charts-container { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+        .charts-container { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; background: none; border: none; }
 
-        .stat-card,
+        /* Stat cards sit flush against each other with hairline dividers, like a
+           ledger/spreadsheet row, rather than floating cards with gaps. */
+        .stat-card {
+            background: var(--panel);
+            padding: 18px 16px;
+            text-align: center;
+        }
+
         .chart-card,
         .agents-section,
         .opportunities-section,
         .real-money-section,
         .command-deck {
             background: var(--panel);
-            border: 1px solid var(--edge);
-            border-radius: 2px;
-            padding: 20px;
-            position: relative;
-            transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
-        }
-
-        .stat-card::before, .stat-card::after,
-        .chart-card::before, .chart-card::after,
-        .agents-section::before, .agents-section::after,
-        .opportunities-section::before, .opportunities-section::after,
-        .real-money-section::before, .real-money-section::after,
-        .command-deck::before, .command-deck::after {
-            content: '';
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            border: 2px solid var(--cyan);
-            opacity: 0.85;
-            pointer-events: none;
-        }
-        .stat-card::before, .chart-card::before, .agents-section::before,
-        .opportunities-section::before, .real-money-section::before, .command-deck::before {
-            top: -1px; left: -1px; border-right: none; border-bottom: none;
-        }
-        .stat-card::after, .chart-card::after, .agents-section::after,
-        .opportunities-section::after, .real-money-section::after, .command-deck::after {
-            bottom: -1px; right: -1px; border-left: none; border-top: none;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--cyan);
-            box-shadow: 0 0 24px rgba(0, 229, 255, 0.18);
+            border: 1px solid var(--hair);
+            padding: 18px 20px;
         }
 
         .stat-value {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.1rem;
-            font-weight: 700;
-            margin: 8px 0;
+            font-size: 1.9rem;
+            font-weight: 600;
+            margin: 6px 0;
             color: var(--text);
-            text-align: center;
         }
 
         .stat-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-dim);
-            text-align: center;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.07em;
         }
 
         .stat-icon {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
             display: block;
-            text-align: center;
-            filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.5));
+            opacity: 0.85;
         }
 
         .chart-title, .section-title {
             text-align: left;
-            margin-bottom: 18px;
-            color: var(--cyan-soft);
-            font-size: 1.05rem;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--amber-dim);
+            color: var(--amber-soft);
+            font-size: 0.95rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
-        .chart-title { justify-content: center; }
         .section-title span {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.68rem;
             color: var(--text-dimmer);
             text-transform: none;
             font-weight: 400;
@@ -222,129 +160,93 @@
         .agent-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 0.85rem;
+            margin-top: 12px;
+            font-size: 0.82rem;
         }
 
         .agent-table th,
         .agent-table td {
-            padding: 10px 14px;
+            padding: 8px 12px;
             text-align: left;
-            border-bottom: 1px solid var(--edge-dim);
+            border-bottom: 1px solid var(--hair-soft);
         }
 
         .agent-table th {
-            background: rgba(0, 229, 255, 0.05);
-            font-weight: 600;
-            color: var(--cyan-soft);
+            color: var(--amber-dim);
             text-transform: uppercase;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             letter-spacing: 0.05em;
+            font-weight: 600;
+            border-bottom: 1px solid var(--hair);
         }
 
         .agent-table td { color: var(--text-dim); }
 
-        .agent-table tbody tr {
-            transition: background 0.15s ease;
-        }
-        .agent-table tbody tr:hover {
-            background: rgba(0, 229, 255, 0.05);
-        }
+        .agent-table tbody tr:hover { background: var(--panel-2); }
 
         .status-badge {
-            padding: 3px 10px;
-            border-radius: 2px;
-            font-size: 0.68rem;
+            padding: 2px 8px;
+            font-size: 0.65rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border: 1px solid currentColor;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
+            letter-spacing: 0.04em;
+            display: inline-block;
         }
-        .status-badge::before {
-            content: '';
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-            box-shadow: 0 0 6px currentColor;
-        }
-        .status-active { color: var(--green); background: rgba(0, 255, 156, 0.08); }
-        .status-active::before { animation: pulse-dot 1.4s ease-in-out infinite; }
-        .status-idle { color: var(--amber); background: rgba(255, 176, 32, 0.08); }
-        .status-error { color: var(--magenta); background: rgba(255, 45, 109, 0.08); }
+        .status-active { color: #0f1a0f; background: var(--green-soft); }
+        .status-idle { color: #1a140a; background: var(--amber-soft); }
+        .status-error { color: #1f0d0c; background: var(--red-soft); }
 
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; box-shadow: 0 0 6px currentColor; }
-            50% { opacity: 0.4; box-shadow: 0 0 2px currentColor; }
-        }
-
-        .opportunities-section { margin-top: 24px; }
+        .opportunities-section { margin-top: 20px; }
 
         .refresh-btn, .cmd-btn {
             background: transparent;
-            color: var(--cyan);
-            border: 1px solid var(--cyan);
-            padding: 10px 22px;
-            font-size: 0.8rem;
-            font-family: 'JetBrains Mono', monospace;
+            color: var(--amber-soft);
+            border: 1px solid var(--amber-dim);
+            padding: 8px 18px;
+            font-size: 0.78rem;
+            font-family: 'IBM Plex Mono', monospace;
             font-weight: 600;
-            border-radius: 2px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background 0.15s ease, color 0.15s ease;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.04em;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .refresh-btn:hover, .cmd-btn:hover {
-            background: rgba(0, 229, 255, 0.12);
-            box-shadow: 0 0 16px rgba(0, 229, 255, 0.35);
+            background: var(--amber);
+            color: var(--bg);
         }
 
-        .refresh-btn:active, .cmd-btn:active { transform: scale(0.97); }
+        .refresh-btn:active, .cmd-btn:active { transform: scale(0.98); }
 
-        .cmd-btn.danger {
-            color: var(--magenta);
-            border-color: var(--magenta);
-        }
-        .cmd-btn.danger:hover {
-            background: rgba(255, 45, 109, 0.12);
-            box-shadow: 0 0 16px rgba(255, 45, 109, 0.4);
-        }
+        .cmd-btn.danger { color: var(--red-soft); border-color: var(--red); }
+        .cmd-btn.danger:hover { background: var(--red); color: var(--bg); }
 
-        .cmd-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
+        .cmd-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .loading {
             text-align: center;
-            padding: 30px;
+            padding: 26px;
             color: var(--text-dimmer);
-            font-style: italic;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
         }
 
         .footer {
             text-align: center;
-            margin-top: 40px;
-            padding: 20px;
+            margin-top: 36px;
+            padding: 18px;
             color: var(--text-dimmer);
-            font-size: 0.75rem;
-            border-top: 1px solid var(--edge-dim);
-            letter-spacing: 0.05em;
+            font-size: 0.72rem;
+            border-top: 1px solid var(--hair);
         }
 
         .opportunity-card {
-            border: 1px solid var(--edge-dim);
-            border-radius: 2px;
-            padding: 15px;
-            margin-bottom: 12px;
+            border: 1px solid var(--hair);
+            padding: 14px;
+            margin-bottom: 10px;
             background: var(--panel-2);
         }
 
@@ -356,112 +258,91 @@
             flex-wrap: wrap;
             gap: 8px;
         }
-        .opportunity-header h3 { color: var(--text); font-size: 0.95rem; }
+        .opportunity-header h3 { color: var(--text); font-size: 0.92rem; font-family: 'IBM Plex Sans', sans-serif; }
 
         .opportunity-type {
-            background: rgba(0, 229, 255, 0.12);
-            color: var(--cyan-soft);
-            border: 1px solid var(--edge);
-            padding: 2px 9px;
-            border-radius: 2px;
-            font-size: 0.68rem;
+            background: var(--panel);
+            color: var(--amber-soft);
+            border: 1px solid var(--amber-dim);
+            padding: 2px 8px;
+            font-size: 0.65rem;
             font-weight: 600;
             text-transform: uppercase;
         }
 
-        .opportunity-description { color: var(--text-dim); font-size: 0.85rem; }
+        .opportunity-description { color: var(--text-dim); font-size: 0.83rem; }
 
         .opportunity-meta {
             display: flex;
-            gap: 15px;
-            font-size: 0.78rem;
+            gap: 14px;
+            font-size: 0.76rem;
             color: var(--text-dimmer);
-            margin-top: 10px;
+            margin-top: 8px;
             flex-wrap: wrap;
         }
-        .opportunity-meta a { color: var(--cyan-soft); }
+        .opportunity-meta a { color: var(--amber-soft); }
 
         .opportunity-requirements,
         .opportunity-tags {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed var(--edge-dim);
-            font-size: 0.8rem;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--hair);
+            font-size: 0.78rem;
             color: var(--text-dim);
         }
 
         .tag {
-            background: rgba(0, 229, 255, 0.08);
+            background: var(--panel);
             color: var(--text-dim);
-            border: 1px solid var(--edge-dim);
-            padding: 2px 7px;
-            border-radius: 2px;
-            font-size: 0.7rem;
-            margin-right: 5px;
+            border: 1px solid var(--hair);
+            padding: 2px 6px;
+            font-size: 0.68rem;
+            margin-right: 4px;
             display: inline-block;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .mode-banner {
-            border-radius: 2px;
-            padding: 12px 18px;
-            margin-bottom: 18px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
             font-weight: 500;
-            font-size: 0.82rem;
-            border: 1px solid;
-            letter-spacing: 0.01em;
-        }
-
-        .mode-banner.simulated {
-            background: rgba(255, 176, 32, 0.06);
-            color: var(--amber);
-            border-color: rgba(255, 176, 32, 0.4);
+            font-size: 0.8rem;
+            border-left: 3px solid;
         }
 
         .mode-banner.real {
-            background: rgba(0, 255, 156, 0.06);
-            color: var(--green);
-            border-color: rgba(0, 255, 156, 0.4);
+            background: var(--panel);
+            color: var(--green-soft);
+            border-color: var(--green);
         }
 
         .real-money-section {
-            margin-top: 24px;
-            border-color: rgba(0, 255, 156, 0.3);
-        }
-        .real-money-section::before, .real-money-section::after {
+            margin-top: 20px;
             border-color: var(--green);
+            border-left-width: 3px;
         }
 
         .real-stat-card {
             background: var(--panel-2);
-            border: 1px solid rgba(0, 255, 156, 0.25);
         }
 
-        .real-opportunity-card {
-            border-left: 3px solid var(--green);
-        }
+        .real-opportunity-card { border-left: 3px solid var(--green); }
 
         .real-badge {
-            background: rgba(0, 255, 156, 0.12);
-            color: var(--green);
-            border: 1px solid rgba(0, 255, 156, 0.5);
-            padding: 2px 9px;
-            border-radius: 2px;
-            font-size: 0.68rem;
+            background: var(--panel);
+            color: var(--green-soft);
+            border: 1px solid var(--green);
+            padding: 2px 8px;
+            font-size: 0.65rem;
             font-weight: 700;
             margin-left: 8px;
             text-transform: uppercase;
         }
 
-        /* Command deck controls — deliberately plain: no bracket corners, no glow,
-           one wrapping row. This panel is for quick action, not atmosphere. */
         .command-deck {
-            margin-bottom: 24px;
-            padding: 14px 18px;
-            border-color: var(--edge-dim);
-        }
-        .command-deck::before, .command-deck::after {
-            display: none;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            border-color: var(--hair);
         }
         .command-row {
             display: flex;
@@ -472,14 +353,13 @@
         .cmd-select {
             background: var(--panel-2);
             color: var(--text);
-            border: 1px solid var(--edge-dim);
-            padding: 7px 10px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-            border-radius: 2px;
+            border: 1px solid var(--hair);
+            padding: 6px 10px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.76rem;
             max-width: 240px;
         }
-        .cmd-select:focus { outline: 2px solid var(--cyan); outline-offset: 1px; }
+        .cmd-select:focus { outline: 2px solid var(--amber); outline-offset: 1px; }
         .cmd-status {
             font-size: 0.75rem;
             color: var(--text-dim);
@@ -491,25 +371,24 @@
             align-items: center;
             gap: 6px;
             font-size: 0.7rem;
-            color: var(--green);
+            color: var(--green-soft);
             text-transform: uppercase;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.05em;
         }
         .live-indicator .dot {
-            width: 7px; height: 7px; border-radius: 50%;
-            background: var(--green);
-            box-shadow: 0 0 8px var(--green);
-            animation: pulse-dot 1.6s ease-in-out infinite;
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--green-soft);
+            animation: blink 1.6s step-start infinite;
         }
+        @keyframes blink { 50% { opacity: 0.25; } }
 
-        a { color: var(--cyan-soft); }
+        a { color: var(--amber-soft); }
 
         @media (max-width: 768px) {
             .stats-grid { grid-template-columns: 1fr; }
             .charts-container { grid-template-columns: 1fr; }
-            h1 { font-size: 1.5rem; }
+            h1 { font-size: 1.4rem; }
             .command-row { flex-direction: column; align-items: stretch; }
-            .cmd-label { min-width: 0; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -560,18 +439,11 @@
             <div class="cmd-status" id="command-status"></div>
         </div>
 
-        <div class="mode-banner simulated" id="simulated-mode-banner" style="display:none;"></div>
-
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
                 <div class="stat-value" id="total-agents">--</div>
                 <div class="stat-label">Total Agents</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">💰</div>
-                <div class="stat-value" id="total-earnings">$0.00</div>
-                <div class="stat-label">Total Earnings (simulated)</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">🎯</div>
@@ -597,12 +469,12 @@
         </div>
 
         <div class="agents-section">
-            <h2 class="section-title">🤖 Active Agents <span id="active-agents-subtitle"></span></h2>
+            <h2 class="section-title">🤖 Active Agents</h2>
             <div id="agents-table-container" class="loading">Loading agents...</div>
         </div>
 
         <div class="opportunities-section">
-            <h2 class="section-title">💎 Recent Opportunities (simulated + real, mixed)</h2>
+            <h2 class="section-title">💎 Recent Opportunities (real)</h2>
             <div id="opportunities-container" class="loading">Loading opportunities...</div>
             <div style="text-align: center; margin-top: 15px;">
                 <button class="refresh-btn">
@@ -669,7 +541,7 @@
 
         <div class="real-money-section">
             <h2 class="section-title">🔎 Real HackerOne Opportunities <span class="real-badge">REAL</span></h2>
-            <p style="color:#7f8c8d; margin-bottom: 10px;">Live public bug bounty programs. Pursue manually — the app never submits reports or claims bounties on your behalf.</p>
+            <p style="color:var(--text-dim); margin-bottom: 10px;">Live public bug bounty programs. Pursue manually — the app never submits reports or claims bounties on your behalf.</p>
             <div id="real-opportunities-container" class="loading">Loading real opportunities...</div>
         </div>
     </div>
@@ -684,7 +556,6 @@
         // DOM Elements
         const statsElements = {
             totalAgents: document.getElementById('total-agents'),
-            totalEarnings: document.getElementById('total-earnings'),
             totalOpportunities: document.getElementById('total-opportunities'),
             systemUptime: document.getElementById('system-uptime')
         };
@@ -721,7 +592,7 @@
 
         function setCommandStatus(message, isError) {
             commandStatus.textContent = message;
-            commandStatus.style.color = isError ? '#ff2d6d' : '#00ff9c';
+            commandStatus.style.color = isError ? '#e8827e' : '#7dd382';
             if (message) {
                 setTimeout(() => { if (commandStatus.textContent === message) commandStatus.textContent = ''; }, 6000);
             }
@@ -876,7 +747,6 @@
                 // Update agents table
                 updateAgentsTable(agentsResponse.data);
                 updateTerminateAgentOptions(agentsResponse.data.agents);
-                updateSimulatedBanner(agentsResponse.data.agents);
 
                 // Update opportunities list
                 updateOpportunitiesList(opportunitiesResponse.data);
@@ -898,7 +768,6 @@
         // Show loading states
         function showLoadingStates() {
             statsElements.totalAgents.textContent = 'Loading...';
-            statsElements.totalEarnings.textContent = '$0.00';
             statsElements.totalOpportunities.textContent = 'Loading...';
             statsElements.systemUptime.textContent = 'Loading...';
 
@@ -947,8 +816,8 @@
                 return;
             }
 
-            const netColor = history.netUsd >= 0 ? '#00ff9c' : '#ff2d6d';
-            const lastColor = history.lastTrade && history.lastTrade.pnlUsd >= 0 ? '#00ff9c' : '#ff2d6d';
+            const netColor = history.netUsd >= 0 ? '#7dd382' : '#e8827e';
+            const lastColor = history.lastTrade && history.lastTrade.pnlUsd >= 0 ? '#7dd382' : '#e8827e';
 
             let html = `
                 <div class="stat-card real-stat-card">
@@ -970,17 +839,19 @@
                 `;
             }
             if (history.bestTrade) {
+                const bestColor = history.bestTrade.pnlUsd >= 0 ? '#7dd382' : '#e8827e';
                 html += `
                     <div class="stat-card real-stat-card">
-                        <div class="stat-value" style="color: #00ff9c;">$${history.bestTrade.pnlUsd.toFixed(2)}</div>
+                        <div class="stat-value" style="color: ${bestColor};">$${history.bestTrade.pnlUsd.toFixed(2)}</div>
                         <div class="stat-label">Best Trade (${escapeHtml(history.bestTrade.symbol)})</div>
                     </div>
                 `;
             }
             if (history.worstTrade) {
+                const worstColor = history.worstTrade.pnlUsd >= 0 ? '#7dd382' : '#e8827e';
                 html += `
                     <div class="stat-card real-stat-card">
-                        <div class="stat-value" style="color: #ff2d6d;">$${history.worstTrade.pnlUsd.toFixed(2)}</div>
+                        <div class="stat-value" style="color: ${worstColor};">$${history.worstTrade.pnlUsd.toFixed(2)}</div>
                         <div class="stat-label">Worst Trade (${escapeHtml(history.worstTrade.symbol)})</div>
                     </div>
                 `;
@@ -1002,7 +873,7 @@
             if (summary.futuresToday) {
                 const pnl = summary.futuresToday.realizedPnlUsd || 0;
                 const commission = summary.futuresToday.commissionUsd || 0;
-                const pnlColor = pnl >= 0 ? '#00ff9c' : '#ff2d6d';
+                const pnlColor = pnl >= 0 ? '#7dd382' : '#e8827e';
                 statsHtml += `
                     <div class="stat-card real-stat-card">
                         <div class="stat-icon">${pnl >= 0 ? '📈' : '📉'}</div>
@@ -1010,7 +881,7 @@
                         <div class="stat-label">Today's Realized Futures P&amp;L</div>
                     </div>
                     <div class="stat-card real-stat-card">
-                        <div class="stat-value" style="color: #ff2d6d;">$${commission.toFixed(2)}</div>
+                        <div class="stat-value" style="color: #e8827e;">$${commission.toFixed(2)}</div>
                         <div class="stat-label">Today's Futures Fees Paid</div>
                     </div>
                 `;
@@ -1020,7 +891,7 @@
 
             if (summary.spot) {
                 const pnl = summary.spot.unrealizedPnl || 0;
-                const pnlColor = pnl >= 0 ? '#00ff9c' : '#ff2d6d';
+                const pnlColor = pnl >= 0 ? '#7dd382' : '#e8827e';
                 statsHtml += `
                     <div class="stat-card real-stat-card">
                         <div class="stat-value" style="color: ${pnlColor};">$${pnl.toFixed(2)}</div>
@@ -1034,7 +905,7 @@
             const totalUnrealized = openPositions.reduce((s, p) => s + (p.unrealizedProfit || 0), 0);
             statsHtml += `
                 <div class="stat-card real-stat-card">
-                    <div class="stat-value" style="color: ${totalUnrealized >= 0 ? '#00ff9c' : '#ff2d6d'};">$${totalUnrealized.toFixed(2)}</div>
+                    <div class="stat-value" style="color: ${totalUnrealized >= 0 ? '#7dd382' : '#e8827e'};">$${totalUnrealized.toFixed(2)}</div>
                     <div class="stat-label">Open Futures Positions Unrealized P&amp;L (${openPositions.length} open)</div>
                 </div>
             `;
@@ -1043,7 +914,7 @@
 
             // What each real agent is doing right now
             if (summary.agents && summary.agents.length > 0) {
-                let html = '<h3 style="margin-bottom:10px; color:#2c3e50;">Real Agent Activity</h3><table class="agent-table"><thead><tr><th>ID</th><th>Type</th><th>State</th><th>Halted Reason</th></tr></thead><tbody>';
+                let html = '<h3 style="margin-bottom:10px; color:var(--amber-soft);">Real Agent Activity</h3><table class="agent-table"><thead><tr><th>ID</th><th>Type</th><th>State</th><th>Halted Reason</th></tr></thead><tbody>';
                 summary.agents.forEach(a => {
                     const statusClass = a.state === 'active' ? 'status-active' : a.state === 'error' ? 'status-error' : 'status-idle';
                     html += `<tr><td>${a.id}</td><td>${capitalizeFirstLetter(a.type)}</td><td><span class="status-badge ${statusClass}">${a.state}</span></td><td>${a.haltedReason ? escapeHtml(a.haltedReason) : '—'}</td></tr>`;
@@ -1058,7 +929,7 @@
             // (including an explicit empty state) so "what am I holding right now" is
             // never just a blank gap on the page.
             const hasSpotHolding = summary.spot && summary.spot.qty > 0;
-            let posHtml = '<h3 style="margin-bottom:10px; color:var(--cyan-soft);">📍 All Open Positions</h3>';
+            let posHtml = '<h3 style="margin-bottom:10px; color:var(--amber-soft);">📍 All Open Positions</h3>';
 
             if (openPositions.length === 0 && !hasSpotHolding) {
                 posHtml += '<div class="loading">No open positions right now.</div>';
@@ -1069,12 +940,12 @@
             posHtml += '<table class="agent-table"><thead><tr><th>Symbol</th><th>Type</th><th>Qty</th><th>Entry</th><th>Mark/Current</th><th>Leverage</th><th>Unrealized P&amp;L</th><th>Action</th></tr></thead><tbody>';
 
             if (hasSpotHolding) {
-                const spotPnlColor = (summary.spot.unrealizedPnl || 0) >= 0 ? '#00ff9c' : '#ff2d6d';
+                const spotPnlColor = (summary.spot.unrealizedPnl || 0) >= 0 ? '#7dd382' : '#e8827e';
                 posHtml += `<tr><td>${escapeHtml(summary.spot.symbol)}</td><td>Spot</td><td>${summary.spot.qty}</td><td>—</td><td>$${(summary.spot.currentPrice || 0).toFixed(2)}</td><td>1x</td><td style="color:${spotPnlColor};">$${(summary.spot.unrealizedPnl || 0).toFixed(2)}</td><td style="color:var(--text-dimmer);">Sell manually on Binance</td></tr>`;
             }
 
             openPositions.forEach(p => {
-                const pnlColor = p.unrealizedProfit >= 0 ? '#00ff9c' : '#ff2d6d';
+                const pnlColor = p.unrealizedProfit >= 0 ? '#7dd382' : '#e8827e';
                 posHtml += `<tr><td>${escapeHtml(p.symbol)}</td><td>Futures</td><td>${p.positionAmt}</td><td>$${p.entryPrice.toFixed(2)}</td><td>$${p.markPrice.toFixed(2)}</td><td>${p.leverage}x</td><td style="color:${pnlColor};">$${p.unrealizedProfit.toFixed(2)}</td><td><button class="close-position-btn cmd-btn danger" data-symbol="${escapeHtml(p.symbol)}" style="padding:5px 12px;font-size:0.7rem;">Close</button></td></tr>`;
             });
 
@@ -1180,7 +1051,7 @@
                 `;
 
                 if (real.lastScanCandidates && real.lastScanCandidates.length > 0) {
-                    candidatesHtml += '<h3 style="margin-bottom:10px; color:#2c3e50;">Last Scan Breakout Candidates</h3><table class="agent-table"><thead><tr><th>Symbol</th><th>24h Change</th><th>Last Price</th></tr></thead><tbody>';
+                    candidatesHtml += '<h3 style="margin-bottom:10px; color:var(--amber-soft);">Last Scan Breakout Candidates</h3><table class="agent-table"><thead><tr><th>Symbol</th><th>24h Change</th><th>Last Price</th></tr></thead><tbody>';
                     real.lastScanCandidates.forEach(c => {
                         candidatesHtml += `<tr><td>${escapeHtml(c.symbol)}</td><td>${c.priceChangePercent}%</td><td>$${c.lastPrice}</td></tr>`;
                     });
@@ -1188,7 +1059,7 @@
                 }
 
                 if (real.recentTrades && real.recentTrades.length > 0) {
-                    tradesHtml += '<h3 style="margin: 15px 0 10px; color:#2c3e50;">Recent Real Trades</h3><table class="agent-table"><thead><tr><th>Time</th><th>Symbol</th><th>Margin</th><th>Fill Price</th><th>Qty</th><th>Status</th></tr></thead><tbody>';
+                    tradesHtml += '<h3 style="margin: 15px 0 10px; color:var(--amber-soft);">Recent Real Trades</h3><table class="agent-table"><thead><tr><th>Time</th><th>Symbol</th><th>Margin</th><th>Fill Price</th><th>Qty</th><th>Status</th></tr></thead><tbody>';
                     real.recentTrades.slice().reverse().forEach(t => {
                         tradesHtml += `<tr><td>${getTimeAgo(new Date(t.timestamp))}</td><td>${escapeHtml(t.symbol)}</td><td>$${(t.marginUsd || 0).toFixed(2)}</td><td>$${(t.fillPrice || 0).toFixed(2)}</td><td>${t.filledQty}</td><td>${escapeHtml(t.status)}</td></tr>`;
                     });
@@ -1240,7 +1111,7 @@
                 `;
 
                 if (real.lastScanCandidates && real.lastScanCandidates.length > 0) {
-                    candidatesHtml += '<h3 style="margin-bottom:10px; color:#2c3e50;">Last Scan Oversold Candidates (RSI)</h3><table class="agent-table"><thead><tr><th>Symbol</th><th>RSI</th><th>Last Price</th></tr></thead><tbody>';
+                    candidatesHtml += '<h3 style="margin-bottom:10px; color:var(--amber-soft);">Last Scan Oversold Candidates (RSI)</h3><table class="agent-table"><thead><tr><th>Symbol</th><th>RSI</th><th>Last Price</th></tr></thead><tbody>';
                     real.lastScanCandidates.forEach(c => {
                         candidatesHtml += `<tr><td>${escapeHtml(c.symbol)}</td><td>${c.rsi.toFixed(1)}</td><td>$${c.lastPrice}</td></tr>`;
                     });
@@ -1248,7 +1119,7 @@
                 }
 
                 if (real.recentTrades && real.recentTrades.length > 0) {
-                    tradesHtml += '<h3 style="margin: 15px 0 10px; color:#2c3e50;">Recent Real Trades</h3><table class="agent-table"><thead><tr><th>Time</th><th>Symbol</th><th>Margin</th><th>Fill Price</th><th>Qty</th><th>Status</th></tr></thead><tbody>';
+                    tradesHtml += '<h3 style="margin: 15px 0 10px; color:var(--amber-soft);">Recent Real Trades</h3><table class="agent-table"><thead><tr><th>Time</th><th>Symbol</th><th>Margin</th><th>Fill Price</th><th>Qty</th><th>Status</th></tr></thead><tbody>';
                     real.recentTrades.slice().reverse().forEach(t => {
                         tradesHtml += `<tr><td>${getTimeAgo(new Date(t.timestamp))}</td><td>${escapeHtml(t.symbol)}</td><td>$${(t.marginUsd || 0).toFixed(2)}</td><td>$${(t.fillPrice || 0).toFixed(2)}</td><td>${t.filledQty}</td><td>${escapeHtml(t.status)}</td></tr>`;
                     });
@@ -1264,7 +1135,6 @@
         // Update statistics display
         function updateStatistics(agentsStats, opportunitiesStats) {
             statsElements.totalAgents.textContent = agentsStats.total || 0;
-            statsElements.totalEarnings.textContent = `$${(agentsStats.averagePerformance?.earnings || 0).toFixed(2)}`;
             statsElements.totalOpportunities.textContent = opportunitiesStats.totalOpportunities || 0;
 
             // Format uptime
@@ -1289,11 +1159,11 @@
                     datasets: [{
                         data: Object.values(agentsStats.byType || {}),
                         backgroundColor: [
-                            '#00e5ff', '#ff2d6d', '#00ff9c', '#ffb020',
-                            '#7de8ff', '#b566ff', '#ff6b9d', '#4dd0e1'
+                            '#e0a730', '#d9534f', '#4caf50', '#f0c470',
+                            '#8a6b2e', '#7dd382', '#e8827e', '#a89778'
                         ],
                         borderWidth: 2,
-                        borderColor: '#0a0f1c'
+                        borderColor: '#17130d'
                     }]
                 },
                 options: {
@@ -1305,8 +1175,8 @@
                             labels: {
                                 usePointStyle: true,
                                 padding: 20,
-                                color: '#6d84a0',
-                                font: { family: 'JetBrains Mono', size: 10 }
+                                color: '#a89778',
+                                font: { family: 'IBM Plex Mono', size: 10 }
                             }
                         },
                         tooltip: {
@@ -1341,16 +1211,16 @@
                             agentsStats.averagePerformance?.successRate || 0
                         ],
                         backgroundColor: [
-                            'rgba(0, 229, 255, 0.25)',
-                            'rgba(255, 45, 109, 0.25)',
-                            'rgba(0, 255, 156, 0.25)',
-                            'rgba(255, 176, 32, 0.25)'
+                            'rgba(224, 167, 48, 0.25)',
+                            'rgba(76, 175, 80, 0.25)',
+                            'rgba(217, 83, 79, 0.25)',
+                            'rgba(168, 151, 120, 0.25)'
                         ],
                         borderColor: [
-                            'rgba(0, 229, 255, 1)',
-                            'rgba(255, 45, 109, 1)',
-                            'rgba(0, 255, 156, 1)',
-                            'rgba(255, 176, 32, 1)'
+                            'rgba(224, 167, 48, 1)',
+                            'rgba(76, 175, 80, 1)',
+                            'rgba(217, 83, 79, 1)',
+                            'rgba(168, 151, 120, 1)'
                         ],
                         borderWidth: 2
                     }]
@@ -1361,10 +1231,10 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            grid: { color: 'rgba(0, 229, 255, 0.08)' },
+                            grid: { color: 'rgba(224, 167, 48, 0.08)' },
                             ticks: {
-                                color: '#6d84a0',
-                                font: { family: 'JetBrains Mono', size: 10 },
+                                color: '#a89778',
+                                font: { family: 'IBM Plex Mono', size: 10 },
                                 callback: function(value) {
                                     // Format y-axis labels based on dataset
                                     const index = this.ticks.indexOf(value);
@@ -1375,8 +1245,8 @@
                             }
                         },
                         x: {
-                            grid: { color: 'rgba(0, 229, 255, 0.05)' },
-                            ticks: { color: '#6d84a0', font: { family: 'JetBrains Mono', size: 10 } }
+                            grid: { color: 'rgba(224, 167, 48, 0.05)' },
+                            ticks: { color: '#a89778', font: { family: 'IBM Plex Mono', size: 10 } }
                         }
                     },
                     plugins: {
@@ -1405,25 +1275,6 @@
             });
         }
 
-        // Show the "simulated agents" warning banner only when a simulated agent
-        // (cryptoHunter/opportunityScout/developer/manager) is actually running —
-        // by default none are, so the banner stays hidden rather than showing a
-        // stale warning for agents that no longer exist.
-        const SIMULATED_TYPES = ['cryptoHunter', 'opportunityScout', 'developer', 'manager'];
-        function updateSimulatedBanner(agents) {
-            const banner = document.getElementById('simulated-mode-banner');
-            const subtitle = document.getElementById('active-agents-subtitle');
-            const running = (agents || []).filter(a => SIMULATED_TYPES.includes(a.type));
-            if (running.length === 0) {
-                banner.style.display = 'none';
-                subtitle.textContent = '(all real — no simulated agents running)';
-                return;
-            }
-            const types = [...new Set(running.map(a => a.type))].join(' / ');
-            banner.textContent = `⚠️ SIMULATED — not real money. ${running.length} simulated agent(s) running (${types}) producing fabricated in-app balances, not real income.`;
-            banner.style.display = 'block';
-            subtitle.textContent = `(includes ${running.length} simulated agent(s))`;
-        }
 
         // Update agents table
         function updateAgentsTable(agentsData) {
@@ -1540,7 +1391,7 @@
             let html = '';
             dcaAgents.forEach(agent => {
                 const real = agent.real || {};
-                const pnlColor = (real.unrealizedPnl || 0) >= 0 ? '#00ff9c' : '#ff2d6d';
+                const pnlColor = (real.unrealizedPnl || 0) >= 0 ? '#7dd382' : '#e8827e';
                 html += `
                     <div class="stat-card real-stat-card">
                         <div class="stat-icon">💵</div>

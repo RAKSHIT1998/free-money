@@ -183,39 +183,6 @@ const startServer = async () => {
 
     setTimeout(async () => {
       try {
-        // Simulated fake-earnings agents (cryptoHunter, opportunityScout, developer,
-        // manager) are intentionally NOT auto-spawned — only real agents/earnings run
-        // by default. Set SPAWN_SIMULATED_AGENTS=true to bring them back.
-        if (process.env.SPAWN_SIMULATED_AGENTS === 'true') {
-          await spawnIfMissing('cryptoHunter', {
-            name: 'Initial Crypto Hunter',
-            config: {
-              scanInterval: configInstance.get('agentTypes.cryptoHunter.scanInterval') || 30000
-            }
-          });
-
-          await spawnIfMissing('opportunityScout', {
-            name: 'Initial Opportunity Scout',
-            config: {
-              scanInterval: configInstance.get('agentTypes.opportunityScout.scanInterval') || 45000
-            }
-          });
-
-          await spawnIfMissing('developer', {
-            name: 'Initial Developer',
-            config: {
-              taskInterval: configInstance.get('agentTypes.developer.taskInterval') || 60000
-            }
-          });
-
-          await spawnIfMissing('manager', {
-            name: 'Initial Manager',
-            config: {
-              evaluationInterval: configInstance.get('agentTypes.manager.evaluationInterval') || 300000
-            }
-          });
-        }
-
         // Real, read-only HackerOne opportunity feed — zero financial risk (no orders,
         // no withdrawals), safe to auto-spawn by default.
         await spawnIfMissing('hackerOneBounty', {

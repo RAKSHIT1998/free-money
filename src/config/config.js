@@ -59,38 +59,6 @@ class Config {
 
       // Agent Type Defaults
       agentTypes: {
-        cryptoHunter: {
-          scanInterval: parseInt(process.env.CRYPTO_HUNTER_SCAN_INTERVAL) || 30000,
-          maxResultsPerScan: parseInt(process.env.CRYPTO_HUNTER_MAX_RESULTS) || 10,
-          minRewardThreshold: parseFloat(process.env.CRYPTO_HUNTER_MIN_REWARD) || 10,
-          useLLM: process.env.USE_LLM === "true",
-          llmModel: process.env.LLM_MODEL || "local-default",
-          llmEndpoint: process.env.LLM_ENDPOINT || "http://localhost:11434",
-          // Cryptocurrency earning options
-          earnInCrypto: process.env.CRYPTO_HUNTER_EARN_IN_CRYPTO === "true",
-          cryptoCurrency: process.env.CRYPTO_HUNTER_CRYPTO_CURRENCY || "BNB"
-        },
-        opportunityScout: {
-          scanInterval: parseInt(process.env.OPPORTUNITY_SCOUT_SCAN_INTERVAL) || 45000,
-          maxResultsPerScan: parseInt(process.env.OPPORTUNITY_SCOUT_MAX_RESULTS) || 15,
-          minRewardThreshold: parseFloat(process.env.OPPORTUNITY_SCOUT_MIN_REWARD) || 5,
-          useLLM: process.env.USE_LLM === "true",
-          llmModel: process.env.LLM_MODEL || "local-default",
-          llmEndpoint: process.env.LLM_ENDPOINT || "http://localhost:11434",
-          // Cryptocurrency earning options
-          earnInCrypto: process.env.OPPORTUNITY_SCOUT_EARN_IN_CRYPTO === "true",
-          cryptoCurrency: process.env.OPPORTUNITY_SCOUT_CRYPTO_CURRENCY || "BNB"
-        },
-        developer: {
-          taskInterval: parseInt(process.env.DEVELOPER_TASK_INTERVAL) || 60000,
-          maxTasksPerCycle: parseInt(process.env.DEVELOPER_MAX_TASKS) || 3,
-          // Cryptocurrency earning options
-          earnInCrypto: process.env.DEVELOPER_EARN_IN_CRYPTO === "true",
-          cryptoCurrency: process.env.DEVELOPER_CRYPTO_CURRENCY || "BNB"
-        },
-        manager: {
-          evaluationInterval: parseInt(process.env.MANAGER_EVAL_INTERVAL) || 300000
-        },
         // Real Binance spot-market DCA agent. Only places orders when
         // liveTrading.confirmed is true AND real (non-placeholder) API credentials
         // are configured; otherwise realTradingService blocks order placement.

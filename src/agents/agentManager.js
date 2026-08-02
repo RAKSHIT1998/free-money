@@ -1,8 +1,4 @@
 // Agent Manager - responsible for spawning, tracking, and managing all agents
-const CryptoHunterAgent = require('./cryptoHunterAgent');
-const OpportunityScoutAgent = require('./opportunityScoutAgent');
-const ManagerAgent = require('./managerAgent');
-const DeveloperAgent = require('./developerAgent');
 const BinanceDcaAgent = require('./binanceDcaAgent');
 const BinanceFuturesDcaAgent = require('./binanceFuturesDcaAgent');
 const BreakoutFuturesAgent = require('./breakoutFuturesAgent');
@@ -91,7 +87,7 @@ class AgentManager {
 
   /**
    * Spawn a new agent of the specified type
-   * @param {string} type - Type of agent to spawn ('cryptoHunter', 'opportunityScout', 'developer', 'manager')
+   * @param {string} type - Type of agent to spawn
    * @param {Object} options - Options for the agent
    * @returns {Promise<Object>} The created agent
    */
@@ -105,58 +101,6 @@ class AgentManager {
 
     // Create the appropriate agent type
     switch (type.toLowerCase()) {
-      case 'cryptohunter':
-      case 'crypto hunter':
-      case 'cryptohunteragent':
-        agent = new CryptoHunterAgent({
-          id: this.nextId++,
-          config: {
-            ...this.config.get('agentTypes.cryptoHunter') || {},
-            ...options.config
-          },
-          ...options
-        });
-        break;
-
-      case 'opportunityscout':
-      case 'opportunity scout':
-      case 'opportunity scout agent':
-        agent = new OpportunityScoutAgent({
-          id: this.nextId++,
-          config: {
-            ...this.config.get('agentTypes.opportunityScout') || {},
-            ...options.config
-          },
-          ...options
-        });
-        break;
-
-      case 'developer':
-      case 'developer agent':
-        agent = new DeveloperAgent({
-          id: this.nextId++,
-          config: {
-            ...this.config.get('agentTypes.developer') || {},
-            ...options.config
-          },
-          ...options
-        });
-        break;
-
-      case 'manager':
-      case 'manager agent':
-        agent = new ManagerAgent({
-          id: this.nextId++,
-          config: {
-            ...this.config.get('agentTypes.manager') || {},
-            ...options.config
-          },
-          ...options
-        });
-        // Set the agent manager reference for manager agents
-        agent.setAgentManager(this);
-        break;
-
       case 'binancedca':
       case 'binance dca':
       case 'binancedcaagent':
@@ -513,40 +457,6 @@ class AgentManager {
         // Recreate agent instance based on type
         let agent;
         switch (dbAgent.type) {
-          case 'cryptoHunter':
-            agent = new CryptoHunterAgent({
-              id: dbAgent.agentId,
-              name: dbAgent.name,
-              config: dbAgent.config
-            });
-            break;
-
-          case 'opportunityScout':
-            agent = new OpportunityScoutAgent({
-              id: dbAgent.agentId,
-              name: dbAgent.name,
-              config: dbAgent.config
-            });
-            break;
-
-          case 'developer':
-            agent = new DeveloperAgent({
-              id: dbAgent.agentId,
-              name: dbAgent.name,
-              config: dbAgent.config
-            });
-            break;
-
-          case 'manager':
-            agent = new ManagerAgent({
-              id: dbAgent.agentId,
-              name: dbAgent.name,
-              config: dbAgent.config
-            });
-            // Set the agent manager reference for manager agents
-            agent.setAgentManager(this);
-            break;
-
           case 'binanceDca':
             agent = new BinanceDcaAgent({
               id: dbAgent.agentId,
