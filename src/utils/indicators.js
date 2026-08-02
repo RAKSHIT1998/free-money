@@ -53,4 +53,83 @@ function isBreakoutSignal(candles, lookback, nearHighThresholdPct, momentumThres
   return nearHigh && momentumPct >= momentumThresholdPct;
 }
 
-module.exports = { calculateRsi, isBreakoutSignal };
+/**
+ * Exponential moving average series over closes.
+ * @param {number[]} closes oldest -> newest
+ * @param {number} period
+ * @returns {Array<number|null>} EMA at each index, null where insufficient data
+ */
+function calculateEmaSeries(closes, period) {
+  const k = 2 / (period + 1);
+  const result = new Array(closes.length).fill(null);
+  if (closes.length < period) return result;
+
+  let sma = closes.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  result[period - 1] = sma;
+  let prevEma = sma;
+  for (let i = period; i < closes.length; i++) {
+    prevEma = closes[i] * k + prevEma * (1 - k);
+    result[i] = prevEma;
+  }
+  return result;
+}
+
+/**
+ * EMA crossover trend-following signal: fast EMA crosses above slow EMA on the
+ * current candle (was below or equal on the previous candle). Classic, well-known
+ * trend-following entry — not a claim it's profitable here, just a distinct signal
+ * source from the breakout/mean-reversion ones already tested.
+ * @param {number[]} fastEma
+ * @param {number[]} slowEma
+ * @param {number} i current index
+ * @returns {boolean}
+ */
+function isEmaCrossoverSignal(fastEma, slowEma, i) {
+  if (i < 1) return false;
+  if (fastEma[i] === null || slowEma[i] === null || fastEma[i - 1] === null || slowEma[i - 1] === null) return false;
+  const wasBelow = fastEma[i - 1] <= slowEma[i - 1];
+  const isAbove = fastEma[i] > slowEma[i];
+  return wasBelow && isAbove;
+}
+
+/**
+ * Bollinger Bands (SMA +/- stdDevMultiplier * standard deviation) at one index.
+ * @param {number[]} closes oldest -> newest
+ * @param {number} i current index
+ * @param {number} period
+ * @param {number} stdDevMultiplier
+ * @returns {{middle:number, upper:number, lower:number}|null}
+ */
+function calculateBollingerBands(closes, i, period = 20, stdDevMultiplier = 2) {
+  if (i < period - 1) return null;
+  const window = closes.slice(i - period + 1, i + 1);
+  const middle = window.reduce((a, b) => a + b, 0) / period;
+  const variance = window.reduce((sum, c) => sum + Math.pow(c - middle, 2), 0) / period;
+  const stdDev = Math.sqrt(variance);
+  return { middle, upper: middle + stdDevMultiplier * stdDev, lower: middle - stdDevMultiplier * stdDev };
+}
+
+/**
+ * Bollinger Band mean-reversion signal: current close at or below the lower band —
+ * a different mean-reversion trigger than RSI (price-dispersion-based rather than
+ * momentum-based), testing whether that distinction actually matters historically.
+ * @param {number[]} closes oldest -> newest
+ * @param {number} i current index
+ * @param {number} period
+ * @param {number} stdDevMultiplier
+ * @returns {boolean}
+ */
+function isBollingerBounceSignal(closes, i, period = 20, stdDevMultiplier = 2) {
+  const bands = calculateBollingerBands(closes, i, period, stdDevMultiplier);
+  if (!bands) return false;
+  return closes[i] <= bands.lower;
+}
+
+module.exports = {
+  calculateRsi,
+  isBreakoutSignal,
+  calculateEmaSeries,
+  isEmaCrossoverSignal,
+  calculateBollingerBands,
+  isBollingerBounceSignal
+};

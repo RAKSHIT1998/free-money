@@ -22,7 +22,7 @@
 //   (checked against candle high/low). Real fills can slip past the target in fast
 //   moves, same as the real liquidation incident earlier already demonstrated.
 const axios = require('axios');
-const { calculateRsi, isBreakoutSignal } = require('../utils/indicators');
+const { calculateRsi, isBreakoutSignal, calculateEmaSeries, isEmaCrossoverSignal, isBollingerBounceSignal } = require('../utils/indicators');
 
 const FAPI_BASE = 'https://fapi.binance.com';
 const TAKER_FEE_PCT = 0.0005; // 0.05% per side, approximate
@@ -126,6 +126,61 @@ function simulateTrades(candles, signalFn, risk) {
   return trades;
 }
 
+/**
+ * Same as simulateTrades, but the exit is a TRAILING stop instead of a fixed
+ * stop-loss/take-profit pair: the stop level starts trailingStopPct below entry and
+ * ratchets UP as the candle high sets new peaks, locking in more of a winning move
+ * instead of capping it at a fixed take-profit. Mirrors Binance's real
+ * TRAILING_STOP_MARKET order (callbackRate = trailingStopPct), so this result maps
+ * directly onto what the live order type would have done.
+ * @param {Array} candles oldest -> newest
+ * @param {Function} signalFn (candles, index) => boolean
+ * @param {Object} risk { leverage, trailingStopPct, marginUsd }
+ * @returns {Array} closed trades
+ */
+function simulateTrailingTrades(candles, signalFn, risk) {
+  const { leverage, trailingStopPct, marginUsd } = risk;
+  const trades = [];
+  let openPosition = null;
+
+  for (let i = 0; i < candles.length; i++) {
+    if (openPosition) {
+      const candle = candles[i];
+      openPosition.peak = Math.max(openPosition.peak, candle.high);
+      const trailingStopPrice = openPosition.peak * (1 - trailingStopPct);
+
+      if (candle.low <= trailingStopPrice) {
+        const exitPrice = trailingStopPrice;
+        const notional = marginUsd * leverage;
+        const qty = notional / openPosition.entryPrice;
+        const grossPnl = qty * (exitPrice - openPosition.entryPrice);
+        const commission = notional * TAKER_FEE_PCT + (qty * exitPrice) * TAKER_FEE_PCT;
+        const netPnl = grossPnl - commission;
+
+        trades.push({
+          entryTime: openPosition.entryTime,
+          exitTime: candle.openTime,
+          entryPrice: openPosition.entryPrice,
+          exitPrice,
+          outcome: exitPrice > openPosition.entryPrice ? 'trailing_profit' : 'trailing_stop',
+          pnlUsd: netPnl,
+          pnlPctOfMargin: (netPnl / marginUsd) * 100
+        });
+        openPosition = null;
+      }
+      continue;
+    }
+
+    if (i < 30) continue;
+    if (signalFn(candles, i)) {
+      const entryPrice = candles[i].close;
+      openPosition = { entryTime: candles[i].openTime, entryPrice, peak: entryPrice };
+    }
+  }
+
+  return trades;
+}
+
 function summarizeTrades(trades) {
   if (trades.length === 0) {
     return { totalTrades: 0, winCount: 0, lossCount: 0, winRatePct: null, totalPnlUsd: 0, avgPnlUsd: 0, maxDrawdownUsd: 0 };
@@ -158,7 +213,7 @@ function summarizeTrades(trades) {
 /**
  * Run the mean-reversion (RSI oversold) strategy backtest for one symbol.
  */
-async function backtestMeanReversion(symbol, { interval = '1h', candleCount = 2160, rsiPeriod = 14, rsiOversoldThreshold = 30, leverage = 50, stopLossPct = 0.01, takeProfitPct = 0.03, marginUsd = 5 } = {}) {
+async function backtestMeanReversion(symbol, { interval = '1h', candleCount = 2160, rsiPeriod = 14, rsiOversoldThreshold = 30, leverage = 50, stopLossPct = 0.01, takeProfitPct = 0.03, trailingStopPct = null, marginUsd = 5 } = {}) {
   const candles = await fetchHistoricalKlines(symbol, interval, candleCount);
   const closes = candles.map(c => c.close);
 
@@ -167,26 +222,66 @@ async function backtestMeanReversion(symbol, { interval = '1h', candleCount = 21
     return rsi !== null && rsi < rsiOversoldThreshold;
   };
 
-  const trades = simulateTrades(candles, signalFn, { leverage, stopLossPct, takeProfitPct, marginUsd });
+  const trades = trailingStopPct
+    ? simulateTrailingTrades(candles, signalFn, { leverage, trailingStopPct, marginUsd })
+    : simulateTrades(candles, signalFn, { leverage, stopLossPct, takeProfitPct, marginUsd });
   return { symbol, strategy: 'meanReversion', candleCount: candles.length, trades, summary: summarizeTrades(trades) };
 }
 
 /**
- * Run the breakout (momentum) strategy backtest for one symbol.
+ * Run the breakout (momentum) strategy backtest for one symbol. Pass trailingStopPct
+ * to use a trailing stop instead of the fixed stopLossPct/takeProfitPct pair.
  */
-async function backtestBreakout(symbol, { interval = '1h', candleCount = 2160, lookback = 24, nearHighThresholdPct = 0.001, momentumThresholdPct = 5, leverage = 50, stopLossPct = 0.01, takeProfitPct = 0.03, marginUsd = 5 } = {}) {
+async function backtestBreakout(symbol, { interval = '1h', candleCount = 2160, lookback = 24, nearHighThresholdPct = 0.001, momentumThresholdPct = 5, leverage = 50, stopLossPct = 0.01, takeProfitPct = 0.03, trailingStopPct = null, marginUsd = 5 } = {}) {
   const candles = await fetchHistoricalKlines(symbol, interval, candleCount);
 
   const signalFn = (allCandles, i) => isBreakoutSignal(allCandles.slice(0, i + 1), lookback, nearHighThresholdPct, momentumThresholdPct);
 
-  const trades = simulateTrades(candles, signalFn, { leverage, stopLossPct, takeProfitPct, marginUsd });
+  const trades = trailingStopPct
+    ? simulateTrailingTrades(candles, signalFn, { leverage, trailingStopPct, marginUsd })
+    : simulateTrades(candles, signalFn, { leverage, stopLossPct, takeProfitPct, marginUsd });
   return { symbol, strategy: 'breakout', candleCount: candles.length, trades, summary: summarizeTrades(trades) };
+}
+
+/**
+ * Run the EMA crossover (trend-following) strategy backtest for one symbol.
+ */
+async function backtestEmaCrossover(symbol, { interval = '1h', candleCount = 2160, fastPeriod = 9, slowPeriod = 21, leverage = 50, stopLossPct = 0.01, takeProfitPct = 0.03, trailingStopPct = null, marginUsd = 5 } = {}) {
+  const candles = await fetchHistoricalKlines(symbol, interval, candleCount);
+  const closes = candles.map(c => c.close);
+  const fastEma = calculateEmaSeries(closes, fastPeriod);
+  const slowEma = calculateEmaSeries(closes, slowPeriod);
+
+  const signalFn = (allCandles, i) => isEmaCrossoverSignal(fastEma, slowEma, i);
+
+  const trades = trailingStopPct
+    ? simulateTrailingTrades(candles, signalFn, { leverage, trailingStopPct, marginUsd })
+    : simulateTrades(candles, signalFn, { leverage, stopLossPct, takeProfitPct, marginUsd });
+  return { symbol, strategy: 'emaCrossover', candleCount: candles.length, trades, summary: summarizeTrades(trades) };
+}
+
+/**
+ * Run the Bollinger Band mean-reversion strategy backtest for one symbol.
+ */
+async function backtestBollingerBounce(symbol, { interval = '1h', candleCount = 2160, bbPeriod = 20, bbStdDev = 2, leverage = 50, stopLossPct = 0.01, takeProfitPct = 0.03, trailingStopPct = null, marginUsd = 5 } = {}) {
+  const candles = await fetchHistoricalKlines(symbol, interval, candleCount);
+  const closes = candles.map(c => c.close);
+
+  const signalFn = (allCandles, i) => isBollingerBounceSignal(closes, i, bbPeriod, bbStdDev);
+
+  const trades = trailingStopPct
+    ? simulateTrailingTrades(candles, signalFn, { leverage, trailingStopPct, marginUsd })
+    : simulateTrades(candles, signalFn, { leverage, stopLossPct, takeProfitPct, marginUsd });
+  return { symbol, strategy: 'bollingerBounce', candleCount: candles.length, trades, summary: summarizeTrades(trades) };
 }
 
 module.exports = {
   fetchHistoricalKlines,
   simulateTrades,
+  simulateTrailingTrades,
   summarizeTrades,
   backtestMeanReversion,
-  backtestBreakout
+  backtestBreakout,
+  backtestEmaCrossover,
+  backtestBollingerBounce
 };

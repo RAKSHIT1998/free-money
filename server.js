@@ -168,35 +168,47 @@ const startServer = async () => {
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 
-    // Spawn initial agents after server starts
+    // Spawn initial agents after server starts. Every spawn below is guarded by
+    // spawnIfMissing so this is idempotent — if this ever runs more than once against
+    // the same live AgentManager (observed in practice, root cause not fully pinned
+    // down — possibly overlapping restarts), it no longer creates duplicate agents
+    // that then each independently trade/poll with no relation to each other.
+    const spawnIfMissing = async (type, options) => {
+      if (agentManager.getAgentsByType(type).length > 0) {
+        console.log(`Skipping auto-spawn of ${type} — one is already running`);
+        return;
+      }
+      await agentManager.spawnAgent(type, options);
+    };
+
     setTimeout(async () => {
       try {
         // Simulated fake-earnings agents (cryptoHunter, opportunityScout, developer,
         // manager) are intentionally NOT auto-spawned — only real agents/earnings run
         // by default. Set SPAWN_SIMULATED_AGENTS=true to bring them back.
         if (process.env.SPAWN_SIMULATED_AGENTS === 'true') {
-          await agentManager.spawnAgent('cryptoHunter', {
+          await spawnIfMissing('cryptoHunter', {
             name: 'Initial Crypto Hunter',
             config: {
               scanInterval: configInstance.get('agentTypes.cryptoHunter.scanInterval') || 30000
             }
           });
 
-          await agentManager.spawnAgent('opportunityScout', {
+          await spawnIfMissing('opportunityScout', {
             name: 'Initial Opportunity Scout',
             config: {
               scanInterval: configInstance.get('agentTypes.opportunityScout.scanInterval') || 45000
             }
           });
 
-          await agentManager.spawnAgent('developer', {
+          await spawnIfMissing('developer', {
             name: 'Initial Developer',
             config: {
               taskInterval: configInstance.get('agentTypes.developer.taskInterval') || 60000
             }
           });
 
-          await agentManager.spawnAgent('manager', {
+          await spawnIfMissing('manager', {
             name: 'Initial Manager',
             config: {
               evaluationInterval: configInstance.get('agentTypes.manager.evaluationInterval') || 300000
@@ -206,7 +218,7 @@ const startServer = async () => {
 
         // Real, read-only HackerOne opportunity feed — zero financial risk (no orders,
         // no withdrawals), safe to auto-spawn by default.
-        await agentManager.spawnAgent('hackerOneBounty', {
+        await spawnIfMissing('hackerOneBounty', {
           name: 'Initial HackerOne Bounty Feed',
           config: {
             pollIntervalMs: configInstance.get('agentTypes.hackerOneBounty.pollIntervalMs') || 3600000,
@@ -216,7 +228,7 @@ const startServer = async () => {
 
         // Real, read-only Remote OK crypto/web3 job feed — zero financial risk (no
         // applications submitted), safe to auto-spawn by default.
-        await agentManager.spawnAgent('cryptoGigHunter', {
+        await spawnIfMissing('cryptoGigHunter', {
           name: 'Initial Crypto Gig Hunter',
           config: {
             pollIntervalMs: configInstance.get('agentTypes.cryptoGigHunter.pollIntervalMs') || 3600000,
@@ -227,7 +239,7 @@ const startServer = async () => {
         // Health monitor for all other agents — restarts anything stuck in 'error'
         // state. Zero financial risk itself (no orders, no withdrawals), safe to
         // auto-spawn by default.
-        await agentManager.spawnAgent('realAgentMonitor', {
+        await spawnIfMissing('realAgentMonitor', {
           name: 'Initial Real Agent Monitor',
           config: {
             checkIntervalMs: configInstance.get('agentTypes.realAgentMonitor.checkIntervalMs') || 120000,
@@ -244,9 +256,13 @@ const startServer = async () => {
         // a meaningfully different risk than a one-time manual spawn.
         if (process.env.AUTO_SPAWN_REAL_TRADING_AGENTS === 'true') {
           console.log('AUTO_SPAWN_REAL_TRADING_AGENTS=true — auto-spawning real-money trading agents');
-          for (const type of ['binanceDca', 'binanceFuturesDca', 'breakoutFutures', 'meanReversionFutures']) {
+          // meanReversionFutures excluded: backtested against 90 days of real BTC/ETH/
+          // SOL/BNB 1h data at live risk settings and showed a clear historical loss
+          // (274 trades, -$183.44, 20.8% win rate — see backtest_results.json). Retired
+          // rather than left running on a strategy with demonstrated negative edge.
+          for (const type of ['binanceDca', 'binanceFuturesDca', 'breakoutFutures']) {
             try {
-              await agentManager.spawnAgent(type, { name: `Auto-resumed ${type}` });
+              await spawnIfMissing(type, { name: `Auto-resumed ${type}` });
             } catch (error) {
               console.error(`Error auto-spawning real trading agent ${type}:`, error.message);
             }
