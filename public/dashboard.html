@@ -409,6 +409,13 @@
             <div id="real-open-positions" style="margin-top: 15px;"></div>
         </div>
 
+        <div class="real-money-section" id="real-history-section">
+            <h2 class="section-title">🧠 All-Time Trade History <span title="Derived fresh from Binance's own records every load — survives restarts, not a separate cache">(persists across restarts)</span></h2>
+            <div class="stats-grid" id="real-history-stats">
+                <div class="loading">Loading trade history...</div>
+            </div>
+        </div>
+
         <div class="real-money-section">
             <h2 class="section-title">💵 Real Binance Spot DCA Agent</h2>
             <div class="stats-grid" id="real-dca-stats">
@@ -470,6 +477,7 @@
         const realSummaryStatsContainer = document.getElementById('real-summary-stats');
         const realAgentsActivityContainer = document.getElementById('real-agents-activity');
         const realOpenPositionsContainer = document.getElementById('real-open-positions');
+        const realHistoryStatsContainer = document.getElementById('real-history-stats');
         const realFuturesDcaStatsContainer = document.getElementById('real-futures-dca-stats');
         const realBreakoutStatsContainer = document.getElementById('real-breakout-stats');
         const realBreakoutCandidatesContainer = document.getElementById('real-breakout-candidates');
@@ -566,6 +574,7 @@
             realSummaryStatsContainer.innerHTML = '<div class="loading">Loading real summary...</div>';
             realAgentsActivityContainer.innerHTML = '';
             realOpenPositionsContainer.innerHTML = '';
+            realHistoryStatsContainer.innerHTML = '<div class="loading">Loading trade history...</div>';
             realFuturesDcaStatsContainer.innerHTML = '<div class="loading">Loading real futures DCA status...</div>';
             realBreakoutStatsContainer.innerHTML = '<div class="loading">Loading real breakout scanner status...</div>';
             realBreakoutCandidatesContainer.innerHTML = '';
@@ -582,6 +591,7 @@
             realDcaStatsContainer.innerHTML = `<div class="error">${message}</div>`;
             realOpportunitiesContainer.innerHTML = `<div class="error">${message}</div>`;
             realSummaryStatsContainer.innerHTML = `<div class="error">${message}</div>`;
+            realHistoryStatsContainer.innerHTML = `<div class="error">${message}</div>`;
             realFuturesDcaStatsContainer.innerHTML = `<div class="error">${message}</div>`;
             realBreakoutStatsContainer.innerHTML = `<div class="error">${message}</div>`;
             realMeanReversionStatsContainer.innerHTML = `<div class="error">${message}</div>`;
@@ -589,11 +599,68 @@
 
         // Update the account-level "today" real-money summary (realized P&L, open
         // positions, and what each real agent is currently doing/halted-on)
+        // All-time real futures trade history — derived fresh from Binance's own
+        // records every load, so it's accurate across restarts without a separate
+        // cache to keep in sync.
+        function updateRealHistory(history, error) {
+            if (error) {
+                realHistoryStatsContainer.innerHTML = `<div class="loading">History unavailable: ${escapeHtml(error)}</div>`;
+                return;
+            }
+            if (!history || history.closedTradeCount === 0) {
+                realHistoryStatsContainer.innerHTML = '<div class="loading">No closed trades yet.</div>';
+                return;
+            }
+
+            const netColor = history.netUsd >= 0 ? '#155724' : '#721c24';
+            const lastColor = history.lastTrade && history.lastTrade.pnlUsd >= 0 ? '#155724' : '#721c24';
+
+            let html = `
+                <div class="stat-card real-stat-card">
+                    <div class="stat-value" style="color: ${netColor};">$${history.netUsd.toFixed(2)}</div>
+                    <div class="stat-label">Net Real P&amp;L (all-time, after fees)</div>
+                </div>
+                <div class="stat-card real-stat-card">
+                    <div class="stat-value">${history.winCount}W / ${history.lossCount}L</div>
+                    <div class="stat-label">Closed Trades (${history.winRatePct.toFixed(0)}% win rate)</div>
+                </div>
+            `;
+
+            if (history.lastTrade) {
+                html += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-value" style="color: ${lastColor};">$${history.lastTrade.pnlUsd.toFixed(2)}</div>
+                        <div class="stat-label">Last Trade P&amp;L (${escapeHtml(history.lastTrade.symbol)}, ${getTimeAgo(new Date(history.lastTrade.time))})</div>
+                    </div>
+                `;
+            }
+            if (history.bestTrade) {
+                html += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-value" style="color: #155724;">$${history.bestTrade.pnlUsd.toFixed(2)}</div>
+                        <div class="stat-label">Best Trade (${escapeHtml(history.bestTrade.symbol)})</div>
+                    </div>
+                `;
+            }
+            if (history.worstTrade) {
+                html += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-value" style="color: #721c24;">$${history.worstTrade.pnlUsd.toFixed(2)}</div>
+                        <div class="stat-label">Worst Trade (${escapeHtml(history.worstTrade.symbol)})</div>
+                    </div>
+                `;
+            }
+
+            realHistoryStatsContainer.innerHTML = html;
+        }
+
         function updateRealSummary(summary) {
             if (!summary) {
                 realSummaryStatsContainer.innerHTML = '<div class="loading">No summary available.</div>';
                 return;
             }
+
+            updateRealHistory(summary.futuresHistory, summary.futuresHistoryError);
 
             let statsHtml = '';
 

@@ -244,6 +244,44 @@ async function getTodaysCommissionUsd() {
 }
 
 /**
+ * All-time real trading history summary, derived from Binance's own income ledger —
+ * not a separate cache that could drift out of sync, and not dependent on any
+ * in-memory agent state (which resets to zero on every restart). This is what
+ * actually answers "what was our last profit/loss" and "are we winning overall"
+ * without having to manually reconstruct it after every restart.
+ * @returns {Promise<Object>}
+ */
+async function getTradeHistorySummary() {
+  const realizedEntries = await getIncomeHistory({ incomeType: 'REALIZED_PNL' });
+  const commissionEntries = await getIncomeHistory({ incomeType: 'COMMISSION' });
+
+  const sorted = realizedEntries
+    .map(e => ({ ...e, income: parseFloat(e.income), time: parseInt(e.time) }))
+    .sort((a, b) => a.time - b.time);
+
+  const totalRealizedPnlUsd = sorted.reduce((sum, e) => sum + e.income, 0);
+  const totalCommissionUsd = commissionEntries.reduce((sum, e) => sum + parseFloat(e.income), 0);
+  const wins = sorted.filter(e => e.income > 0);
+  const losses = sorted.filter(e => e.income < 0);
+  const lastTrade = sorted[sorted.length - 1] || null;
+  const bestTrade = sorted.length > 0 ? sorted.reduce((a, b) => (b.income > a.income ? b : a)) : null;
+  const worstTrade = sorted.length > 0 ? sorted.reduce((a, b) => (b.income < a.income ? b : a)) : null;
+
+  return {
+    totalRealizedPnlUsd,
+    totalCommissionUsd,
+    netUsd: totalRealizedPnlUsd + totalCommissionUsd,
+    closedTradeCount: sorted.length,
+    winCount: wins.length,
+    lossCount: losses.length,
+    winRatePct: sorted.length > 0 ? (wins.length / sorted.length) * 100 : null,
+    lastTrade: lastTrade ? { symbol: lastTrade.symbol, pnlUsd: lastTrade.income, time: new Date(lastTrade.time) } : null,
+    bestTrade: bestTrade ? { symbol: bestTrade.symbol, pnlUsd: bestTrade.income, time: new Date(bestTrade.time) } : null,
+    worstTrade: worstTrade ? { symbol: worstTrade.symbol, pnlUsd: worstTrade.income, time: new Date(worstTrade.time) } : null
+  };
+}
+
+/**
  * Real current available USDT balance in the futures wallet (i.e. actually free to
  * use as margin for a new position, not locked in existing positions/orders).
  * @returns {Promise<number>}
@@ -743,6 +781,7 @@ module.exports = {
   getIncomeHistory,
   getTodaysRealizedPnlUsd,
   getTodaysCommissionUsd,
+  getTradeHistorySummary,
   openLeveragedLong,
   closePosition,
   getOrderStatus,

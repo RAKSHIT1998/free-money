@@ -295,6 +295,12 @@ exports.getRealMoneySummary = async (req, res) => {
     futuresPositionsError: null,
     futuresToday: null,
     futuresTodayError: null,
+    // All-time history, derived fresh from Binance's own records every request — this
+    // is what makes "last profit/last loss" survive a restart without a separate,
+    // driftable cache: the underlying trade ledger and Binance's income history were
+    // already persistent, this just summarizes them.
+    futuresHistory: null,
+    futuresHistoryError: null,
     agents: []
   };
 
@@ -332,6 +338,12 @@ exports.getRealMoneySummary = async (req, res) => {
     summary.futuresToday = { realizedPnlUsd: realizedPnl, commissionUsd: commission };
   } catch (error) {
     summary.futuresTodayError = error.message;
+  }
+
+  try {
+    summary.futuresHistory = await realFuturesTradingService.getTradeHistorySummary();
+  } catch (error) {
+    summary.futuresHistoryError = error.message;
   }
 
   res.json({ success: true, data: summary });
