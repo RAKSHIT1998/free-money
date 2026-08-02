@@ -2,6 +2,10 @@
 const BaseAgent = require('./baseAgent');
 const Agent = require('../models/Agent');
 
+// Real-money and real-external-data agents are never subject to survival scoring —
+// they must not be auto-killed or auto-boosted by the fake-currency scoring logic below.
+const REAL_AGENT_TYPES = new Set(['binanceDca', 'hackerOneBounty']);
+
 class ManagerAgent extends BaseAgent {
   constructor(options = {}) {
     super({
@@ -89,8 +93,9 @@ class ManagerAgent extends BaseAgent {
         return;
       }
 
-      // Get all agents from the manager
-      const agents = this.agentManager.getAllAgents();
+      // Get all agents from the manager, excluding real-money/real-data agents —
+      // they must never be eliminated or boosted based on this scoring logic.
+      const agents = this.agentManager.getAllAgents().filter(agent => !REAL_AGENT_TYPES.has(agent.type));
 
       if (agents.length === 0) {
         this.log('info', 'No agents to manage');
@@ -129,7 +134,15 @@ class ManagerAgent extends BaseAgent {
    * @returns {number} Performance score (0-100)
    */
   calculatePerformanceScore(agent) {
-    // If agent doesn't have performance metrics, return a default score
+    // KNOWN BUG (flagged, not fixed here — out of scope): this checks
+    // agent.performance.metrics, but BaseAgent's performance object is flat
+    // (earnings, opportunitiesFound, actionsTaken, successRate) with no nested
+    // `metrics` key. As a result this always falls through to the neutral default
+    // below, making survival scoring effectively a no-op for all agents today.
+    // Real-money/real-data agents are excluded from this scoring entirely (see
+    // REAL_AGENT_TYPES filter in performAction) — if real agents are ever scored in
+    // the future, this must be fixed to use real metrics (e.g.
+    // realTradingService.computeUnrealizedPnl), never this fallback.
     if (!agent.performance || !agent.performance.metrics) {
       return 50; // Neutral score for unknown performance
     }

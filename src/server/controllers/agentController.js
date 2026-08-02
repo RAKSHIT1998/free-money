@@ -1,6 +1,8 @@
 // Agent management controller
 const AgentManager = require('../../agents/agentManager');
 const OpportunityService = require('../../services/opportunityService');
+const realTradingService = require('../../services/realTradingService');
+const realFuturesTradingService = require('../../services/realFuturesTradingService');
 
 // Get agent manager instance (lazy initialization)
 let agentManager = null;
@@ -178,6 +180,189 @@ exports.getAgentStatistics = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get agent statistics',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+exports.getBinanceDcaStatus = async (req, res) => {
+  try {
+    const agents = getAgentManager().getAllAgents().filter(agent => agent.type === 'binanceDca');
+    const statuses = await Promise.all(agents.map(agent => agent.getStatusExtended()));
+
+    res.json({
+      success: true,
+      data: statuses
+    });
+  } catch (error) {
+    console.error('Error getting Binance DCA status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get Binance DCA status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+exports.getBinanceFuturesDcaStatus = async (req, res) => {
+  try {
+    const agents = getAgentManager().getAllAgents().filter(agent => agent.type === 'binanceFuturesDca');
+    const statuses = await Promise.all(agents.map(agent => agent.getStatusExtended()));
+
+    res.json({
+      success: true,
+      data: statuses
+    });
+  } catch (error) {
+    console.error('Error getting Binance Futures DCA status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get Binance Futures DCA status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+exports.getBreakoutFuturesStatus = async (req, res) => {
+  try {
+    const agents = getAgentManager().getAllAgents().filter(agent => agent.type === 'breakoutFutures');
+    const statuses = await Promise.all(agents.map(agent => agent.getStatusExtended()));
+
+    res.json({
+      success: true,
+      data: statuses
+    });
+  } catch (error) {
+    console.error('Error getting breakout futures status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get breakout futures status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+exports.getRealAgentMonitorStatus = async (req, res) => {
+  try {
+    const agents = getAgentManager().getAllAgents().filter(agent => agent.type === 'realAgentMonitor');
+    const statuses = agents.map(agent => agent.getStatusExtended());
+
+    res.json({
+      success: true,
+      data: statuses
+    });
+  } catch (error) {
+    console.error('Error getting real agent monitor status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get real agent monitor status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+exports.getMeanReversionFuturesStatus = async (req, res) => {
+  try {
+    const agents = getAgentManager().getAllAgents().filter(agent => agent.type === 'meanReversionFutures');
+    const statuses = await Promise.all(agents.map(agent => agent.getStatusExtended()));
+
+    res.json({
+      success: true,
+      data: statuses
+    });
+  } catch (error) {
+    console.error('Error getting mean-reversion futures status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get mean-reversion futures status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * Account-level real-money summary, pulled directly from Binance (not just this
+ * app's local ledgers) so it reflects reality even if a position was closed by a
+ * stop-loss or liquidation the app didn't directly initiate. Any section that fails
+ * (e.g. no real credentials configured yet) is reported as unavailable rather than
+ * failing the whole request.
+ */
+exports.getRealMoneySummary = async (req, res) => {
+  const summary = {
+    spot: null,
+    spotError: null,
+    futuresPositions: null,
+    futuresPositionsError: null,
+    futuresToday: null,
+    futuresTodayError: null,
+    agents: []
+  };
+
+  const realAgents = getAgentManager().getAllAgents()
+    .filter(a => ['binanceDca', 'binanceFuturesDca', 'breakoutFutures', 'meanReversionFutures'].includes(a.type));
+
+  summary.agents = realAgents.map(a => ({
+    id: a.id,
+    type: a.type,
+    state: a.state,
+    haltedReason: a.haltedReason || null
+  }));
+
+  const spotDcaAgent = realAgents.find(a => a.type === 'binanceDca');
+  if (spotDcaAgent) {
+    try {
+      const pnl = await realTradingService.computeUnrealizedPnl(spotDcaAgent.id, spotDcaAgent.config.symbol);
+      summary.spot = { symbol: spotDcaAgent.config.symbol, ...pnl };
+    } catch (error) {
+      summary.spotError = error.message;
+    }
+  }
+
+  try {
+    summary.futuresPositions = await realFuturesTradingService.getOpenPositions();
+  } catch (error) {
+    summary.futuresPositionsError = error.message;
+  }
+
+  try {
+    const [realizedPnl, commission] = await Promise.all([
+      realFuturesTradingService.getTodaysRealizedPnlUsd(),
+      realFuturesTradingService.getTodaysCommissionUsd()
+    ]);
+    summary.futuresToday = { realizedPnlUsd: realizedPnl, commissionUsd: commission };
+  } catch (error) {
+    summary.futuresTodayError = error.message;
+  }
+
+  res.json({ success: true, data: summary });
+};
+
+/**
+ * Manually close a real open futures position: cancels any stale open orders (e.g. a
+ * stop-loss left over from a broken fill) for the symbol, then market-closes whatever
+ * position remains with a reduce-only order. Attributed to whichever real futures
+ * agent is running (falls back to 'manual' if none), so it still shows up in that
+ * agent's ledger/budget accounting.
+ */
+exports.closeFuturesPosition = async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    if (!symbol) {
+      return res.status(400).json({ success: false, message: 'symbol is required' });
+    }
+
+    const futuresAgent = getAgentManager().getAllAgents()
+      .find(a => ['binanceFuturesDca', 'breakoutFutures', 'meanReversionFutures'].includes(a.type));
+    const agentId = futuresAgent ? futuresAgent.id : 'manual';
+
+    const result = await realFuturesTradingService.closePosition(symbol, agentId);
+
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Error closing futures position:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to close futures position',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

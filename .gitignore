@@ -1,5 +1,6 @@
 server.log
 node_modules/
+.env
 # Large executables
 free-money-app.exe
 fixed-free-money-app.exe

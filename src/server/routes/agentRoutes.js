@@ -4,6 +4,14 @@ const agentController = require('../controllers/agentController');
 
 // Agent management routes
 router.get('/', agentController.getAllAgents);
+// Must be registered before '/:id' so 'real' isn't parsed as an agent ID.
+router.get('/real/binance-dca', agentController.getBinanceDcaStatus);
+router.get('/real/binance-futures-dca', agentController.getBinanceFuturesDcaStatus);
+router.get('/real/breakout-futures', agentController.getBreakoutFuturesStatus);
+router.get('/real/mean-reversion-futures', agentController.getMeanReversionFuturesStatus);
+router.get('/real/monitor', agentController.getRealAgentMonitorStatus);
+router.get('/real/summary', agentController.getRealMoneySummary);
+router.post('/real/futures/:symbol/close', agentController.closeFuturesPosition);
 router.get('/:id', agentController.getAgentById);
 router.post('/spawn', agentController.spawnAgent);
 router.delete('/:id', agentController.terminateAgent);

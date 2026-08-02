@@ -3,6 +3,13 @@ const CryptoHunterAgent = require('./cryptoHunterAgent');
 const OpportunityScoutAgent = require('./opportunityScoutAgent');
 const ManagerAgent = require('./managerAgent');
 const DeveloperAgent = require('./developerAgent');
+const BinanceDcaAgent = require('./binanceDcaAgent');
+const BinanceFuturesDcaAgent = require('./binanceFuturesDcaAgent');
+const BreakoutFuturesAgent = require('./breakoutFuturesAgent');
+const MeanReversionFuturesAgent = require('./meanReversionFuturesAgent');
+const HackerOneBountyAgent = require('./hackerOneBountyAgent');
+const CryptoGigHunterAgent = require('./cryptoGigHunterAgent');
+const RealAgentMonitorAgent = require('./realAgentMonitorAgent');
 const { Config } = require('../config/config');
 const Agent = require('../models/Agent');
 
@@ -148,6 +155,108 @@ class AgentManager {
         });
         // Set the agent manager reference for manager agents
         agent.setAgentManager(this);
+        break;
+
+      case 'binancedca':
+      case 'binance dca':
+      case 'binancedcaagent':
+        // REAL MONEY: only ever places live orders if LIVE_TRADING_CONFIRMED=true and
+        // real Binance credentials are configured (enforced in realTradingService, not here).
+        agent = new BinanceDcaAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.binanceDca') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'binancefuturesdca':
+      case 'binance futures dca':
+      case 'binancefuturesdcaagent':
+        // REAL MONEY, LEVERAGED: only ever places live orders if LIVE_TRADING_CONFIRMED=true,
+        // LIVE_FUTURES_TRADING_CONFIRMED=true, and real Binance credentials are configured
+        // (enforced in realFuturesTradingService, not here).
+        agent = new BinanceFuturesDcaAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.binanceFuturesDca') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'breakoutfutures':
+      case 'breakout futures':
+      case 'breakoutfuturesagent':
+        // REAL MONEY, LEVERAGED: only ever places live orders if LIVE_TRADING_CONFIRMED=true,
+        // LIVE_FUTURES_TRADING_CONFIRMED=true, and real Binance credentials are configured
+        // (enforced in realFuturesTradingService, not here).
+        agent = new BreakoutFuturesAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.breakoutFutures') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'meanreversionfutures':
+      case 'mean reversion futures':
+      case 'meanreversionfuturesagent':
+        // REAL MONEY, LEVERAGED: only ever places live orders if LIVE_TRADING_CONFIRMED=true,
+        // LIVE_FUTURES_TRADING_CONFIRMED=true, and real Binance credentials are configured
+        // (enforced in realFuturesTradingService, not here).
+        agent = new MeanReversionFuturesAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.meanReversionFutures') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'hackeronebounty':
+      case 'hacker one bounty':
+      case 'hackeronebountyagent':
+        agent = new HackerOneBountyAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.hackerOneBounty') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'cryptogighunter':
+      case 'crypto gig hunter':
+      case 'cryptogighunteragent':
+        agent = new CryptoGigHunterAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.cryptoGigHunter') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'realagentmonitor':
+      case 'real agent monitor':
+      case 'realagentmonitoragent':
+        agent = new RealAgentMonitorAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.realAgentMonitor') || {},
+            ...options.config
+          },
+          ...options
+        });
         break;
 
       default:
@@ -436,6 +545,22 @@ class AgentManager {
             });
             // Set the agent manager reference for manager agents
             agent.setAgentManager(this);
+            break;
+
+          case 'binanceDca':
+            agent = new BinanceDcaAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'hackerOneBounty':
+            agent = new HackerOneBountyAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
             break;
 
           default:

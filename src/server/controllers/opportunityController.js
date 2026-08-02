@@ -6,6 +6,7 @@ exports.getOpportunities = async (req, res) => {
     const filters = {
       type: req.query.type,
       status: req.query.status,
+      source: req.query.source,
       search: req.query.search,
       limit: req.query.limit,
       offset: req.query.offset

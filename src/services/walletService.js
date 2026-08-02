@@ -1,6 +1,6 @@
 // Wallet service for handling wallet operations
 const Wallet = require('../models/Wallet');
-const { Config } = require('../config/config');
+const { Config, isLikelyRealBinanceKey } = require('../config/config');
 const { cryptoCurrencyConfig } = require('../config/cryptocurrency');
 const fs = require('fs');
 const path = require('path');
@@ -349,6 +349,23 @@ async function withdrawCryptocurrency(amountUsd, cryptoCurrency, destinationAddr
 
     // Check if we're in simulation mode
     const simulationMode = cryptoConfig.simulation.enabled;
+
+    if (!simulationMode) {
+      // Defense-in-depth: never allow the live Binance withdrawal branch to execute
+      // unless BOTH a human has explicitly opted in AND the configured credentials
+      // actually look like real Binance keys. Don't rely solely on config.js's
+      // simulation.enabled computation for a money-movement code path.
+      const liveConfirmed = process.env.LIVE_TRADING_CONFIRMED === 'true';
+      const credentialsLookReal =
+        isLikelyRealBinanceKey(process.env.BINANCE_API_KEY) &&
+        isLikelyRealBinanceKey(process.env.BINANCE_API_SECRET);
+
+      if (!liveConfirmed || !credentialsLookReal) {
+        throw new Error(
+          'Live cryptocurrency withdrawal blocked: requires LIVE_TRADING_CONFIRMED=true and validated (non-placeholder) BINANCE_API_KEY/SECRET.'
+        );
+      }
+    }
 
     if (simulationMode) {
       // Simulate cryptocurrency transaction

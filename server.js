@@ -55,8 +55,18 @@ app.use(cors({
 }));
 app.use(express.json({ limit: process.env.MAX_FILE_SIZE || '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: process.env.MAX_FILE_SIZE || '10mb' }));
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      'script-src': ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
+      'style-src': ["'self'", "'unsafe-inline'"],
+      'connect-src': ["'self'"]
+    }
+  }
+}));
 app.use(morgan(process.env.LOG_LEVEL || 'combined'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -161,34 +171,87 @@ const startServer = async () => {
     // Spawn initial agents after server starts
     setTimeout(async () => {
       try {
-        // Spawn initial set of agents based on configuration
-        await agentManager.spawnAgent('cryptoHunter', {
-          name: 'Initial Crypto Hunter',
+        // Simulated fake-earnings agents (cryptoHunter, opportunityScout, developer,
+        // manager) are intentionally NOT auto-spawned — only real agents/earnings run
+        // by default. Set SPAWN_SIMULATED_AGENTS=true to bring them back.
+        if (process.env.SPAWN_SIMULATED_AGENTS === 'true') {
+          await agentManager.spawnAgent('cryptoHunter', {
+            name: 'Initial Crypto Hunter',
+            config: {
+              scanInterval: configInstance.get('agentTypes.cryptoHunter.scanInterval') || 30000
+            }
+          });
+
+          await agentManager.spawnAgent('opportunityScout', {
+            name: 'Initial Opportunity Scout',
+            config: {
+              scanInterval: configInstance.get('agentTypes.opportunityScout.scanInterval') || 45000
+            }
+          });
+
+          await agentManager.spawnAgent('developer', {
+            name: 'Initial Developer',
+            config: {
+              taskInterval: configInstance.get('agentTypes.developer.taskInterval') || 60000
+            }
+          });
+
+          await agentManager.spawnAgent('manager', {
+            name: 'Initial Manager',
+            config: {
+              evaluationInterval: configInstance.get('agentTypes.manager.evaluationInterval') || 300000
+            }
+          });
+        }
+
+        // Real, read-only HackerOne opportunity feed — zero financial risk (no orders,
+        // no withdrawals), safe to auto-spawn by default.
+        await agentManager.spawnAgent('hackerOneBounty', {
+          name: 'Initial HackerOne Bounty Feed',
           config: {
-            scanInterval: configInstance.get('agentTypes.cryptoHunter.scanInterval') || 30000
+            pollIntervalMs: configInstance.get('agentTypes.hackerOneBounty.pollIntervalMs') || 3600000,
+            maxResultsPerPoll: configInstance.get('agentTypes.hackerOneBounty.maxResultsPerPoll') || 20
           }
         });
 
-        await agentManager.spawnAgent('opportunityScout', {
-          name: 'Initial Opportunity Scout',
+        // Real, read-only Remote OK crypto/web3 job feed — zero financial risk (no
+        // applications submitted), safe to auto-spawn by default.
+        await agentManager.spawnAgent('cryptoGigHunter', {
+          name: 'Initial Crypto Gig Hunter',
           config: {
-            scanInterval: configInstance.get('agentTypes.opportunityScout.scanInterval') || 45000
+            pollIntervalMs: configInstance.get('agentTypes.cryptoGigHunter.pollIntervalMs') || 3600000,
+            maxResultsPerPoll: configInstance.get('agentTypes.cryptoGigHunter.maxResultsPerPoll') || 20
           }
         });
 
-        await agentManager.spawnAgent('developer', {
-          name: 'Initial Developer',
+        // Health monitor for all other agents — restarts anything stuck in 'error'
+        // state. Zero financial risk itself (no orders, no withdrawals), safe to
+        // auto-spawn by default.
+        await agentManager.spawnAgent('realAgentMonitor', {
+          name: 'Initial Real Agent Monitor',
           config: {
-            taskInterval: configInstance.get('agentTypes.developer.taskInterval') || 60000
+            checkIntervalMs: configInstance.get('agentTypes.realAgentMonitor.checkIntervalMs') || 120000,
+            errorCyclesBeforeRestart: configInstance.get('agentTypes.realAgentMonitor.errorCyclesBeforeRestart') || 2
           }
         });
 
-        await agentManager.spawnAgent('manager', {
-          name: 'Initial Manager',
-          config: {
-            evaluationInterval: configInstance.get('agentTypes.manager.evaluationInterval') || 300000
+        // Real-money trading agents are NOT auto-spawned by default — they place real
+        // orders with real money and must normally be started deliberately via
+        // POST /api/agents/spawn. This flag is a THIRD, separate opt-in (on top of
+        // LIVE_TRADING_CONFIRMED and LIVE_FUTURES_TRADING_CONFIRMED, which the trading
+        // services still independently enforce) specifically for "resume real trading
+        // automatically after a crash/reboot without a human re-triggering it" —
+        // a meaningfully different risk than a one-time manual spawn.
+        if (process.env.AUTO_SPAWN_REAL_TRADING_AGENTS === 'true') {
+          console.log('AUTO_SPAWN_REAL_TRADING_AGENTS=true — auto-spawning real-money trading agents');
+          for (const type of ['binanceDca', 'binanceFuturesDca', 'breakoutFutures', 'meanReversionFutures']) {
+            try {
+              await agentManager.spawnAgent(type, { name: `Auto-resumed ${type}` });
+            } catch (error) {
+              console.error(`Error auto-spawning real trading agent ${type}:`, error.message);
+            }
           }
-        });
+        }
 
         console.log('Initial agents spawned from configuration');
       } catch (error) {

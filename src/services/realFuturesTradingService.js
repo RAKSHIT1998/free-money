@@ -1,0 +1,757 @@
+// Real Binance USDT-M futures trading service — REAL MONEY, LEVERAGED. This is the
+// only module that talks to Binance Futures. Physically separate from
+// realTradingService.js (spot) and walletService.js/wallet.json (fabricated in-app
+// "earnings"). No shared code paths beyond the isLikelyRealBinanceKey validator,
+// used here as an independent defense-in-depth check.
+//
+// Leverage risk: at high leverage a small adverse price move can liquidate the
+// entire margin for a position. This module never widens risk on its own — it only
+// ever opens the exact position size the caller requests and (if configured) attaches
+// a stop-loss order at open time.
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const axios = require('axios');
+const { Config, isLikelyRealBinanceKey } = require('../config/config');
+
+const config = new Config();
+const persistenceEnabled = config.get('agentManager.persistenceEnabled', true);
+const realFuturesTradesFilePath = path.join(process.cwd(), 'real_futures_trades.json');
+
+const FAPI_BASE = 'https://fapi.binance.com';
+
+let RealFuturesTrade;
+function getRealFuturesTradeModel() {
+  if (!RealFuturesTrade) {
+    RealFuturesTrade = require('../models/RealFuturesTrade');
+  }
+  return RealFuturesTrade;
+}
+
+function loadTradesFromFile() {
+  try {
+    if (fs.existsSync(realFuturesTradesFilePath)) {
+      const data = fs.readFileSync(realFuturesTradesFilePath, 'utf8');
+      try {
+        const parsed = JSON.parse(data);
+        return Array.isArray(parsed.trades) ? parsed.trades : [];
+      } catch (parseError) {
+        console.warn('real_futures_trades.json contains invalid JSON, starting with empty ledger');
+        return [];
+      }
+    }
+    return [];
+  } catch (error) {
+    console.error('Error loading real futures trades file:', error);
+    return [];
+  }
+}
+
+function saveTradesToFile(trades) {
+  try {
+    fs.writeFileSync(realFuturesTradesFilePath, JSON.stringify({ trades }, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error saving real futures trades file:', error);
+    throw error;
+  }
+}
+
+async function appendTrade(tradeRecord) {
+  if (persistenceEnabled) {
+    const Model = getRealFuturesTradeModel();
+    const doc = await Model.create(tradeRecord);
+    return doc.toObject();
+  }
+
+  const trades = loadTradesFromFile();
+  const record = { ...tradeRecord, timestamp: tradeRecord.timestamp || new Date() };
+  trades.push(record);
+  saveTradesToFile(trades);
+  return record;
+}
+
+/**
+ * Patch fields onto an already-persisted trade record (e.g. stopOrderId/stopPrice
+ * determined after the initial fill was recorded). Without this, in-memory mutations
+ * to a trade object after appendTrade() has already written it are silently lost —
+ * this previously caused stop-loss attachment failures to vanish without a trace in
+ * the ledger, making a real risk gap invisible.
+ * @param {string} binanceOrderId the entry order's binanceOrderId, used to find the record
+ * @param {Object} updates fields to merge in
+ */
+async function updateTradeByOrderId(binanceOrderId, updates) {
+  if (persistenceEnabled) {
+    const Model = getRealFuturesTradeModel();
+    await Model.updateOne({ binanceOrderId: String(binanceOrderId) }, { $set: updates });
+    return;
+  }
+
+  const trades = loadTradesFromFile();
+  const index = trades.findIndex(t => t.binanceOrderId === String(binanceOrderId));
+  if (index !== -1) {
+    trades[index] = { ...trades[index], ...updates };
+    saveTradesToFile(trades);
+  }
+}
+
+/**
+ * Get all real futures trades for an agent, sorted oldest -> newest.
+ * @param {string} agentId
+ * @returns {Promise<Array>}
+ */
+async function getLedger(agentId) {
+  if (persistenceEnabled) {
+    const Model = getRealFuturesTradeModel();
+    const docs = await Model.find({ agentId }).sort({ timestamp: 1 }).lean();
+    return docs;
+  }
+
+  const trades = loadTradesFromFile();
+  return trades
+    .filter(t => t.agentId === agentId)
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+}
+
+/**
+ * Total real USD margin committed (BUY orders) minus margin freed by SELL/close orders,
+ * for an agent. This is what the budget cap is measured against — not notional value.
+ * @param {string} agentId
+ * @returns {Promise<number>}
+ */
+async function getTotalMarginUsd(agentId) {
+  const ledger = await getLedger(agentId);
+  return ledger.reduce((sum, trade) => {
+    return trade.side === 'BUY' ? sum + trade.marginUsd : sum - trade.marginUsd;
+  }, 0);
+}
+
+/**
+ * Full real futures trade ledger across EVERY agent, not just one — the basis for the
+ * global cross-agent exposure cap. Running multiple leveraged strategies at once must
+ * not silently multiply real risk just because each agent only checks its own budget.
+ * @returns {Promise<Array>}
+ */
+async function getFullLedger() {
+  if (persistenceEnabled) {
+    const Model = getRealFuturesTradeModel();
+    return Model.find({}).sort({ timestamp: 1 }).lean();
+  }
+  return loadTradesFromFile();
+}
+
+/**
+ * Total real USD margin committed across ALL agents/strategies combined. This is what
+ * GLOBAL_FUTURES_BUDGET_CAP_USD is measured against — every real futures agent must
+ * check this (in addition to its own per-agent cap) before opening a new position, so
+ * running N strategies simultaneously never allows more than one strategy's worth of
+ * real exposure at a time unless the cap is deliberately raised.
+ * @returns {Promise<number>}
+ */
+async function getTotalMarginUsdAllAgents() {
+  const ledger = await getFullLedger();
+  return ledger.reduce((sum, trade) => {
+    return trade.side === 'BUY' ? sum + trade.marginUsd : sum - trade.marginUsd;
+  }, 0);
+}
+
+/**
+ * Remaining real margin an agent is allowed to spend right now, respecting BOTH its
+ * own per-agent budgetCapUsd AND the shared cross-agent globalFuturesBudgetCapUsd —
+ * whichever is tighter wins. Every real futures agent should size its next trade off
+ * this, not off its own per-agent budget alone, so running multiple strategies at once
+ * can never silently multiply real exposure past the global ceiling.
+ * @param {string} agentId
+ * @param {number} perAgentCapUsd this agent's own budgetCapUsd
+ * @returns {Promise<{remaining: number, spentByAgent: number, spentAllAgents: number, globalCapUsd: number}>}
+ */
+async function getEffectiveRemainingBudgetUsd(agentId, perAgentCapUsd) {
+  const globalCapUsd = config.get('liveTrading.globalFuturesBudgetCapUsd', 50);
+  const [spentByAgent, spentAllAgents] = await Promise.all([
+    getTotalMarginUsd(agentId),
+    getTotalMarginUsdAllAgents()
+  ]);
+
+  const remainingPerAgent = perAgentCapUsd - spentByAgent;
+  const remainingGlobal = globalCapUsd - spentAllAgents;
+
+  return {
+    remaining: Math.max(0, Math.min(remainingPerAgent, remainingGlobal)),
+    spentByAgent,
+    spentAllAgents,
+    globalCapUsd
+  };
+}
+
+/**
+ * Real, currently-open futures positions with live unrealized P&L, straight from
+ * Binance (catches positions closed/reduced by a stop-loss fill, liquidation, or
+ * anything else — not dependent on this app's local ledger).
+ * @returns {Promise<Array<{symbol, positionAmt, entryPrice, unrealizedProfit, leverage}>>}
+ */
+async function getOpenPositions() {
+  const data = await signedRequest('GET', '/fapi/v2/positionRisk', {});
+  return data
+    .filter(p => parseFloat(p.positionAmt) !== 0)
+    .map(p => ({
+      symbol: p.symbol,
+      positionAmt: parseFloat(p.positionAmt),
+      entryPrice: parseFloat(p.entryPrice),
+      markPrice: parseFloat(p.markPrice),
+      unrealizedProfit: parseFloat(p.unRealizedProfit),
+      leverage: parseFloat(p.leverage)
+    }));
+}
+
+/**
+ * Real account income history (realized P&L, commissions, funding fees) straight
+ * from Binance — the authoritative source for "how much did this account actually
+ * make/lose today", independent of this app's local trade ledger.
+ * @param {Object} params
+ * @param {number} [params.startTime] ms epoch
+ * @param {string} [params.incomeType] e.g. 'REALIZED_PNL', 'COMMISSION', 'FUNDING_FEE'
+ * @returns {Promise<Array>}
+ */
+async function getIncomeHistory({ startTime, incomeType } = {}) {
+  const params = { limit: 1000 };
+  if (startTime) params.startTime = startTime;
+  if (incomeType) params.incomeType = incomeType;
+  return signedRequest('GET', '/fapi/v1/income', params);
+}
+
+function startOfTodayUtcMs() {
+  const now = new Date();
+  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+}
+
+/**
+ * Sum of real realized P&L (closed/reduced positions) since the start of the current
+ * UTC day, straight from Binance's own income ledger.
+ * @returns {Promise<number>}
+ */
+async function getTodaysRealizedPnlUsd() {
+  const income = await getIncomeHistory({ startTime: startOfTodayUtcMs(), incomeType: 'REALIZED_PNL' });
+  return income.reduce((sum, entry) => sum + parseFloat(entry.income), 0);
+}
+
+/**
+ * Sum of real commissions paid since the start of the current UTC day (negative =
+ * cost to the account).
+ * @returns {Promise<number>}
+ */
+async function getTodaysCommissionUsd() {
+  const income = await getIncomeHistory({ startTime: startOfTodayUtcMs(), incomeType: 'COMMISSION' });
+  return income.reduce((sum, entry) => sum + parseFloat(entry.income), 0);
+}
+
+/**
+ * Real current available USDT balance in the futures wallet (i.e. actually free to
+ * use as margin for a new position, not locked in existing positions/orders).
+ * @returns {Promise<number>}
+ */
+async function getAvailableFuturesBalanceUsd() {
+  const data = await signedRequest('GET', '/fapi/v2/balance', {});
+  const usdt = data.find(b => b.asset === 'USDT');
+  return usdt ? parseFloat(usdt.availableBalance) : 0;
+}
+
+/**
+ * Set of symbols this agent has already opened a position in today (UTC date), to
+ * enforce a one-open-per-symbol-per-day cooldown and prevent repeatedly re-entering
+ * the same symbol on a noisy signal.
+ * @param {string} agentId
+ * @returns {Promise<Set<string>>}
+ */
+async function getSymbolsTradedToday(agentId) {
+  const ledger = await getLedger(agentId);
+  const today = new Date().toISOString().slice(0, 10);
+  return new Set(
+    ledger
+      .filter(t => new Date(t.timestamp).toISOString().slice(0, 10) === today)
+      .map(t => t.symbol)
+  );
+}
+
+/**
+ * Real (unauthenticated, public) current market price for a futures symbol.
+ * @param {string} symbol e.g. 'BTCUSDT'
+ * @returns {Promise<number>}
+ */
+async function getCurrentPrice(symbol) {
+  const { data } = await axios.get(`${FAPI_BASE}/fapi/v1/ticker/price`, {
+    params: { symbol }
+  });
+  return parseFloat(data.price);
+}
+
+let exchangeInfoCache = null;
+let exchangeInfoCacheAt = 0;
+const EXCHANGE_INFO_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours — symbol listings rarely change
+
+async function getExchangeInfo() {
+  const now = Date.now();
+  if (exchangeInfoCache && (now - exchangeInfoCacheAt) < EXCHANGE_INFO_TTL_MS) {
+    return exchangeInfoCache;
+  }
+  const { data } = await axios.get(`${FAPI_BASE}/fapi/v1/exchangeInfo`);
+  exchangeInfoCache = data;
+  exchangeInfoCacheAt = now;
+  return data;
+}
+
+/**
+ * Fetch the quantity step size (LOT_SIZE filter) for a symbol, so order quantities
+ * can be rounded to a value Binance will accept.
+ * @param {string} symbol
+ * @returns {Promise<number>} step size, e.g. 0.001
+ */
+async function getQuantityStepSize(symbol) {
+  const data = await getExchangeInfo();
+  const symbolInfo = data.symbols.find(s => s.symbol === symbol);
+  if (!symbolInfo) {
+    throw new Error(`Symbol ${symbol} not found in futures exchange info`);
+  }
+  const lotSizeFilter = symbolInfo.filters.find(f => f.filterType === 'LOT_SIZE');
+  return lotSizeFilter ? parseFloat(lotSizeFilter.stepSize) : 0.001;
+}
+
+/**
+ * Fetch the price tick size (PRICE_FILTER filter) for a symbol — the precision Binance
+ * requires for prices like a STOP_MARKET order's stopPrice. This is DIFFERENT from
+ * getQuantityStepSize's LOT_SIZE (which governs order quantity, not price) — conflating
+ * the two previously caused stop-loss prices to be rounded to the wrong precision
+ * (e.g. 2 decimal places for a coin priced at $0.02233, which Binance silently
+ * rejected, leaving real positions with no stop-loss at all).
+ * @param {string} symbol
+ * @returns {Promise<number>} tick size, e.g. 0.0001
+ */
+async function getPriceTickSize(symbol) {
+  const data = await getExchangeInfo();
+  const symbolInfo = data.symbols.find(s => s.symbol === symbol);
+  if (!symbolInfo) {
+    throw new Error(`Symbol ${symbol} not found in futures exchange info`);
+  }
+  const priceFilter = symbolInfo.filters.find(f => f.filterType === 'PRICE_FILTER');
+  return priceFilter ? parseFloat(priceFilter.tickSize) : 0.01;
+}
+
+/**
+ * Format a price to the decimal precision implied by a tick size (e.g. tickSize
+ * 0.0001 -> 4 decimal places), the way roundDownToStep does for quantities. Needed
+ * because toFixed(2) on a sub-cent price silently produces a wildly wrong stop price.
+ * @param {number} price
+ * @param {number} tickSize
+ * @returns {string}
+ */
+function formatPriceForTickSize(price, tickSize) {
+  const precision = Math.max(0, Math.round(-Math.log10(tickSize)));
+  return roundDownToStep(price, tickSize).toFixed(precision);
+}
+
+/**
+ * List of actively tradable USDT-margined perpetual symbols (excludes stablecoin
+ * pairs like USDCUSDT, which never meaningfully "breakout", and anything not
+ * currently TRADING).
+ * @returns {Promise<string[]>}
+ */
+async function getUsdtPerpetualSymbols() {
+  const data = await getExchangeInfo();
+  const STABLE_BASES = new Set(['USDC', 'BUSD', 'FDUSD', 'TUSD', 'USDP', 'DAI', 'EUR']);
+  return data.symbols
+    .filter(s =>
+      s.quoteAsset === 'USDT' &&
+      s.contractType === 'PERPETUAL' &&
+      s.status === 'TRADING' &&
+      !STABLE_BASES.has(s.baseAsset)
+    )
+    .map(s => s.symbol);
+}
+
+/**
+ * Bulk 24hr ticker stats for every futures symbol in a single API call (cheap on
+ * rate limits compared to per-symbol requests). Used as the input to breakout detection.
+ * @returns {Promise<Array<{symbol, lastPrice, highPrice, priceChangePercent, quoteVolume}>>}
+ */
+async function getAll24hrTickers() {
+  const { data } = await axios.get(`${FAPI_BASE}/fapi/v1/ticker/24hr`);
+  return data.map(t => ({
+    symbol: t.symbol,
+    lastPrice: parseFloat(t.lastPrice),
+    highPrice: parseFloat(t.highPrice),
+    priceChangePercent: parseFloat(t.priceChangePercent),
+    quoteVolume: parseFloat(t.quoteVolume)
+  }));
+}
+
+/**
+ * Real historical candlestick data for a symbol, straight from Binance Futures.
+ * @param {string} symbol
+ * @param {string} interval e.g. '1h', '4h'
+ * @param {number} limit number of candles (max 1500)
+ * @returns {Promise<Array<{closeTime, open, high, low, close, volume}>>}
+ */
+async function getKlines(symbol, interval, limit = 100) {
+  const { data } = await axios.get(`${FAPI_BASE}/fapi/v1/klines`, {
+    params: { symbol, interval, limit }
+  });
+  return data.map(k => ({
+    closeTime: k[6],
+    open: parseFloat(k[1]),
+    high: parseFloat(k[2]),
+    low: parseFloat(k[3]),
+    close: parseFloat(k[4]),
+    volume: parseFloat(k[5])
+  }));
+}
+
+function roundDownToStep(quantity, stepSize) {
+  const precision = Math.max(0, Math.round(-Math.log10(stepSize)));
+  const factor = Math.pow(10, precision);
+  return Math.floor(quantity * factor) / factor;
+}
+
+function signedQuery(params) {
+  const queryString = Object.entries(params)
+    .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+    .join('&');
+  const signature = crypto
+    .createHmac('sha256', process.env.BINANCE_API_SECRET)
+    .update(queryString)
+    .digest('hex');
+  return `${queryString}&signature=${signature}`;
+}
+
+async function signedRequest(method, endpoint, params) {
+  const query = signedQuery({ ...params, timestamp: Date.now() });
+  const url = `${FAPI_BASE}${endpoint}?${query}`;
+  const { data } = await axios({
+    method,
+    url,
+    headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY }
+  });
+  return data;
+}
+
+/**
+ * Defense-in-depth guard: real leveraged futures orders require BOTH the general
+ * live-trading opt-in AND a second, separate futures-specific opt-in, plus real
+ * (non-placeholder) Binance credentials. Independent of realTradingService's (spot)
+ * gate and walletService's gate — this module never calls into either.
+ */
+function assertLiveFuturesTradingAllowed() {
+  const liveConfirmed = process.env.LIVE_TRADING_CONFIRMED === 'true';
+  const futuresConfirmed = process.env.LIVE_FUTURES_TRADING_CONFIRMED === 'true';
+  const keysReal =
+    isLikelyRealBinanceKey(process.env.BINANCE_API_KEY) &&
+    isLikelyRealBinanceKey(process.env.BINANCE_API_SECRET);
+
+  if (!liveConfirmed || !futuresConfirmed || !keysReal) {
+    throw new Error(
+      'Real futures trading blocked: requires LIVE_TRADING_CONFIRMED=true, ' +
+      'LIVE_FUTURES_TRADING_CONFIRMED=true, and validated (non-placeholder) BINANCE_API_KEY/SECRET.'
+    );
+  }
+}
+
+async function setLeverage(symbol, leverage) {
+  return signedRequest('POST', '/fapi/v1/leverage', { symbol, leverage });
+}
+
+async function setMarginType(symbol, marginType) {
+  try {
+    return await signedRequest('POST', '/fapi/v1/marginType', { symbol, marginType });
+  } catch (error) {
+    // Binance returns "No need to change margin type" if it's already set — not a real error.
+    if (error.response && error.response.data && error.response.data.code === -4046) {
+      return { alreadySet: true };
+    }
+    throw error;
+  }
+}
+
+async function getOrderStatus(symbol, orderId) {
+  return signedRequest('GET', '/fapi/v1/order', { symbol, orderId });
+}
+
+/**
+ * Binance Futures MARKET orders can return their initial ACK with status "NEW" and
+ * executedQty "0.0" even though the order fills moments later — unlike spot, which
+ * synchronously returns a `fills` array. Polling GET /fapi/v1/order until a terminal
+ * status is the only reliable way to know whether an order actually filled. Getting
+ * this wrong previously caused a real position to open with NO stop-loss attached
+ * (because the code treated a since-filled order as failed) — do not revert to
+ * trusting the initial order-placement response alone.
+ * @param {string} symbol
+ * @param {string|number} orderId
+ * @returns {Promise<Object>} final order state
+ */
+async function waitForOrderFill(symbol, orderId, { maxAttempts = 10, delayMs = 300 } = {}) {
+  // FILLED/CANCELED/EXPIRED/REJECTED are all terminal — stop polling immediately.
+  // PARTIALLY_FILLED is NOT terminal (more fill may still arrive) but IS usable if
+  // polling runs out of attempts, so it's handled by simply returning whatever the
+  // last poll saw once the loop ends, rather than being special-cased here.
+  const TERMINAL_STATUSES = new Set(['FILLED', 'CANCELED', 'EXPIRED', 'REJECTED']);
+  let lastOrder = null;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    lastOrder = await getOrderStatus(symbol, orderId);
+    if (TERMINAL_STATUSES.has(lastOrder.status)) {
+      return lastOrder;
+    }
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+
+  return lastOrder;
+}
+
+/**
+ * Real per-fill trade detail (price, qty, commission) for an order, straight from
+ * Binance — the futures equivalent of spot's `fills` array, which futures order
+ * responses don't include.
+ * @param {string} symbol
+ * @param {string|number} orderId
+ * @returns {Promise<Array>}
+ */
+async function getOrderTrades(symbol, orderId) {
+  return signedRequest('GET', '/fapi/v1/userTrades', { symbol, orderId });
+}
+
+/**
+ * Open a REAL leveraged long position via market order, sized so that
+ * marginUsd * leverage is spent at the current market price, then attach a
+ * STOP_MARKET order (if stopLossPct given) and/or a TAKE_PROFIT_MARKET order (if
+ * takeProfitPct given) to close the position automatically. Without a take-profit,
+ * a large favorable move has nothing that locks in the gain — the position just sits
+ * until it either keeps climbing (rare) or gives it all back and beyond (the failure
+ * mode that actually happened: a position showing several hundred percent unrealized
+ * gain was never closed and was later liquidated on the way back down).
+ * @param {Object} params
+ * @param {string} params.symbol e.g. 'BTCUSDT'
+ * @param {number} params.marginUsd USD margin to commit to this position
+ * @param {number} params.leverage e.g. 50
+ * @param {string} params.marginMode 'ISOLATED' or 'CROSSED'
+ * @param {number} [params.stopLossPct] e.g. 0.01 for a 1% stop-loss
+ * @param {number} [params.takeProfitPct] e.g. 0.03 for a 3% take-profit
+ * @param {string} params.agentId
+ * @returns {Promise<Object>} the recorded trade
+ */
+async function openLeveragedLong({ symbol, marginUsd, leverage, marginMode, stopLossPct, takeProfitPct, agentId }) {
+  assertLiveFuturesTradingAllowed();
+
+  await setMarginType(symbol, marginMode);
+  await setLeverage(symbol, leverage);
+
+  const [currentPrice, stepSize] = await Promise.all([
+    getCurrentPrice(symbol),
+    getQuantityStepSize(symbol)
+  ]);
+
+  const notionalUsd = marginUsd * leverage;
+  const rawQty = notionalUsd / currentPrice;
+  const quantity = roundDownToStep(rawQty, stepSize);
+
+  if (quantity <= 0) {
+    throw new Error(
+      `Computed order quantity rounds down to 0 (marginUsd=${marginUsd}, leverage=${leverage}, ` +
+      `price=${currentPrice}, stepSize=${stepSize}). Increase marginUsd.`
+    );
+  }
+
+  const placedOrder = await signedRequest('POST', '/fapi/v1/order', {
+    symbol,
+    side: 'BUY',
+    type: 'MARKET',
+    quantity
+  });
+
+  const finalOrder = await waitForOrderFill(symbol, placedOrder.orderId);
+  const orderTrades = finalOrder.status === 'FILLED' || parseFloat(finalOrder.executedQty) > 0
+    ? await getOrderTrades(symbol, placedOrder.orderId).catch(() => [])
+    : [];
+
+  const trade = await recordFill(finalOrder, orderTrades, { symbol, marginUsd, leverage, marginMode, agentId });
+
+  if (stopLossPct && trade.status === 'filled') {
+    try {
+      // Price precision (PRICE_FILTER.tickSize) is NOT the same as quantity precision
+      // (LOT_SIZE.stepSize, `stepSize` above) — using the wrong one previously produced
+      // stop prices Binance silently rejected, leaving real positions unprotected.
+      const priceTickSize = await getPriceTickSize(symbol);
+      const rawStopPrice = trade.fillPrice * (1 - stopLossPct);
+      const stopPriceFormatted = formatPriceForTickSize(rawStopPrice, priceTickSize);
+      const stopOrder = await signedRequest('POST', '/fapi/v1/order', {
+        symbol,
+        side: 'SELL',
+        type: 'STOP_MARKET',
+        stopPrice: stopPriceFormatted,
+        closePosition: true,
+        workingType: 'MARK_PRICE'
+      });
+      trade.stopOrderId = stopOrder.orderId ? String(stopOrder.orderId) : undefined;
+      trade.stopPrice = parseFloat(stopPriceFormatted);
+      await updateTradeByOrderId(trade.binanceOrderId, { stopOrderId: trade.stopOrderId, stopPrice: trade.stopPrice });
+    } catch (error) {
+      trade.stopOrderError = error.response ? JSON.stringify(error.response.data) : error.message;
+      await updateTradeByOrderId(trade.binanceOrderId, { stopOrderError: trade.stopOrderError });
+    }
+  } else if (trade.status === 'filled') {
+    trade.stopOrderError = 'stopLossPct not set — position opened with NO stop-loss';
+    await updateTradeByOrderId(trade.binanceOrderId, { stopOrderError: trade.stopOrderError });
+  }
+
+  if (takeProfitPct && trade.status === 'filled') {
+    try {
+      const priceTickSize = await getPriceTickSize(symbol);
+      const rawTakeProfitPrice = trade.fillPrice * (1 + takeProfitPct);
+      const takeProfitPriceFormatted = formatPriceForTickSize(rawTakeProfitPrice, priceTickSize);
+      const takeProfitOrder = await signedRequest('POST', '/fapi/v1/order', {
+        symbol,
+        side: 'SELL',
+        type: 'TAKE_PROFIT_MARKET',
+        stopPrice: takeProfitPriceFormatted,
+        closePosition: true,
+        workingType: 'MARK_PRICE'
+      });
+      trade.takeProfitOrderId = takeProfitOrder.orderId ? String(takeProfitOrder.orderId) : undefined;
+      trade.takeProfitPrice = parseFloat(takeProfitPriceFormatted);
+      await updateTradeByOrderId(trade.binanceOrderId, { takeProfitOrderId: trade.takeProfitOrderId, takeProfitPrice: trade.takeProfitPrice });
+    } catch (error) {
+      trade.takeProfitOrderError = error.response ? JSON.stringify(error.response.data) : error.message;
+      await updateTradeByOrderId(trade.binanceOrderId, { takeProfitOrderError: trade.takeProfitOrderError });
+    }
+  }
+
+  return trade;
+}
+
+async function recordFill(finalOrder, orderTrades, { symbol, marginUsd, leverage, marginMode, agentId }) {
+  const filledQty = orderTrades.reduce((sum, t) => sum + parseFloat(t.qty), 0) ||
+    parseFloat(finalOrder.executedQty) || 0;
+  const totalCost = orderTrades.reduce((sum, t) => sum + parseFloat(t.qty) * parseFloat(t.price), 0);
+  const fillPrice = filledQty > 0
+    ? (totalCost > 0 ? totalCost / filledQty : parseFloat(finalOrder.avgPrice) || 0)
+    : parseFloat(finalOrder.avgPrice) || 0;
+  const commission = orderTrades.reduce((sum, t) => sum + parseFloat(t.commission || 0), 0);
+  const commissionAsset = orderTrades.length > 0 ? orderTrades[0].commissionAsset : '';
+
+  const status = filledQty > 0
+    ? (finalOrder.status === 'FILLED' ? 'filled' : 'partially_filled')
+    : 'error';
+
+  const tradeRecord = {
+    agentId,
+    timestamp: new Date(),
+    side: 'BUY',
+    symbol,
+    leverage,
+    marginMode,
+    marginUsd,
+    filledQty,
+    fillPrice,
+    commission,
+    commissionAsset,
+    binanceOrderId: finalOrder.orderId ? String(finalOrder.orderId) : undefined,
+    status,
+    raw: finalOrder
+  };
+
+  return appendTrade(tradeRecord);
+}
+
+/**
+ * Cancel every open order (e.g. a stale stop-loss) for a symbol, then market-close
+ * whatever position remains via a reduce-only order in the opposite direction. This
+ * is the manual "undo" for openLeveragedLong — if the app can start a trade, it must
+ * also be able to end one on request.
+ * @param {string} symbol
+ * @param {string} agentId agent this close should be attributed to in the ledger
+ * @returns {Promise<Object>} { canceledOrders, closeTrade } — closeTrade is null if
+ *   there was no open position to close
+ */
+async function closePosition(symbol, agentId) {
+  assertLiveFuturesTradingAllowed();
+
+  let canceledOrders = [];
+  try {
+    canceledOrders = await signedRequest('DELETE', '/fapi/v1/allOpenOrders', { symbol });
+  } catch (error) {
+    // No open orders to cancel is not an error condition worth failing the close over.
+    canceledOrders = { note: error.response ? JSON.stringify(error.response.data) : error.message };
+  }
+
+  const positions = await getOpenPositions();
+  const position = positions.find(p => p.symbol === symbol);
+
+  if (!position || position.positionAmt === 0) {
+    return { canceledOrders, closeTrade: null };
+  }
+
+  const stepSize = await getQuantityStepSize(symbol);
+  const closeSide = position.positionAmt > 0 ? 'SELL' : 'BUY';
+  const closeQty = roundDownToStep(Math.abs(position.positionAmt), stepSize);
+
+  const placedOrder = await signedRequest('POST', '/fapi/v1/order', {
+    symbol,
+    side: closeSide,
+    type: 'MARKET',
+    quantity: closeQty,
+    reduceOnly: true
+  });
+
+  const finalOrder = await waitForOrderFill(symbol, placedOrder.orderId);
+  const orderTrades = finalOrder.status === 'FILLED' || parseFloat(finalOrder.executedQty) > 0
+    ? await getOrderTrades(symbol, placedOrder.orderId).catch(() => [])
+    : [];
+
+  const filledQty = orderTrades.reduce((sum, t) => sum + parseFloat(t.qty), 0) ||
+    parseFloat(finalOrder.executedQty) || 0;
+  const totalCost = orderTrades.reduce((sum, t) => sum + parseFloat(t.qty) * parseFloat(t.price), 0);
+  const fillPrice = filledQty > 0 && totalCost > 0 ? totalCost / filledQty : parseFloat(finalOrder.avgPrice) || 0;
+  const commission = orderTrades.reduce((sum, t) => sum + parseFloat(t.commission || 0), 0);
+  const commissionAsset = orderTrades.length > 0 ? orderTrades[0].commissionAsset : '';
+  const realizedPnl = orderTrades.reduce((sum, t) => sum + parseFloat(t.realizedPnl || 0), 0);
+
+  const closeTrade = await appendTrade({
+    agentId,
+    timestamp: new Date(),
+    side: closeSide === 'SELL' ? 'SELL' : 'BUY',
+    symbol,
+    leverage: position.leverage,
+    marginMode: 'N/A',
+    marginUsd: Math.abs(position.positionAmt * position.entryPrice) / position.leverage,
+    filledQty,
+    fillPrice,
+    commission,
+    commissionAsset,
+    binanceOrderId: finalOrder.orderId ? String(finalOrder.orderId) : undefined,
+    status: filledQty > 0 ? (finalOrder.status === 'FILLED' ? 'filled' : 'partially_filled') : 'error',
+    raw: { ...finalOrder, realizedPnl }
+  });
+
+  return { canceledOrders, closeTrade };
+}
+
+module.exports = {
+  getCurrentPrice,
+  getQuantityStepSize,
+  getPriceTickSize,
+  getKlines,
+  getUsdtPerpetualSymbols,
+  getAll24hrTickers,
+  getSymbolsTradedToday,
+  getAvailableFuturesBalanceUsd,
+  getOpenPositions,
+  getIncomeHistory,
+  getTodaysRealizedPnlUsd,
+  getTodaysCommissionUsd,
+  openLeveragedLong,
+  closePosition,
+  getOrderStatus,
+  getOrderTrades,
+  waitForOrderFill,
+  getLedger,
+  getFullLedger,
+  getTotalMarginUsd,
+  getTotalMarginUsdAllAgents,
+  getEffectiveRemainingBudgetUsd,
+  assertLiveFuturesTradingAllowed
+};

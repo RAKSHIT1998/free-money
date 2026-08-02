@@ -269,6 +269,54 @@
             margin-bottom: 5px;
         }
 
+        .mode-banner {
+            border-radius: 10px;
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .mode-banner.simulated {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffe69c;
+        }
+
+        .mode-banner.real {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #b7e0c2;
+        }
+
+        .real-money-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            border: 2px solid #b7e0c2;
+        }
+
+        .real-stat-card {
+            background: #f6fbf7;
+            border: 1px solid #b7e0c2;
+        }
+
+        .real-opportunity-card {
+            border-left: 4px solid #2ecc71;
+        }
+
+        .real-badge {
+            background-color: #2ecc71;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
         @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: 1fr;
@@ -291,6 +339,10 @@
             <p class="subtitle">Autonomous agents seeking financial opportunities with survival-of-the-fittest evolution</p>
         </header>
 
+        <div class="mode-banner simulated">
+            ⚠️ SIMULATED — not real money. Balances below are fabricated in-app numbers from cryptoHunter / developer / opportunityScout agents performing self-contained computational busywork, not real income.
+        </div>
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">👥</div>
@@ -300,7 +352,7 @@
             <div class="stat-card">
                 <div class="stat-icon">💰</div>
                 <div class="stat-value" id="total-earnings">$0.00</div>
-                <div class="stat-label">Total Earnings</div>
+                <div class="stat-label">Total Earnings (simulated)</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">🎯</div>
@@ -326,12 +378,12 @@
         </div>
 
         <div class="agents-section">
-            <h2 class="section-title">🤖 Active Agents</h2>
+            <h2 class="section-title">🤖 Active Agents <span title="Simulated agent balances/performance">(includes simulated agents)</span></h2>
             <div id="agents-table-container" class="loading">Loading agents...</div>
         </div>
 
         <div class="opportunities-section">
-            <h2 class="section-title">💎 Recent Opportunities</h2>
+            <h2 class="section-title">💎 Recent Opportunities (simulated + real, mixed)</h2>
             <div id="opportunities-container" class="loading">Loading opportunities...</div>
             <div style="text-align: center; margin-top: 15px;">
                 <button class="refresh-btn">
@@ -342,6 +394,57 @@
                     Refresh Data
                 </button>
             </div>
+        </div>
+
+        <div class="mode-banner real">
+            ✅ REAL MONEY — Binance DCA (spot), Binance Futures DCA and Breakout Scanner (leveraged), and real HackerOne bounty programs below. Verify everything yourself before acting; the app never auto-submits reports and only ever places the orders these agents are configured to place.
+        </div>
+
+        <div class="real-money-section" id="real-summary-section">
+            <h2 class="section-title">📊 Today's Real Money Summary</h2>
+            <div class="stats-grid" id="real-summary-stats">
+                <div class="loading">Loading real summary...</div>
+            </div>
+            <div id="real-agents-activity" style="margin-top: 15px;"></div>
+            <div id="real-open-positions" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="real-money-section">
+            <h2 class="section-title">💵 Real Binance Spot DCA Agent</h2>
+            <div class="stats-grid" id="real-dca-stats">
+                <div class="loading">Loading real trading status...</div>
+            </div>
+        </div>
+
+        <div class="real-money-section">
+            <h2 class="section-title">🚀 Real Binance Futures DCA Agent (Leveraged)</h2>
+            <div class="stats-grid" id="real-futures-dca-stats">
+                <div class="loading">Loading real futures DCA status...</div>
+            </div>
+        </div>
+
+        <div class="real-money-section">
+            <h2 class="section-title">📈 Real Breakout Futures Scanner (Leveraged)</h2>
+            <div class="stats-grid" id="real-breakout-stats">
+                <div class="loading">Loading real breakout scanner status...</div>
+            </div>
+            <div id="real-breakout-candidates" style="margin-top: 15px;"></div>
+            <div id="real-breakout-trades" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="real-money-section">
+            <h2 class="section-title">📉 Real Mean-Reversion Futures Scanner (Leveraged)</h2>
+            <div class="stats-grid" id="real-mean-reversion-stats">
+                <div class="loading">Loading real mean-reversion scanner status...</div>
+            </div>
+            <div id="real-mean-reversion-candidates" style="margin-top: 15px;"></div>
+            <div id="real-mean-reversion-trades" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="real-money-section">
+            <h2 class="section-title">🔎 Real HackerOne Opportunities <span class="real-badge">REAL</span></h2>
+            <p style="color:#7f8c8d; margin-bottom: 10px;">Live public bug bounty programs. Pursue manually — the app never submits reports or claims bounties on your behalf.</p>
+            <div id="real-opportunities-container" class="loading">Loading real opportunities...</div>
         </div>
     </div>
 
@@ -362,6 +465,18 @@
 
         const agentsTableContainer = document.getElementById('agents-table-container');
         const opportunitiesContainer = document.getElementById('opportunities-container');
+        const realDcaStatsContainer = document.getElementById('real-dca-stats');
+        const realOpportunitiesContainer = document.getElementById('real-opportunities-container');
+        const realSummaryStatsContainer = document.getElementById('real-summary-stats');
+        const realAgentsActivityContainer = document.getElementById('real-agents-activity');
+        const realOpenPositionsContainer = document.getElementById('real-open-positions');
+        const realFuturesDcaStatsContainer = document.getElementById('real-futures-dca-stats');
+        const realBreakoutStatsContainer = document.getElementById('real-breakout-stats');
+        const realBreakoutCandidatesContainer = document.getElementById('real-breakout-candidates');
+        const realBreakoutTradesContainer = document.getElementById('real-breakout-trades');
+        const realMeanReversionStatsContainer = document.getElementById('real-mean-reversion-stats');
+        const realMeanReversionCandidatesContainer = document.getElementById('real-mean-reversion-candidates');
+        const realMeanReversionTradesContainer = document.getElementById('real-mean-reversion-trades');
         const refreshBtn = document.querySelector('.refresh-btn');
 
         // Initialize the dashboard
@@ -387,11 +502,28 @@
                 showLoadingStates();
 
                 // Fetch all data in parallel
-                const [agentsStatsResponse, opportunitiesStatsResponse, agentsResponse, opportunitiesResponse] = await Promise.all([
-                    fetch(`${API_BASE}/agents/stats`).then(r => r.json()),
+                const [
+                    agentsStatsResponse,
+                    opportunitiesStatsResponse,
+                    agentsResponse,
+                    opportunitiesResponse,
+                    realDcaResponse,
+                    realOpportunitiesResponse,
+                    realSummaryResponse,
+                    realFuturesDcaResponse,
+                    realBreakoutResponse,
+                    realMeanReversionResponse
+                ] = await Promise.all([
+                    fetch(`${API_BASE}/agents/stats/agents`).then(r => r.json()),
                     fetch(`${API_BASE}/opportunities/stats`).then(r => r.json()),
                     fetch(`${API_BASE}/agents`).then(r => r.json()),
-                    fetch(`${API_BASE}/opportunities?limit=10`).then(r => r.json())
+                    fetch(`${API_BASE}/opportunities?limit=10`).then(r => r.json()),
+                    fetch(`${API_BASE}/agents/real/binance-dca`).then(r => r.json()),
+                    fetch(`${API_BASE}/opportunities?source=HackerOne-real&limit=10`).then(r => r.json()),
+                    fetch(`${API_BASE}/agents/real/summary`).then(r => r.json()),
+                    fetch(`${API_BASE}/agents/real/binance-futures-dca`).then(r => r.json()),
+                    fetch(`${API_BASE}/agents/real/breakout-futures`).then(r => r.json()),
+                    fetch(`${API_BASE}/agents/real/mean-reversion-futures`).then(r => r.json())
                 ]);
 
                 // Update statistics
@@ -405,6 +537,14 @@
 
                 // Update opportunities list
                 updateOpportunitiesList(opportunitiesResponse.data);
+
+                // Update real-money sections
+                updateRealDcaStats(realDcaResponse.data);
+                updateRealOpportunitiesList(realOpportunitiesResponse.data);
+                updateRealSummary(realSummaryResponse.data);
+                updateRealFuturesDcaStats(realFuturesDcaResponse.data);
+                updateRealBreakoutStats(realBreakoutResponse.data);
+                updateRealMeanReversionStats(realMeanReversionResponse.data);
 
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
@@ -421,12 +561,287 @@
 
             agentsTableContainer.innerHTML = '<div class="loading">Loading agents...</div>';
             opportunitiesContainer.innerHTML = '<div class="loading">Loading opportunities...</div>';
+            realDcaStatsContainer.innerHTML = '<div class="loading">Loading real trading status...</div>';
+            realOpportunitiesContainer.innerHTML = '<div class="loading">Loading real opportunities...</div>';
+            realSummaryStatsContainer.innerHTML = '<div class="loading">Loading real summary...</div>';
+            realAgentsActivityContainer.innerHTML = '';
+            realOpenPositionsContainer.innerHTML = '';
+            realFuturesDcaStatsContainer.innerHTML = '<div class="loading">Loading real futures DCA status...</div>';
+            realBreakoutStatsContainer.innerHTML = '<div class="loading">Loading real breakout scanner status...</div>';
+            realBreakoutCandidatesContainer.innerHTML = '';
+            realBreakoutTradesContainer.innerHTML = '';
+            realMeanReversionStatsContainer.innerHTML = '<div class="loading">Loading real mean-reversion scanner status...</div>';
+            realMeanReversionCandidatesContainer.innerHTML = '';
+            realMeanReversionTradesContainer.innerHTML = '';
         }
 
         // Show error message
         function showError(message) {
             agentsTableContainer.innerHTML = `<div class="error">${message}</div>`;
             opportunitiesContainer.innerHTML = `<div class="error">${message}</div>`;
+            realDcaStatsContainer.innerHTML = `<div class="error">${message}</div>`;
+            realOpportunitiesContainer.innerHTML = `<div class="error">${message}</div>`;
+            realSummaryStatsContainer.innerHTML = `<div class="error">${message}</div>`;
+            realFuturesDcaStatsContainer.innerHTML = `<div class="error">${message}</div>`;
+            realBreakoutStatsContainer.innerHTML = `<div class="error">${message}</div>`;
+            realMeanReversionStatsContainer.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        // Update the account-level "today" real-money summary (realized P&L, open
+        // positions, and what each real agent is currently doing/halted-on)
+        function updateRealSummary(summary) {
+            if (!summary) {
+                realSummaryStatsContainer.innerHTML = '<div class="loading">No summary available.</div>';
+                return;
+            }
+
+            let statsHtml = '';
+
+            if (summary.futuresToday) {
+                const pnl = summary.futuresToday.realizedPnlUsd || 0;
+                const commission = summary.futuresToday.commissionUsd || 0;
+                const pnlColor = pnl >= 0 ? '#155724' : '#721c24';
+                statsHtml += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">${pnl >= 0 ? '📈' : '📉'}</div>
+                        <div class="stat-value" style="color: ${pnlColor};">$${pnl.toFixed(2)}</div>
+                        <div class="stat-label">Today's Realized Futures P&amp;L</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-value" style="color: #721c24;">$${commission.toFixed(2)}</div>
+                        <div class="stat-label">Today's Futures Fees Paid</div>
+                    </div>
+                `;
+            } else if (summary.futuresTodayError) {
+                statsHtml += `<div class="stat-card real-stat-card"><div class="stat-label">Futures today's P&amp;L unavailable: ${escapeHtml(summary.futuresTodayError)}</div></div>`;
+            }
+
+            if (summary.spot) {
+                const pnl = summary.spot.unrealizedPnl || 0;
+                const pnlColor = pnl >= 0 ? '#155724' : '#721c24';
+                statsHtml += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-value" style="color: ${pnlColor};">$${pnl.toFixed(2)}</div>
+                        <div class="stat-label">Spot ${escapeHtml(summary.spot.symbol || '')} Unrealized P&amp;L</div>
+                    </div>
+                `;
+            }
+
+            const openPositions = summary.futuresPositions || [];
+            const totalUnrealized = openPositions.reduce((s, p) => s + (p.unrealizedProfit || 0), 0);
+            statsHtml += `
+                <div class="stat-card real-stat-card">
+                    <div class="stat-value" style="color: ${totalUnrealized >= 0 ? '#155724' : '#721c24'};">$${totalUnrealized.toFixed(2)}</div>
+                    <div class="stat-label">Open Futures Positions Unrealized P&amp;L (${openPositions.length} open)</div>
+                </div>
+            `;
+
+            realSummaryStatsContainer.innerHTML = statsHtml || '<div class="loading">No real-money data yet.</div>';
+
+            // What each real agent is doing right now
+            if (summary.agents && summary.agents.length > 0) {
+                let html = '<h3 style="margin-bottom:10px; color:#2c3e50;">Real Agent Activity</h3><table class="agent-table"><thead><tr><th>ID</th><th>Type</th><th>State</th><th>Halted Reason</th></tr></thead><tbody>';
+                summary.agents.forEach(a => {
+                    const statusClass = a.state === 'active' ? 'status-active' : a.state === 'error' ? 'status-error' : 'status-idle';
+                    html += `<tr><td>${a.id}</td><td>${capitalizeFirstLetter(a.type)}</td><td><span class="status-badge ${statusClass}">${a.state}</span></td><td>${a.haltedReason ? escapeHtml(a.haltedReason) : '—'}</td></tr>`;
+                });
+                html += '</tbody></table>';
+                realAgentsActivityContainer.innerHTML = html;
+            } else {
+                realAgentsActivityContainer.innerHTML = '<div class="loading">No real-money agents running yet.</div>';
+            }
+
+            // Open leveraged futures positions detail
+            if (openPositions.length > 0) {
+                let html = '<h3 style="margin-bottom:10px; color:#2c3e50;">Open Futures Positions</h3><table class="agent-table"><thead><tr><th>Symbol</th><th>Qty</th><th>Entry</th><th>Mark</th><th>Leverage</th><th>Unrealized P&amp;L</th><th>Action</th></tr></thead><tbody>';
+                openPositions.forEach(p => {
+                    const pnlColor = p.unrealizedProfit >= 0 ? '#155724' : '#721c24';
+                    html += `<tr><td>${escapeHtml(p.symbol)}</td><td>${p.positionAmt}</td><td>$${p.entryPrice.toFixed(2)}</td><td>$${p.markPrice.toFixed(2)}</td><td>${p.leverage}x</td><td style="color:${pnlColor};">$${p.unrealizedProfit.toFixed(2)}</td><td><button class="close-position-btn" data-symbol="${escapeHtml(p.symbol)}" style="background:#e74c3c;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600;">Close</button></td></tr>`;
+                });
+                html += '</tbody></table>';
+                realOpenPositionsContainer.innerHTML = html;
+                realOpenPositionsContainer.querySelectorAll('.close-position-btn').forEach(btn => {
+                    btn.addEventListener('click', () => closePosition(btn.dataset.symbol, btn));
+                });
+            } else {
+                realOpenPositionsContainer.innerHTML = '';
+            }
+        }
+
+        // Manually close a real open futures position (real money, irreversible)
+        async function closePosition(symbol, btn) {
+            if (!confirm(`Close the real ${symbol} futures position now? This places a real market order and cannot be undone.`)) {
+                return;
+            }
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Closing...';
+            try {
+                const res = await fetch(`${API_BASE}/agents/real/futures/${encodeURIComponent(symbol)}/close`, { method: 'POST' });
+                const body = await res.json();
+                if (!body.success) throw new Error(body.message || 'Close failed');
+                alert(body.data.closeTrade ? `${symbol} position closed.` : `No open position found for ${symbol} (already closed?).`);
+                loadDashboardData();
+            } catch (error) {
+                alert(`Failed to close ${symbol}: ${error.message}`);
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        // Update the real Binance Futures DCA agent stat cards (real money, leveraged)
+        function updateRealFuturesDcaStats(dcaAgents) {
+            if (!dcaAgents || dcaAgents.length === 0) {
+                realFuturesDcaStatsContainer.innerHTML = `
+                    <div class="loading">
+                        No real Binance Futures DCA agent running yet. Spawn one manually via
+                        POST /api/agents/spawn { "type": "binanceFuturesDca" } after configuring
+                        LIVE_TRADING_CONFIRMED=true and LIVE_FUTURES_TRADING_CONFIRMED=true.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            dcaAgents.forEach(agent => {
+                const real = agent.real || {};
+                html += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">🚀</div>
+                        <div class="stat-value">${real.leverage || 0}x</div>
+                        <div class="stat-label">${escapeHtml(real.symbol || '')} ${escapeHtml(real.marginMode || '')}</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-value">$${(real.totalSpentUsd || 0).toFixed(2)}</div>
+                        <div class="stat-label">Total Real Margin Spent</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-value">$${(real.budgetRemainingUsd || 0).toFixed(2)}</div>
+                        <div class="stat-label">Budget Remaining${real.halted ? ' (HALTED)' : ''}</div>
+                    </div>
+                `;
+            });
+
+            realFuturesDcaStatsContainer.innerHTML = html;
+        }
+
+        // Update the real breakout futures scanner stat cards, candidates, and recent trades
+        function updateRealBreakoutStats(agents) {
+            if (!agents || agents.length === 0) {
+                realBreakoutStatsContainer.innerHTML = `
+                    <div class="loading">
+                        No real breakout futures agent running yet. Spawn one manually via
+                        POST /api/agents/spawn { "type": "breakoutFutures" } after configuring
+                        LIVE_TRADING_CONFIRMED=true and LIVE_FUTURES_TRADING_CONFIRMED=true.
+                    </div>
+                `;
+                realBreakoutCandidatesContainer.innerHTML = '';
+                realBreakoutTradesContainer.innerHTML = '';
+                return;
+            }
+
+            let statsHtml = '';
+            let candidatesHtml = '';
+            let tradesHtml = '';
+
+            agents.forEach(agent => {
+                const real = agent.real || {};
+                statsHtml += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-value">${real.leverage || 0}x</div>
+                        <div class="stat-label">${escapeHtml(real.marginMode || '')} — ${real.openPositionsCount || 0} trades opened</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-value">$${(real.totalMarginSpentUsd || 0).toFixed(2)}</div>
+                        <div class="stat-label">Total Real Margin Spent</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-value">$${(real.budgetRemainingUsd || 0).toFixed(2)}</div>
+                        <div class="stat-label">Budget Remaining${real.halted ? ' (HALTED)' : ''}</div>
+                    </div>
+                `;
+
+                if (real.lastScanCandidates && real.lastScanCandidates.length > 0) {
+                    candidatesHtml += '<h3 style="margin-bottom:10px; color:#2c3e50;">Last Scan Breakout Candidates</h3><table class="agent-table"><thead><tr><th>Symbol</th><th>24h Change</th><th>Last Price</th></tr></thead><tbody>';
+                    real.lastScanCandidates.forEach(c => {
+                        candidatesHtml += `<tr><td>${escapeHtml(c.symbol)}</td><td>${c.priceChangePercent}%</td><td>$${c.lastPrice}</td></tr>`;
+                    });
+                    candidatesHtml += '</tbody></table>';
+                }
+
+                if (real.recentTrades && real.recentTrades.length > 0) {
+                    tradesHtml += '<h3 style="margin: 15px 0 10px; color:#2c3e50;">Recent Real Trades</h3><table class="agent-table"><thead><tr><th>Time</th><th>Symbol</th><th>Margin</th><th>Fill Price</th><th>Qty</th><th>Status</th></tr></thead><tbody>';
+                    real.recentTrades.slice().reverse().forEach(t => {
+                        tradesHtml += `<tr><td>${getTimeAgo(new Date(t.timestamp))}</td><td>${escapeHtml(t.symbol)}</td><td>$${(t.marginUsd || 0).toFixed(2)}</td><td>$${(t.fillPrice || 0).toFixed(2)}</td><td>${t.filledQty}</td><td>${escapeHtml(t.status)}</td></tr>`;
+                    });
+                    tradesHtml += '</tbody></table>';
+                }
+            });
+
+            realBreakoutStatsContainer.innerHTML = statsHtml;
+            realBreakoutCandidatesContainer.innerHTML = candidatesHtml;
+            realBreakoutTradesContainer.innerHTML = tradesHtml;
+        }
+
+        // Update the real mean-reversion (RSI oversold) futures scanner stat cards,
+        // candidates, and recent trades
+        function updateRealMeanReversionStats(agents) {
+            if (!agents || agents.length === 0) {
+                realMeanReversionStatsContainer.innerHTML = `
+                    <div class="loading">
+                        No real mean-reversion futures agent running yet. Spawn one manually via
+                        POST /api/agents/spawn { "type": "meanReversionFutures" } after configuring
+                        LIVE_TRADING_CONFIRMED=true and LIVE_FUTURES_TRADING_CONFIRMED=true.
+                    </div>
+                `;
+                realMeanReversionCandidatesContainer.innerHTML = '';
+                realMeanReversionTradesContainer.innerHTML = '';
+                return;
+            }
+
+            let statsHtml = '';
+            let candidatesHtml = '';
+            let tradesHtml = '';
+
+            agents.forEach(agent => {
+                const real = agent.real || {};
+                statsHtml += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">📉</div>
+                        <div class="stat-value">${real.leverage || 0}x</div>
+                        <div class="stat-label">${escapeHtml(real.marginMode || '')} — ${real.openPositionsCount || 0} trades opened</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-value">$${(real.totalMarginSpentUsd || 0).toFixed(2)}</div>
+                        <div class="stat-label">Total Real Margin Spent</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-value">$${(real.budgetRemainingUsd || 0).toFixed(2)}</div>
+                        <div class="stat-label">Budget Remaining${real.halted ? ' (HALTED)' : ''}</div>
+                    </div>
+                `;
+
+                if (real.lastScanCandidates && real.lastScanCandidates.length > 0) {
+                    candidatesHtml += '<h3 style="margin-bottom:10px; color:#2c3e50;">Last Scan Oversold Candidates (RSI)</h3><table class="agent-table"><thead><tr><th>Symbol</th><th>RSI</th><th>Last Price</th></tr></thead><tbody>';
+                    real.lastScanCandidates.forEach(c => {
+                        candidatesHtml += `<tr><td>${escapeHtml(c.symbol)}</td><td>${c.rsi.toFixed(1)}</td><td>$${c.lastPrice}</td></tr>`;
+                    });
+                    candidatesHtml += '</tbody></table>';
+                }
+
+                if (real.recentTrades && real.recentTrades.length > 0) {
+                    tradesHtml += '<h3 style="margin: 15px 0 10px; color:#2c3e50;">Recent Real Trades</h3><table class="agent-table"><thead><tr><th>Time</th><th>Symbol</th><th>Margin</th><th>Fill Price</th><th>Qty</th><th>Status</th></tr></thead><tbody>';
+                    real.recentTrades.slice().reverse().forEach(t => {
+                        tradesHtml += `<tr><td>${getTimeAgo(new Date(t.timestamp))}</td><td>${escapeHtml(t.symbol)}</td><td>$${(t.marginUsd || 0).toFixed(2)}</td><td>$${(t.fillPrice || 0).toFixed(2)}</td><td>${t.filledQty}</td><td>${escapeHtml(t.status)}</td></tr>`;
+                    });
+                    tradesHtml += '</tbody></table>';
+                }
+            });
+
+            realMeanReversionStatsContainer.innerHTML = statsHtml;
+            realMeanReversionCandidatesContainer.innerHTML = candidatesHtml;
+            realMeanReversionTradesContainer.innerHTML = tradesHtml;
         }
 
         // Update statistics display
@@ -647,7 +1062,7 @@
                         </div>
                         ${opp.requirements && opp.requirements.length > 0 ? `
                             <div class="opportunity-requirements">
-                                <strong>Requirements:</strong> ${escapeHtml(op.requirements.join(', '))}
+                                <strong>Requirements:</strong> ${escapeHtml(opp.requirements.join(', '))}
                             </div>
                         ` : ''}
                         ${opp.tags && opp.tags.length > 0 ? `
@@ -661,6 +1076,81 @@
 
             html += '</div>';
             opportunitiesContainer.innerHTML = html;
+        }
+
+        // Update the real Binance DCA agent stat cards (real money, real data only)
+        function updateRealDcaStats(dcaAgents) {
+            if (!dcaAgents || dcaAgents.length === 0) {
+                realDcaStatsContainer.innerHTML = `
+                    <div class="loading">
+                        No real Binance DCA agent running yet. Spawn one manually via
+                        POST /api/agents/spawn { "type": "binanceDca" } after configuring
+                        real Binance API credentials and LIVE_TRADING_CONFIRMED=true.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            dcaAgents.forEach(agent => {
+                const real = agent.real || {};
+                const pnlColor = (real.unrealizedPnl || 0) >= 0 ? '#155724' : '#721c24';
+                html += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">💵</div>
+                        <div class="stat-value">$${(real.totalSpentUsd || 0).toFixed(2)}</div>
+                        <div class="stat-label">Total Real USD Spent (${escapeHtml(real.symbol || '')})</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">🪙</div>
+                        <div class="stat-value">${(real.qtyHeld || 0).toFixed(8)}</div>
+                        <div class="stat-label">Quantity Held</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-value" style="color: ${pnlColor};">$${(real.unrealizedPnl || 0).toFixed(2)}</div>
+                        <div class="stat-label">Live Unrealized P&amp;L (real price)</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-value">$${(real.budgetRemainingUsd || 0).toFixed(2)}</div>
+                        <div class="stat-label">Budget Remaining${real.halted ? ' (HALTED)' : ''}</div>
+                    </div>
+                `;
+            });
+
+            realDcaStatsContainer.innerHTML = html;
+        }
+
+        // Update the real HackerOne opportunities list (read-only, real public data)
+        function updateRealOpportunitiesList(realOpportunities) {
+            if (!realOpportunities || realOpportunities.length === 0) {
+                realOpportunitiesContainer.innerHTML = '<div class="loading">No real opportunities surfaced yet.</div>';
+                return;
+            }
+
+            let html = '<div class="opportunities-list">';
+
+            realOpportunities.forEach(opp => {
+                const timeAgo = getTimeAgo(new Date(opp.postedAt));
+                html += `
+                    <div class="opportunity-card real-opportunity-card">
+                        <div class="opportunity-header">
+                            <h3>${escapeHtml(opp.title)} <span class="real-badge">REAL</span></h3>
+                            <span class="opportunity-type" style="background-color: #2ecc71;">${escapeHtml(opp.type)}</span>
+                        </div>
+                        <p class="opportunity-description">${escapeHtml(opp.description)}</p>
+                        <div class="opportunity-meta">
+                            <span>💰 ${escapeHtml(opp.reward || 'See program policy')}</span>
+                            <span>🔗 <a href="${opp.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(opp.url)}</a></span>
+                            <span>🕒 ${timeAgo}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            realOpportunitiesContainer.innerHTML = html;
         }
 
         // Helper function to get time ago string

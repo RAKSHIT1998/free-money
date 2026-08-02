@@ -1,6 +1,15 @@
 // Configuration for the Multi-Agent Money-Making System
 // This file defines default settings that can be overridden via environment variables or custom config
 
+// Real Binance API keys/secrets are 64-char alphanumeric HMAC keys. Placeholder values
+// (the defaults shipped in .env.example, or anything left unset) must never be mistaken
+// for real credentials, since that decides whether live-money code paths are reachable.
+function isLikelyRealBinanceKey(value) {
+  if (!value || typeof value !== 'string') return false;
+  if (/your_|_here|placeholder|change_in_production|example/i.test(value)) return false;
+  return /^[A-Za-z0-9]{60,70}$/.test(value.trim());
+}
+
 // Configuration utility class
 class Config {
   constructor(customConfig = {}) {
@@ -81,6 +90,86 @@ class Config {
         },
         manager: {
           evaluationInterval: parseInt(process.env.MANAGER_EVAL_INTERVAL) || 300000
+        },
+        // Real Binance spot-market DCA agent. Only places orders when
+        // liveTrading.confirmed is true AND real (non-placeholder) API credentials
+        // are configured; otherwise realTradingService blocks order placement.
+        binanceDca: {
+          symbol: process.env.BINANCE_DCA_SYMBOL || 'BTCUSDT',
+          dailyBuyUsd: parseFloat(process.env.BINANCE_DCA_DAILY_USD) || 5,
+          budgetCapUsd: parseFloat(process.env.BINANCE_DCA_BUDGET_CAP_USD) || 50,
+          checkIntervalMs: parseInt(process.env.BINANCE_DCA_CHECK_INTERVAL_MS) || 3600000
+        },
+        // Real, LEVERAGED Binance USDT-M futures DCA agent. Only places orders when
+        // LIVE_TRADING_CONFIRMED=true AND LIVE_FUTURES_TRADING_CONFIRMED=true AND real
+        // (non-placeholder) API credentials are configured; otherwise
+        // realFuturesTradingService blocks order placement. budgetCapUsd is measured in
+        // margin committed, not notional (leveraged) exposure.
+        binanceFuturesDca: {
+          symbol: process.env.BINANCE_FUTURES_DCA_SYMBOL || 'BTCUSDT',
+          dailyMarginUsd: parseFloat(process.env.BINANCE_FUTURES_DCA_DAILY_MARGIN_USD) || 5,
+          budgetCapUsd: parseFloat(process.env.BINANCE_FUTURES_DCA_BUDGET_CAP_USD) || 50,
+          leverage: parseInt(process.env.BINANCE_FUTURES_DCA_LEVERAGE) || 50,
+          marginMode: process.env.BINANCE_FUTURES_DCA_MARGIN_MODE || 'ISOLATED',
+          stopLossPct: parseFloat(process.env.BINANCE_FUTURES_DCA_STOP_LOSS_PCT) || 0.01,
+          takeProfitPct: parseFloat(process.env.BINANCE_FUTURES_DCA_TAKE_PROFIT_PCT) || 0.03,
+          checkIntervalMs: parseInt(process.env.BINANCE_FUTURES_DCA_CHECK_INTERVAL_MS) || 3600000
+        },
+        // Real, LEVERAGED breakout scanner across all USDT-margined futures perpetuals.
+        // Same dual live-trading gates as binanceFuturesDca (enforced in
+        // realFuturesTradingService, not here). budgetCapUsd is a SHARED cap across every
+        // symbol this agent ever trades, not per-symbol.
+        breakoutFutures: {
+          sizingMode: process.env.BREAKOUT_FUTURES_SIZING_MODE || 'percentOfBalance',
+          riskPct: parseFloat(process.env.BREAKOUT_FUTURES_RISK_PCT) || 0.2,
+          perTradeMarginUsd: parseFloat(process.env.BREAKOUT_FUTURES_PER_TRADE_MARGIN_USD) || 5,
+          budgetCapUsd: parseFloat(process.env.BREAKOUT_FUTURES_BUDGET_CAP_USD) || 50,
+          leverage: parseInt(process.env.BREAKOUT_FUTURES_LEVERAGE) || 50,
+          marginMode: process.env.BREAKOUT_FUTURES_MARGIN_MODE || 'ISOLATED',
+          stopLossPct: parseFloat(process.env.BREAKOUT_FUTURES_STOP_LOSS_PCT) || 0.01,
+          takeProfitPct: parseFloat(process.env.BREAKOUT_FUTURES_TAKE_PROFIT_PCT) || 0.03,
+          nearHighThresholdPct: parseFloat(process.env.BREAKOUT_FUTURES_NEAR_HIGH_PCT) || 0.001,
+          momentumThresholdPct: parseFloat(process.env.BREAKOUT_FUTURES_MOMENTUM_PCT) || 5,
+          minQuoteVolumeUsd: parseFloat(process.env.BREAKOUT_FUTURES_MIN_VOLUME_USD) || 5000000,
+          maxCandidatesPerCycle: parseInt(process.env.BREAKOUT_FUTURES_MAX_CANDIDATES_PER_CYCLE) || 3,
+          scanIntervalMs: parseInt(process.env.BREAKOUT_FUTURES_SCAN_INTERVAL_MS) || 300000
+        },
+        // Real, LEVERAGED mean-reversion (RSI oversold) scanner — distinct signal from
+        // breakoutFutures (momentum). Same dual live-trading gates plus the shared
+        // global cross-agent cap, enforced in realFuturesTradingService.
+        meanReversionFutures: {
+          perTradeMarginUsd: parseFloat(process.env.MEAN_REVERSION_FUTURES_PER_TRADE_MARGIN_USD) || 5,
+          budgetCapUsd: parseFloat(process.env.MEAN_REVERSION_FUTURES_BUDGET_CAP_USD) || 50,
+          leverage: parseInt(process.env.MEAN_REVERSION_FUTURES_LEVERAGE) || 50,
+          marginMode: process.env.MEAN_REVERSION_FUTURES_MARGIN_MODE || 'ISOLATED',
+          stopLossPct: parseFloat(process.env.MEAN_REVERSION_FUTURES_STOP_LOSS_PCT) || 0.01,
+          takeProfitPct: parseFloat(process.env.MEAN_REVERSION_FUTURES_TAKE_PROFIT_PCT) || 0.03,
+          rsiPeriod: parseInt(process.env.MEAN_REVERSION_FUTURES_RSI_PERIOD) || 14,
+          rsiInterval: process.env.MEAN_REVERSION_FUTURES_RSI_INTERVAL || '1h',
+          rsiOversoldThreshold: parseFloat(process.env.MEAN_REVERSION_FUTURES_RSI_OVERSOLD) || 30,
+          minQuoteVolumeUsd: parseFloat(process.env.MEAN_REVERSION_FUTURES_MIN_VOLUME_USD) || 5000000,
+          watchlistSize: parseInt(process.env.MEAN_REVERSION_FUTURES_WATCHLIST_SIZE) || 30,
+          maxCandidatesPerCycle: parseInt(process.env.MEAN_REVERSION_FUTURES_MAX_CANDIDATES_PER_CYCLE) || 2,
+          scanIntervalMs: parseInt(process.env.MEAN_REVERSION_FUTURES_SCAN_INTERVAL_MS) || 900000
+        },
+        // Read-only real HackerOne public-program feed. No auth, no order/report
+        // submission — surfaces real opportunities for the user to act on manually.
+        hackerOneBounty: {
+          pollIntervalMs: parseInt(process.env.HACKERONE_POLL_INTERVAL_MS) || 3600000,
+          maxResultsPerPoll: parseInt(process.env.HACKERONE_MAX_RESULTS) || 20
+        },
+        // Read-only real Remote OK crypto/web3 job feed. No auth, no application
+        // submission — surfaces real opportunities for the user to act on manually.
+        cryptoGigHunter: {
+          pollIntervalMs: parseInt(process.env.CRYPTO_GIG_HUNTER_POLL_INTERVAL_MS) || 3600000,
+          maxResultsPerPoll: parseInt(process.env.CRYPTO_GIG_HUNTER_MAX_RESULTS) || 20
+        },
+        // Health monitor: restarts (in place, same agent ID) any agent stuck in
+        // 'error' state for errorCyclesBeforeRestart consecutive checks. Never
+        // touches real trading agents' budget-cap tracking since the ID is preserved.
+        realAgentMonitor: {
+          checkIntervalMs: parseInt(process.env.REAL_AGENT_MONITOR_CHECK_INTERVAL_MS) || 120000,
+          errorCyclesBeforeRestart: parseInt(process.env.REAL_AGENT_MONITOR_ERROR_CYCLES) || 2
         }
       },
 
@@ -135,12 +224,34 @@ class Config {
           requiredConfirmations: parseInt(process.env.CRYPTO_REQUIRED_CONFIRMATIONS) || 1
         },
 
-        // Simulation mode (when no real API keys are provided)
+        // Simulation mode: we simulate UNLESS all three are true:
+        //   1. CRYPTO_SIMULATION_MODE is not explicitly 'true' (a human hasn't forced simulation)
+        //   2. Both BINANCE_API_KEY and BINANCE_API_SECRET look like real (non-placeholder) credentials
+        //   3. LIVE_TRADING_CONFIRMED=true — an explicit human opt-in separate from just having keys set
+        // This prevents placeholder .env values (which are non-empty strings) from ever being
+        // mistaken for real credentials and unlocking live withdrawal/order code paths.
         simulation: {
-          enabled: process.env.CRYPTO_SIMULATION_MODE === 'true' || !(process.env.BINANCE_API_KEY && process.env.BINANCE_API_SECRET),
+          enabled: (() => {
+            if (process.env.CRYPTO_SIMULATION_MODE === 'true') return true;
+            const credentialsLookReal =
+              isLikelyRealBinanceKey(process.env.BINANCE_API_KEY) &&
+              isLikelyRealBinanceKey(process.env.BINANCE_API_SECRET);
+            const liveConfirmed = process.env.LIVE_TRADING_CONFIRMED === 'true';
+            return !(credentialsLookReal && liveConfirmed);
+          })(),
           delayMs: parseInt(process.env.CRYPTO_SIMULATION_DELAY_MS) || 2000, // Simulate network delay
           successRate: parseFloat(process.env.CRYPTO_SIMULATION_SUCCESS_RATE) || 0.95 // 95% success rate in simulation
         }
+      },
+
+      // Real-money trading agents (DCA) are gated by this in addition to the crypto
+      // simulation flag above — see realTradingService.js / binanceDcaAgent.js.
+      liveTrading: {
+        confirmed: process.env.LIVE_TRADING_CONFIRMED === 'true',
+        // Shared cap across EVERY real futures agent/strategy combined, checked in
+        // addition to each agent's own per-agent budgetCapUsd. Running more strategies
+        // simultaneously must not silently multiply real exposure past this ceiling.
+        globalFuturesBudgetCapUsd: parseFloat(process.env.GLOBAL_FUTURES_BUDGET_CAP_USD) || 50
       },
 
       // Payment Configuration
@@ -221,3 +332,4 @@ function isObject(item) {
 }
 
 module.exports.Config = Config;
+module.exports.isLikelyRealBinanceKey = isLikelyRealBinanceKey;
