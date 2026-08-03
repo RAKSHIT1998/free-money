@@ -382,6 +382,37 @@
         }
         @keyframes blink { 50% { opacity: 0.25; } }
 
+        /* Top-of-page money banner — the single most important number on the page,
+           deliberately the most visually prominent element: bigger type, brighter
+           border, sits right under the header before anything else. */
+        .money-banner {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1px;
+            background: var(--hair);
+            border: 2px solid var(--amber);
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(224, 167, 48, 0.15);
+        }
+        .money-banner-item {
+            background: var(--panel);
+            padding: 20px 16px;
+            text-align: center;
+        }
+        .money-banner-value {
+            font-size: 2.1rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text);
+        }
+        .money-banner-label {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 4px;
+        }
+
         a { color: var(--amber-soft); }
 
         @media (max-width: 768px) {
@@ -407,6 +438,25 @@
             <p class="subtitle">Autonomous agents seeking financial opportunities with survival-of-the-fittest evolution</p>
             <div class="live-indicator" style="justify-content:center; margin-top:12px;"><span class="dot"></span> LIVE — auto-refresh every <span id="refresh-interval-label">5</span>s</div>
         </header>
+
+        <div class="money-banner" id="money-banner">
+            <div class="money-banner-item">
+                <div class="money-banner-value" id="money-today">$0.00</div>
+                <div class="money-banner-label">Today's Real P&amp;L</div>
+            </div>
+            <div class="money-banner-item">
+                <div class="money-banner-value" id="money-alltime">$0.00</div>
+                <div class="money-banner-label">All-Time Net P&amp;L</div>
+            </div>
+            <div class="money-banner-item">
+                <div class="money-banner-value" id="money-unrealized">$0.00</div>
+                <div class="money-banner-label">Open Positions Unrealized</div>
+            </div>
+            <div class="money-banner-item">
+                <div class="money-banner-value" id="money-deployed">$0.00</div>
+                <div class="money-banner-label">Real Capital Deployed</div>
+            </div>
+        </div>
 
         <div class="command-deck">
             <div class="command-row">
@@ -707,11 +757,17 @@
             }
         }
 
-        // Load all dashboard data
+        // Load all dashboard data. Only shows the "Loading..." placeholder state on
+        // the very first load — periodic auto-refreshes update numbers in place
+        // instead, since resetting every section to "Loading..." every 5 seconds
+        // (even though the fetch itself takes well under a second) just produced a
+        // visible flash/flicker with no benefit.
+        let hasLoadedOnce = false;
         async function loadDashboardData() {
             try {
-                // Show loading states
-                showLoadingStates();
+                if (!hasLoadedOnce) {
+                    showLoadingStates();
+                }
 
                 // Fetch all data in parallel
                 const [
@@ -759,6 +815,7 @@
                 updateRealBreakoutStats(realBreakoutResponse.data);
                 updateRealMeanReversionStats(realMeanReversionResponse.data);
 
+                hasLoadedOnce = true;
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
                 showError('Failed to load data. Please check your connection and try again.');
@@ -860,12 +917,36 @@
             realHistoryStatsContainer.innerHTML = html;
         }
 
+        // Top-of-page money banner — the headline number, computed from the same
+        // real data as the detail sections further down, just surfaced first.
+        function updateMoneyBanner(summary) {
+            const setVal = (id, value, colorize) => {
+                const el = document.getElementById(id);
+                el.textContent = `$${value.toFixed(2)}`;
+                if (colorize) el.style.color = value >= 0 ? '#7dd382' : '#e8827e';
+            };
+
+            const todayPnl = (summary.futuresToday?.realizedPnlUsd || 0) + (summary.futuresToday?.commissionUsd || 0);
+            setVal('money-today', todayPnl, true);
+
+            const allTimePnl = summary.futuresHistory?.netUsd || 0;
+            setVal('money-alltime', allTimePnl, true);
+
+            const positions = summary.futuresPositions || [];
+            const unrealized = positions.reduce((s, p) => s + (p.unrealizedProfit || 0), 0) + (summary.spot?.unrealizedPnl || 0);
+            setVal('money-unrealized', unrealized, true);
+
+            const deployed = positions.reduce((s, p) => s + Math.abs((p.entryPrice || 0) * (p.positionAmt || 0)) / (p.leverage || 1), 0) + (summary.spot?.spent || 0);
+            setVal('money-deployed', deployed, false);
+        }
+
         function updateRealSummary(summary) {
             if (!summary) {
                 realSummaryStatsContainer.innerHTML = '<div class="loading">No summary available.</div>';
                 return;
             }
 
+            updateMoneyBanner(summary);
             updateRealHistory(summary.futuresHistory, summary.futuresHistoryError);
 
             let statsHtml = '';
