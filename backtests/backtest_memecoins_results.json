@@ -1,0 +1,666 @@
+{
+  "generatedAt": "2026-08-03T06:31:14.258Z",
+  "risk": {
+    "leverage": 50,
+    "stopLossPct": 0.01,
+    "takeProfitPct": 0.03,
+    "marginUsd": 5
+  },
+  "candleCount": 2160,
+  "strategy": "breakout",
+  "symbols": [
+    {
+      "symbol": "DOGEUSDT",
+      "strategy": "breakout",
+      "candleCount": 2160,
+      "trades": [
+        {
+          "entryTime": 1780804800000,
+          "exitTime": 1780858800000,
+          "entryPrice": 0.08383,
+          "exitPrice": 0.0829917,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000002,
+          "pnlPctOfMargin": -54.97500000000001
+        },
+        {
+          "entryTime": 1781272800000,
+          "exitTime": 1781276400000,
+          "entryPrice": 0.09054,
+          "exitPrice": 0.0896346,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000016,
+          "pnlPctOfMargin": -54.97500000000003
+        },
+        {
+          "entryTime": 1783108800000,
+          "exitTime": 1783119600000,
+          "entryPrice": 0.07798,
+          "exitPrice": 0.0772002,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999914,
+          "pnlPctOfMargin": -54.97499999999983
+        },
+        {
+          "entryTime": 1784998800000,
+          "exitTime": 1785009600000,
+          "entryPrice": 0.07317,
+          "exitPrice": 0.0724383,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000006,
+          "pnlPctOfMargin": -54.975000000000115
+        }
+      ],
+      "summary": {
+        "totalTrades": 4,
+        "winCount": 0,
+        "lossCount": 4,
+        "winRatePct": 0,
+        "totalPnlUsd": -10.995,
+        "avgPnlUsd": -2.74875,
+        "maxDrawdownUsd": -10.995
+      }
+    },
+    {
+      "symbol": "1000PEPEUSDT",
+      "strategy": "breakout",
+      "candleCount": 2160,
+      "trades": [
+        {
+          "entryTime": 1778432400000,
+          "exitTime": 1778443200000,
+          "entryPrice": 0.0044838,
+          "exitPrice": 0.004438961999999999,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000096,
+          "pnlPctOfMargin": -54.97500000000019
+        },
+        {
+          "entryTime": 1781521200000,
+          "exitTime": 1781539200000,
+          "entryPrice": 0.0029807,
+          "exitPrice": 0.0030701210000000003,
+          "outcome": "take_profit",
+          "pnlUsd": 7.24625000000001,
+          "pnlPctOfMargin": 144.92500000000018
+        },
+        {
+          "entryTime": 1781542800000,
+          "exitTime": 1781546400000,
+          "entryPrice": 0.003101,
+          "exitPrice": 0.00306999,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000122,
+          "pnlPctOfMargin": -54.97500000000024
+        },
+        {
+          "entryTime": 1782525600000,
+          "exitTime": 1782558000000,
+          "entryPrice": 0.0024245,
+          "exitPrice": 0.002400255,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999994,
+          "pnlPctOfMargin": -54.97499999999999
+        },
+        {
+          "entryTime": 1782979200000,
+          "exitTime": 1782997200000,
+          "entryPrice": 0.0023964,
+          "exitPrice": 0.002468292,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246250000000005,
+          "pnlPctOfMargin": 144.9250000000001
+        },
+        {
+          "entryTime": 1783105200000,
+          "exitTime": 1783108800000,
+          "entryPrice": 0.0026036,
+          "exitPrice": 0.002681708,
+          "outcome": "take_profit",
+          "pnlUsd": 7.24624999999999,
+          "pnlPctOfMargin": 144.92499999999978
+        },
+        {
+          "entryTime": 1783112400000,
+          "exitTime": 1783116000000,
+          "entryPrice": 0.0028109,
+          "exitPrice": 0.0027827909999999997,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000105,
+          "pnlPctOfMargin": -54.97500000000021
+        },
+        {
+          "entryTime": 1783137600000,
+          "exitTime": 1783141200000,
+          "entryPrice": 0.0028437,
+          "exitPrice": 0.0028152629999999997,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000007,
+          "pnlPctOfMargin": -54.97500000000014
+        },
+        {
+          "entryTime": 1783695600000,
+          "exitTime": 1783699200000,
+          "entryPrice": 0.0027544,
+          "exitPrice": 0.002837032,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246250000000002,
+          "pnlPctOfMargin": 144.92500000000004
+        },
+        {
+          "entryTime": 1785031200000,
+          "exitTime": 1785042000000,
+          "entryPrice": 0.0028519,
+          "exitPrice": 0.002937457,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246249999999999,
+          "pnlPctOfMargin": 144.92499999999998
+        },
+        {
+          "entryTime": 1785045600000,
+          "exitTime": 1785056400000,
+          "entryPrice": 0.0029958,
+          "exitPrice": 0.002965842,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000056,
+          "pnlPctOfMargin": -54.97500000000011
+        },
+        {
+          "entryTime": 1785646800000,
+          "exitTime": 1785657600000,
+          "entryPrice": 0.0029359,
+          "exitPrice": 0.002906541,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000006,
+          "pnlPctOfMargin": -54.975000000000115
+        }
+      ],
+      "summary": {
+        "totalTrades": 12,
+        "winCount": 5,
+        "lossCount": 7,
+        "winRatePct": 41.66666666666667,
+        "totalPnlUsd": 16.98999999999996,
+        "avgPnlUsd": 1.41583333333333,
+        "maxDrawdownUsd": -5.4975000000000165
+      }
+    },
+    {
+      "symbol": "1000SHIBUSDT",
+      "strategy": "breakout",
+      "candleCount": 2160,
+      "trades": [
+        {
+          "entryTime": 1780804800000,
+          "exitTime": 1780833600000,
+          "entryPrice": 0.004683,
+          "exitPrice": 0.004636169999999999,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000167,
+          "pnlPctOfMargin": -54.97500000000033
+        },
+        {
+          "entryTime": 1781535600000,
+          "exitTime": 1781542800000,
+          "entryPrice": 0.005174,
+          "exitPrice": 0.00512226,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999887,
+          "pnlPctOfMargin": -54.974999999999774
+        },
+        {
+          "entryTime": 1784984400000,
+          "exitTime": 1784988000000,
+          "entryPrice": 0.004329,
+          "exitPrice": 0.00445887,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246249999999988,
+          "pnlPctOfMargin": 144.92499999999978
+        },
+        {
+          "entryTime": 1784991600000,
+          "exitTime": 1784995200000,
+          "entryPrice": 0.004748,
+          "exitPrice": 0.00470052,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748749999999996,
+          "pnlPctOfMargin": -54.974999999999916
+        },
+        {
+          "entryTime": 1784998800000,
+          "exitTime": 1785002400000,
+          "entryPrice": 0.005017,
+          "exitPrice": 0.004966829999999999,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000021,
+          "pnlPctOfMargin": -54.97500000000042
+        },
+        {
+          "entryTime": 1785027600000,
+          "exitTime": 1785034800000,
+          "entryPrice": 0.005208,
+          "exitPrice": 0.00536424,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246250000000009,
+          "pnlPctOfMargin": 144.92500000000018
+        },
+        {
+          "entryTime": 1785042000000,
+          "exitTime": 1785045600000,
+          "entryPrice": 0.005708,
+          "exitPrice": 0.00565092,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000006,
+          "pnlPctOfMargin": -54.975000000000115
+        },
+        {
+          "entryTime": 1785596400000,
+          "exitTime": 1785600000000,
+          "entryPrice": 0.005093,
+          "exitPrice": 0.00504207,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000012,
+          "pnlPctOfMargin": -54.97500000000024
+        }
+      ],
+      "summary": {
+        "totalTrades": 8,
+        "winCount": 2,
+        "lossCount": 6,
+        "winRatePct": 25,
+        "totalPnlUsd": -2.0000000000000435,
+        "avgPnlUsd": -0.25000000000000544,
+        "maxDrawdownUsd": -5.497500000000018
+      }
+    },
+    {
+      "symbol": "WIFUSDT",
+      "strategy": "breakout",
+      "candleCount": 2160,
+      "trades": [
+        {
+          "entryTime": 1778292000000,
+          "exitTime": 1778299200000,
+          "entryPrice": 0.2297,
+          "exitPrice": 0.227403,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748749999999993,
+          "pnlPctOfMargin": -54.974999999999866
+        },
+        {
+          "entryTime": 1778436000000,
+          "exitTime": 1778439600000,
+          "entryPrice": 0.2386,
+          "exitPrice": 0.236214,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748749999999999,
+          "pnlPctOfMargin": -54.97499999999997
+        },
+        {
+          "entryTime": 1779721200000,
+          "exitTime": 1779728400000,
+          "entryPrice": 0.1979,
+          "exitPrice": 0.19592099999999998,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000011,
+          "pnlPctOfMargin": -54.97500000000022
+        },
+        {
+          "entryTime": 1780045200000,
+          "exitTime": 1780052400000,
+          "entryPrice": 0.1881,
+          "exitPrice": 0.186219,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748749999999992,
+          "pnlPctOfMargin": -54.97499999999984
+        },
+        {
+          "entryTime": 1780070400000,
+          "exitTime": 1780077600000,
+          "entryPrice": 0.1913,
+          "exitPrice": 0.189387,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748749999999997,
+          "pnlPctOfMargin": -54.97499999999994
+        },
+        {
+          "entryTime": 1780106400000,
+          "exitTime": 1780110000000,
+          "entryPrice": 0.1947,
+          "exitPrice": 0.192753,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000005,
+          "pnlPctOfMargin": -54.97500000000011
+        },
+        {
+          "entryTime": 1780520400000,
+          "exitTime": 1780524000000,
+          "entryPrice": 0.1925,
+          "exitPrice": 0.190575,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000127,
+          "pnlPctOfMargin": -54.97500000000025
+        },
+        {
+          "entryTime": 1781197200000,
+          "exitTime": 1781200800000,
+          "entryPrice": 0.1589,
+          "exitPrice": 0.157311,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000105,
+          "pnlPctOfMargin": -54.97500000000021
+        },
+        {
+          "entryTime": 1781521200000,
+          "exitTime": 1781532000000,
+          "entryPrice": 0.1694,
+          "exitPrice": 0.174482,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246250000000005,
+          "pnlPctOfMargin": 144.9250000000001
+        },
+        {
+          "entryTime": 1781661600000,
+          "exitTime": 1781665200000,
+          "entryPrice": 0.1784,
+          "exitPrice": 0.176616,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000011,
+          "pnlPctOfMargin": -54.97500000000022
+        },
+        {
+          "entryTime": 1782133200000,
+          "exitTime": 1782136800000,
+          "entryPrice": 0.1723,
+          "exitPrice": 0.170577,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000004,
+          "pnlPctOfMargin": -54.97500000000007
+        },
+        {
+          "entryTime": 1782489600000,
+          "exitTime": 1782496800000,
+          "entryPrice": 0.1494,
+          "exitPrice": 0.15388200000000002,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246250000000022,
+          "pnlPctOfMargin": 144.92500000000044
+        },
+        {
+          "entryTime": 1782522000000,
+          "exitTime": 1782525600000,
+          "entryPrice": 0.1576,
+          "exitPrice": 0.162328,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246250000000016,
+          "pnlPctOfMargin": 144.92500000000032
+        },
+        {
+          "entryTime": 1782543600000,
+          "exitTime": 1782547200000,
+          "entryPrice": 0.1686,
+          "exitPrice": 0.166914,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999896,
+          "pnlPctOfMargin": -54.974999999999795
+        },
+        {
+          "entryTime": 1782550800000,
+          "exitTime": 1782554400000,
+          "entryPrice": 0.1733,
+          "exitPrice": 0.171567,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000017,
+          "pnlPctOfMargin": -54.97500000000034
+        },
+        {
+          "entryTime": 1782568800000,
+          "exitTime": 1782576000000,
+          "entryPrice": 0.1743,
+          "exitPrice": 0.17952900000000002,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246250000000016,
+          "pnlPctOfMargin": 144.92500000000032
+        },
+        {
+          "entryTime": 1782702000000,
+          "exitTime": 1782705600000,
+          "entryPrice": 0.1787,
+          "exitPrice": 0.176913,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000015,
+          "pnlPctOfMargin": -54.97500000000029
+        },
+        {
+          "entryTime": 1782986400000,
+          "exitTime": 1783000800000,
+          "entryPrice": 0.1771,
+          "exitPrice": 0.175329,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748749999999993,
+          "pnlPctOfMargin": -54.974999999999866
+        },
+        {
+          "entryTime": 1783112400000,
+          "exitTime": 1783116000000,
+          "entryPrice": 0.1835,
+          "exitPrice": 0.181665,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000042,
+          "pnlPctOfMargin": -54.97500000000009
+        },
+        {
+          "entryTime": 1784995200000,
+          "exitTime": 1785002400000,
+          "entryPrice": 0.1502,
+          "exitPrice": 0.154706,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246250000000016,
+          "pnlPctOfMargin": 144.92500000000032
+        },
+        {
+          "entryTime": 1785006000000,
+          "exitTime": 1785009600000,
+          "entryPrice": 0.1569,
+          "exitPrice": 0.155331,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000023,
+          "pnlPctOfMargin": -54.97500000000046
+        },
+        {
+          "entryTime": 1785013200000,
+          "exitTime": 1785016800000,
+          "entryPrice": 0.1581,
+          "exitPrice": 0.156519,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999985,
+          "pnlPctOfMargin": -54.97499999999997
+        },
+        {
+          "entryTime": 1785042000000,
+          "exitTime": 1785052800000,
+          "entryPrice": 0.1596,
+          "exitPrice": 0.15800399999999998,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748750000000022,
+          "pnlPctOfMargin": -54.97500000000044
+        }
+      ],
+      "summary": {
+        "totalTrades": 23,
+        "winCount": 5,
+        "lossCount": 18,
+        "winRatePct": 21.73913043478261,
+        "totalPnlUsd": -13.246250000000028,
+        "avgPnlUsd": -0.5759239130434795,
+        "maxDrawdownUsd": -21.990000000000023
+      }
+    },
+    {
+      "symbol": "1000BONKUSDT",
+      "strategy": "breakout",
+      "candleCount": 2160,
+      "trades": [
+        {
+          "entryTime": 1778259600000,
+          "exitTime": 1778266800000,
+          "entryPrice": 0.007116,
+          "exitPrice": 0.00732948,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246250000000009,
+          "pnlPctOfMargin": 144.92500000000018
+        },
+        {
+          "entryTime": 1778428800000,
+          "exitTime": 1778432400000,
+          "entryPrice": 0.007541,
+          "exitPrice": 0.00776723,
+          "outcome": "take_profit",
+          "pnlUsd": 7.24625,
+          "pnlPctOfMargin": 144.92499999999998
+        },
+        {
+          "entryTime": 1778436000000,
+          "exitTime": 1778439600000,
+          "entryPrice": 0.008093,
+          "exitPrice": 0.00801207,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999967,
+          "pnlPctOfMargin": -54.97499999999993
+        },
+        {
+          "entryTime": 1781517600000,
+          "exitTime": 1781524800000,
+          "entryPrice": 0.004756,
+          "exitPrice": 0.00489868,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246250000000003,
+          "pnlPctOfMargin": 144.92500000000007
+        },
+        {
+          "entryTime": 1781528400000,
+          "exitTime": 1781532000000,
+          "entryPrice": 0.005076,
+          "exitPrice": 0.005025239999999999,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000193,
+          "pnlPctOfMargin": -54.975000000000385
+        },
+        {
+          "entryTime": 1782568800000,
+          "exitTime": 1782579600000,
+          "entryPrice": 0.004297,
+          "exitPrice": 0.00425403,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748749999999989,
+          "pnlPctOfMargin": -54.97499999999979
+        },
+        {
+          "entryTime": 1782918000000,
+          "exitTime": 1782921600000,
+          "entryPrice": 0.004356,
+          "exitPrice": 0.00431244,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999874,
+          "pnlPctOfMargin": -54.97499999999975
+        },
+        {
+          "entryTime": 1783108800000,
+          "exitTime": 1783112400000,
+          "entryPrice": 0.004601,
+          "exitPrice": 0.00473903,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246249999999995,
+          "pnlPctOfMargin": 144.9249999999999
+        },
+        {
+          "entryTime": 1783119600000,
+          "exitTime": 1783123200000,
+          "entryPrice": 0.004971,
+          "exitPrice": 0.00492129,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.748749999999984,
+          "pnlPctOfMargin": -54.974999999999675
+        },
+        {
+          "entryTime": 1783130400000,
+          "exitTime": 1783141200000,
+          "entryPrice": 0.005044,
+          "exitPrice": 0.00499356,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999843,
+          "pnlPctOfMargin": -54.97499999999968
+        },
+        {
+          "entryTime": 1784538000000,
+          "exitTime": 1784545200000,
+          "entryPrice": 0.003,
+          "exitPrice": 0.0030900000000000003,
+          "outcome": "take_profit",
+          "pnlUsd": 7.246250000000019,
+          "pnlPctOfMargin": 144.92500000000038
+        },
+        {
+          "entryTime": 1784548800000,
+          "exitTime": 1784552400000,
+          "entryPrice": 0.003148,
+          "exitPrice": 0.0031165200000000002,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999967,
+          "pnlPctOfMargin": -54.97499999999993
+        },
+        {
+          "entryTime": 1784581200000,
+          "exitTime": 1784584800000,
+          "entryPrice": 0.003185,
+          "exitPrice": 0.00315315,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999945,
+          "pnlPctOfMargin": -54.97499999999989
+        },
+        {
+          "entryTime": 1785013200000,
+          "exitTime": 1785016800000,
+          "entryPrice": 0.003117,
+          "exitPrice": 0.00308583,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487500000000056,
+          "pnlPctOfMargin": -54.97500000000011
+        },
+        {
+          "entryTime": 1785031200000,
+          "exitTime": 1785034800000,
+          "entryPrice": 0.003149,
+          "exitPrice": 0.00311751,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999923,
+          "pnlPctOfMargin": -54.97499999999984
+        },
+        {
+          "entryTime": 1785045600000,
+          "exitTime": 1785049200000,
+          "entryPrice": 0.003201,
+          "exitPrice": 0.00316899,
+          "outcome": "stop_loss",
+          "pnlUsd": -2.7487499999999883,
+          "pnlPctOfMargin": -54.97499999999976
+        }
+      ],
+      "summary": {
+        "totalTrades": 16,
+        "winCount": 5,
+        "lossCount": 11,
+        "winRatePct": 31.25,
+        "totalPnlUsd": 5.99500000000009,
+        "avgPnlUsd": 0.3746875000000056,
+        "maxDrawdownUsd": -13.743749999999977
+      }
+    }
+  ],
+  "aggregate": {
+    "totalTrades": 63,
+    "totalPnlUsd": -3.256250000000023,
+    "winRatePct": 26.984126984126984,
+    "avgPnlPerTradeUsd": -0.0516865079365083
+  }
+}

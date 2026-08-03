@@ -82,7 +82,7 @@ exports.getAgentById = async (req, res) => {
 
 exports.spawnAgent = async (req, res) => {
   try {
-    const { type, options } = req.body;
+    const { type, options, config, name } = req.body;
 
     if (!type) {
       return res.status(400).json({
@@ -91,7 +91,13 @@ exports.spawnAgent = async (req, res) => {
       });
     }
 
-    const agent = await getAgentManager().spawnAgent(type, options);
+    // Accepts config/name either top-level ({type, config, name}) or nested under
+    // options ({type, options: {config, name}}) — the mismatch between these two
+    // shapes previously caused a real config override to be silently ignored
+    // (agents spawned with default symbol/leverage instead of the requested ones).
+    const mergedOptions = { ...options, config: { ...options?.config, ...config }, name: name || options?.name };
+
+    const agent = await getAgentManager().spawnAgent(type, mergedOptions);
 
     res.status(201).json({
       success: true,

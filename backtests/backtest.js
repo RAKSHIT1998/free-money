@@ -9,7 +9,7 @@ const {
   backtestBreakout,
   backtestEmaCrossover,
   backtestBollingerBounce
-} = require('./src/services/backtestService');
+} = require('../src/services/backtestService');
 
 const SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT'];
 const CANDLE_COUNT = 2160; // 90 days of 1h candles

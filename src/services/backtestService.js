@@ -22,7 +22,7 @@
 //   (checked against candle high/low). Real fills can slip past the target in fast
 //   moves, same as the real liquidation incident earlier already demonstrated.
 const axios = require('axios');
-const { calculateRsi, isBreakoutSignal, calculateEmaSeries, isEmaCrossoverSignal, isBollingerBounceSignal } = require('../utils/indicators');
+const { calculateRsi, isBreakoutSignal, calculateEmaSeries, isEmaCrossoverSignal, isBollingerBounceSignal, isVolumeSpikeSignal } = require('../utils/indicators');
 
 const FAPI_BASE = 'https://fapi.binance.com';
 const TAKER_FEE_PCT = 0.0005; // 0.05% per side, approximate
@@ -275,6 +275,20 @@ async function backtestBollingerBounce(symbol, { interval = '1h', candleCount = 
   return { symbol, strategy: 'bollingerBounce', candleCount: candles.length, trades, summary: summarizeTrades(trades) };
 }
 
+/**
+ * Run the volume-spike strategy backtest for one symbol.
+ */
+async function backtestVolumeSpike(symbol, { interval = '1h', candleCount = 2160, volumeLookback = 20, volumeMultiplier = 3, minPriceChangePct = 1, leverage = 50, stopLossPct = 0.01, takeProfitPct = 0.03, trailingStopPct = null, marginUsd = 5 } = {}) {
+  const candles = await fetchHistoricalKlines(symbol, interval, candleCount);
+
+  const signalFn = (allCandles, i) => isVolumeSpikeSignal(allCandles, i, volumeLookback, volumeMultiplier, minPriceChangePct);
+
+  const trades = trailingStopPct
+    ? simulateTrailingTrades(candles, signalFn, { leverage, trailingStopPct, marginUsd })
+    : simulateTrades(candles, signalFn, { leverage, stopLossPct, takeProfitPct, marginUsd });
+  return { symbol, strategy: 'volumeSpike', candleCount: candles.length, trades, summary: summarizeTrades(trades) };
+}
+
 module.exports = {
   fetchHistoricalKlines,
   simulateTrades,
@@ -283,5 +297,6 @@ module.exports = {
   backtestMeanReversion,
   backtestBreakout,
   backtestEmaCrossover,
-  backtestBollingerBounce
+  backtestBollingerBounce,
+  backtestVolumeSpike
 };

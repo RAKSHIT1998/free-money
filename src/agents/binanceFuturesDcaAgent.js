@@ -32,11 +32,19 @@ class BinanceFuturesDcaAgent extends BaseAgent {
         stopLossPct: options.config?.stopLossPct != null ? options.config.stopLossPct : 0.01,
         takeProfitPct: options.config?.takeProfitPct != null ? options.config.takeProfitPct : 0.03,
         checkIntervalMs: options.config?.checkIntervalMs || 3600000,
+        // Circuit breaker: "learn from trades" in a real, verifiable, rule-based way
+        // (not a black-box ML claim) — once this symbol has enough real CLOSED trades
+        // (stop-loss/take-profit exits) to not just be noise, a clearly losing pattern
+        // auto-pauses future buys on it, same judgment already applied manually to
+        // meanReversionFutures/breakoutFutures, just automatic and per-symbol now.
+        minClosedTradesBeforeCircuitBreaker: options.config?.minClosedTradesBeforeCircuitBreaker || 5,
+        circuitBreakerLossThresholdPct: options.config?.circuitBreakerLossThresholdPct != null ? options.config.circuitBreakerLossThresholdPct : 0.2,
         ...options.config
       }
     });
 
-    // Set once the budget cap is reached; never cleared automatically.
+    // Set once the budget cap is reached OR the circuit breaker trips; never cleared
+    // automatically — a human must review and manually restart if they disagree.
     this.haltedReason = null;
   }
 
@@ -73,6 +81,20 @@ class BinanceFuturesDcaAgent extends BaseAgent {
     if (this.haltedReason) {
       this.state = 'resting';
       return null;
+    }
+
+    const symbolPerformance = await realFuturesTradingService.getSymbolPerformance(this.config.symbol);
+    if (symbolPerformance.closedTradeCount >= this.config.minClosedTradesBeforeCircuitBreaker) {
+      const approxRisked = symbolPerformance.closedTradeCount * this.config.dailyMarginUsd;
+      const lossThresholdUsd = -(this.config.circuitBreakerLossThresholdPct * approxRisked);
+      if (symbolPerformance.netRealizedPnlUsd <= lossThresholdUsd) {
+        this.haltedReason = `Circuit breaker: ${this.config.symbol} shows $${symbolPerformance.netRealizedPnlUsd.toFixed(2)} net realized loss over ` +
+          `${symbolPerformance.closedTradeCount} closed real trades (${symbolPerformance.winCount}W/${symbolPerformance.lossCount}L) — ` +
+          `beyond the ${(this.config.circuitBreakerLossThresholdPct * 100).toFixed(0)}% threshold. Auto-paused; review before restarting.`;
+        this.log('warn', this.haltedReason);
+        this.state = 'resting';
+        return null;
+      }
     }
 
     const budget = await realFuturesTradingService.getEffectiveRemainingBudgetUsd(this.id, this.config.budgetCapUsd);
@@ -135,10 +157,11 @@ class BinanceFuturesDcaAgent extends BaseAgent {
    * @returns {Promise<Object>}
    */
   async getStatusExtended() {
-    const [spent, ledger, currentPrice] = await Promise.all([
+    const [spent, ledger, currentPrice, symbolPerformance] = await Promise.all([
       realFuturesTradingService.getTotalMarginUsd(this.id),
       realFuturesTradingService.getLedger(this.id),
-      realFuturesTradingService.getCurrentPrice(this.config.symbol).catch(() => null)
+      realFuturesTradingService.getCurrentPrice(this.config.symbol).catch(() => null),
+      realFuturesTradingService.getSymbolPerformance(this.config.symbol).catch(() => null)
     ]);
 
     return {
@@ -153,7 +176,8 @@ class BinanceFuturesDcaAgent extends BaseAgent {
         currentPrice,
         halted: !!this.haltedReason,
         haltedReason: this.haltedReason,
-        lastOrder: ledger[ledger.length - 1] || null
+        lastOrder: ledger[ledger.length - 1] || null,
+        symbolPerformance
       }
     };
   }

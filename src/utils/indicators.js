@@ -125,11 +125,39 @@ function isBollingerBounceSignal(closes, i, period = 20, stdDevMultiplier = 2) {
   return closes[i] <= bands.lower;
 }
 
+/**
+ * Volume-spike signal: the current candle's volume is a large multiple of the
+ * trailing average volume, AND the candle itself closed up by at least
+ * minPriceChangePct. Distinct from every other signal tested so far (all
+ * price-only) — the idea is that unusual volume often precedes or accompanies a
+ * meme-coin pump, before price momentum alone would register. Not a claim this is
+ * profitable, just a genuinely different hypothesis worth backtesting.
+ * @param {Array<{open:number, close:number, volume:number}>} candles oldest -> newest
+ * @param {number} i current index
+ * @param {number} lookback candles to average volume over (not including candle i)
+ * @param {number} volumeMultiplier e.g. 3 for "3x average volume"
+ * @param {number} minPriceChangePct e.g. 1 for "at least 1% up on this candle"
+ * @returns {boolean}
+ */
+function isVolumeSpikeSignal(candles, i, lookback = 20, volumeMultiplier = 3, minPriceChangePct = 1) {
+  if (i < lookback) return false;
+
+  const window = candles.slice(i - lookback, i);
+  const avgVolume = window.reduce((sum, c) => sum + c.volume, 0) / lookback;
+  if (avgVolume <= 0) return false;
+
+  const current = candles[i];
+  const priceChangePct = ((current.close - current.open) / current.open) * 100;
+
+  return current.volume >= avgVolume * volumeMultiplier && priceChangePct >= minPriceChangePct;
+}
+
 module.exports = {
   calculateRsi,
   isBreakoutSignal,
   calculateEmaSeries,
   isEmaCrossoverSignal,
   calculateBollingerBands,
-  isBollingerBounceSignal
+  isBollingerBounceSignal,
+  isVolumeSpikeSignal
 };

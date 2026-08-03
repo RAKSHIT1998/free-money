@@ -181,6 +181,19 @@ const startServer = async () => {
       await agentManager.spawnAgent(type, options);
     };
 
+    // For agent types that can run multiple diversified instances of the same type
+    // against different symbols (e.g. binanceFuturesDca on BTC AND ETH AND SOL...),
+    // "one already exists" isn't the right dedupe check — it would only ever let the
+    // first symbol resume after a restart. Dedupe by (type, symbol) instead.
+    const spawnIfMissingBySymbol = async (type, symbol, options) => {
+      const existing = agentManager.getAgentsByType(type).some(a => a.config?.symbol === symbol);
+      if (existing) {
+        console.log(`Skipping auto-spawn of ${type} (${symbol}) — one is already running`);
+        return;
+      }
+      await agentManager.spawnAgent(type, options);
+    };
+
     setTimeout(async () => {
       try {
         // Real, read-only HackerOne opportunity feed — zero financial risk (no orders,
@@ -225,13 +238,56 @@ const startServer = async () => {
           console.log('AUTO_SPAWN_REAL_TRADING_AGENTS=true — auto-spawning real-money trading agents');
           // meanReversionFutures excluded: backtested against 90 days of real BTC/ETH/
           // SOL/BNB 1h data at live risk settings and showed a clear historical loss
-          // (274 trades, -$183.44, 20.8% win rate — see backtest_results.json). Retired
-          // rather than left running on a strategy with demonstrated negative edge.
-          for (const type of ['binanceDca', 'binanceFuturesDca', 'breakoutFutures']) {
+          // (274 trades, -$183.44, 20.8% win rate — see backtests/backtest_results.json).
+          // breakoutFutures excluded: looked positive on a too-small 4-symbol/22-trade
+          // sample (+$19.49), but expanding to 10 symbols/80 trades reversed that to a
+          // clear loss (-$49.99, see backtests/backtest_breakout_extended_results.json).
+          // Both retired rather than left running on strategies with demonstrated
+          // negative real-data expectancy.
+          // binanceFuturesDca: was briefly excluded (2026-08-03) after Binance's
+          // 2025-12-09 migration of conditional orders to a dedicated Algo Order API
+          // broke stop-loss/take-profit placement (error -4120) — a real position
+          // opened fully unprotected as a result and was manually closed. Fixed
+          // (openLeveragedLong now uses POST /fapi/v1/algoOrder) and re-verified
+          // against a real live position with an independent query confirming both
+          // orders exist on Binance's side before re-enabling.
+          try {
+            await spawnIfMissing('binanceDca', { name: 'Auto-resumed binanceDca' });
+          } catch (error) {
+            console.error('Error auto-spawning real trading agent binanceDca:', error.message);
+          }
+
+          // Diversified DCA slots across multiple symbols (2026-08-03): same no-signal,
+          // scheduled/protected accumulation approach as the original BTCUSDT-only
+          // agent, spread across more liquid majors plus one small, lower-leverage
+          // meme-coin slot (DOGE — chosen for being the most established/liquid meme
+          // coin, not because any signal backtested well on it; DCA makes no such
+          // claim either way). Dedupe by symbol so each instance independently
+          // survives a restart.
+          const FUTURES_DCA_SLOTS = [
+            { symbol: 'BTCUSDT', leverage: 50, dailyMarginUsd: 5 },
+            { symbol: 'ETHUSDT', leverage: 10, dailyMarginUsd: 2 },
+            { symbol: 'SOLUSDT', leverage: 10, dailyMarginUsd: 2 },
+            { symbol: 'BNBUSDT', leverage: 10, dailyMarginUsd: 2 },
+            { symbol: 'ADAUSDT', leverage: 10, dailyMarginUsd: 2 },
+            { symbol: 'XRPUSDT', leverage: 10, dailyMarginUsd: 2 },
+            { symbol: 'DOGEUSDT', leverage: 5, dailyMarginUsd: 1 }
+          ];
+          for (const slot of FUTURES_DCA_SLOTS) {
             try {
-              await spawnIfMissing(type, { name: `Auto-resumed ${type}` });
+              await spawnIfMissingBySymbol('binanceFuturesDca', slot.symbol, {
+                name: `Auto-resumed binanceFuturesDca (${slot.symbol})`,
+                config: {
+                  symbol: slot.symbol,
+                  leverage: slot.leverage,
+                  dailyMarginUsd: slot.dailyMarginUsd,
+                  stopLossPct: 0.01,
+                  takeProfitPct: 0.03,
+                  budgetCapUsd: 50
+                }
+              });
             } catch (error) {
-              console.error(`Error auto-spawning real trading agent ${type}:`, error.message);
+              console.error(`Error auto-spawning binanceFuturesDca (${slot.symbol}):`, error.message);
             }
           }
         }

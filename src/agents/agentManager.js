@@ -465,8 +465,48 @@ class AgentManager {
             });
             break;
 
+          case 'binanceFuturesDca':
+            agent = new BinanceFuturesDcaAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'breakoutFutures':
+            agent = new BreakoutFuturesAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'meanReversionFutures':
+            agent = new MeanReversionFuturesAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
           case 'hackerOneBounty':
             agent = new HackerOneBountyAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'cryptoGigHunter':
+            agent = new CryptoGigHunterAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'realAgentMonitor':
+            agent = new RealAgentMonitorAgent({
               id: dbAgent.agentId,
               name: dbAgent.name,
               config: dbAgent.config

@@ -155,6 +155,28 @@ async function getTotalMarginUsdAllAgents() {
 }
 
 /**
+ * Real closed-trade performance for one symbol, straight from Binance's own income
+ * history (REALIZED_PNL events) — the basis for letting an agent "learn from its
+ * trades": if a specific symbol has a real, accumulating pattern of losses across
+ * enough closed trades to not just be noise, that's a fact an agent can act on
+ * automatically, the same way meanReversionFutures and breakoutFutures were retired
+ * manually after their own real trade/backtest histories showed the same thing.
+ * @param {string} symbol
+ * @returns {Promise<{closedTradeCount: number, netRealizedPnlUsd: number, winCount: number, lossCount: number}>}
+ */
+async function getSymbolPerformance(symbol) {
+  const income = await getIncomeHistory({ incomeType: 'REALIZED_PNL' });
+  const symbolEntries = income.filter(e => e.symbol === symbol).map(e => parseFloat(e.income));
+
+  return {
+    closedTradeCount: symbolEntries.length,
+    netRealizedPnlUsd: symbolEntries.reduce((sum, pnl) => sum + pnl, 0),
+    winCount: symbolEntries.filter(pnl => pnl > 0).length,
+    lossCount: symbolEntries.filter(pnl => pnl <= 0).length
+  };
+}
+
+/**
  * Remaining real margin an agent is allowed to spend right now, respecting BOTH its
  * own per-agent budgetCapUsd AND the shared cross-agent globalFuturesBudgetCapUsd —
  * whichever is tighter wins. Every real futures agent should size its next trade off
@@ -616,15 +638,21 @@ async function openLeveragedLong({ symbol, marginUsd, leverage, marginMode, stop
       const priceTickSize = await getPriceTickSize(symbol);
       const rawStopPrice = trade.fillPrice * (1 - stopLossPct);
       const stopPriceFormatted = formatPriceForTickSize(rawStopPrice, priceTickSize);
-      const stopOrder = await signedRequest('POST', '/fapi/v1/order', {
+      // Binance migrated conditional orders (STOP_MARKET/TAKE_PROFIT_MARKET/etc.) off
+      // /fapi/v1/order to a dedicated Algo Order API effective 2025-12-09 (error -4120
+      // if the old endpoint is used). A real position was opened with NEITHER a
+      // stop-loss NOR a take-profit as a direct result of this before the fix — do not
+      // revert to POST /fapi/v1/order for conditional order types.
+      const stopOrder = await signedRequest('POST', '/fapi/v1/algoOrder', {
+        algoType: 'CONDITIONAL',
         symbol,
         side: 'SELL',
         type: 'STOP_MARKET',
-        stopPrice: stopPriceFormatted,
-        closePosition: true,
+        triggerPrice: stopPriceFormatted,
+        closePosition: 'true',
         workingType: 'MARK_PRICE'
       });
-      trade.stopOrderId = stopOrder.orderId ? String(stopOrder.orderId) : undefined;
+      trade.stopOrderId = stopOrder.algoId ? String(stopOrder.algoId) : undefined;
       trade.stopPrice = parseFloat(stopPriceFormatted);
       await updateTradeByOrderId(trade.binanceOrderId, { stopOrderId: trade.stopOrderId, stopPrice: trade.stopPrice });
     } catch (error) {
@@ -641,15 +669,16 @@ async function openLeveragedLong({ symbol, marginUsd, leverage, marginMode, stop
       const priceTickSize = await getPriceTickSize(symbol);
       const rawTakeProfitPrice = trade.fillPrice * (1 + takeProfitPct);
       const takeProfitPriceFormatted = formatPriceForTickSize(rawTakeProfitPrice, priceTickSize);
-      const takeProfitOrder = await signedRequest('POST', '/fapi/v1/order', {
+      const takeProfitOrder = await signedRequest('POST', '/fapi/v1/algoOrder', {
+        algoType: 'CONDITIONAL',
         symbol,
         side: 'SELL',
         type: 'TAKE_PROFIT_MARKET',
-        stopPrice: takeProfitPriceFormatted,
-        closePosition: true,
+        triggerPrice: takeProfitPriceFormatted,
+        closePosition: 'true',
         workingType: 'MARK_PRICE'
       });
-      trade.takeProfitOrderId = takeProfitOrder.orderId ? String(takeProfitOrder.orderId) : undefined;
+      trade.takeProfitOrderId = takeProfitOrder.algoId ? String(takeProfitOrder.algoId) : undefined;
       trade.takeProfitPrice = parseFloat(takeProfitPriceFormatted);
       await updateTradeByOrderId(trade.binanceOrderId, { takeProfitOrderId: trade.takeProfitOrderId, takeProfitPrice: trade.takeProfitPrice });
     } catch (error) {
@@ -716,11 +745,22 @@ async function closePosition(symbol, agentId) {
     canceledOrders = { note: error.response ? JSON.stringify(error.response.data) : error.message };
   }
 
+  let canceledAlgoOrders = [];
+  try {
+    // Stop-loss/take-profit orders live in the separate Algo Order system since
+    // Binance's 2025-12-09 migration — /fapi/v1/allOpenOrders does NOT cancel these,
+    // so without this call a stale conditional order could be left behind after a
+    // manual close, silently re-triggering later against whatever position exists then.
+    canceledAlgoOrders = await signedRequest('DELETE', '/fapi/v1/algoOpenOrders', { symbol });
+  } catch (error) {
+    canceledAlgoOrders = { note: error.response ? JSON.stringify(error.response.data) : error.message };
+  }
+
   const positions = await getOpenPositions();
   const position = positions.find(p => p.symbol === symbol);
 
   if (!position || position.positionAmt === 0) {
-    return { canceledOrders, closeTrade: null };
+    return { canceledOrders, canceledAlgoOrders, closeTrade: null };
   }
 
   const stepSize = await getQuantityStepSize(symbol);
@@ -765,7 +805,7 @@ async function closePosition(symbol, agentId) {
     raw: { ...finalOrder, realizedPnl }
   });
 
-  return { canceledOrders, closeTrade };
+  return { canceledOrders, canceledAlgoOrders, closeTrade };
 }
 
 module.exports = {
@@ -782,6 +822,7 @@ module.exports = {
   getTodaysRealizedPnlUsd,
   getTodaysCommissionUsd,
   getTradeHistorySummary,
+  getSymbolPerformance,
   openLeveragedLong,
   closePosition,
   getOrderStatus,
