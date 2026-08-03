@@ -163,20 +163,25 @@ class OpportunityService {
         // Check if opportunity already exists by URL
         let existingOpportunity = await Opportunity.findOne({ url: opportunityData.url });
         if (existingOpportunity) {
-          // Update existing opportunity
-          existingOpportunity.set({ ...opportunityData, updatedAt: new Date() });
+          // Update existing opportunity — same listing re-surfaced by a poll, not new
+          existingOpportunity.set({
+            ...opportunityData,
+            updatedAt: new Date(),
+            timesSeen: (existingOpportunity.timesSeen || 1) + 1
+          });
           await existingOpportunity.save();
-          return existingOpportunity.toObject();
+          return { ...existingOpportunity.toObject(), isNew: false };
         } else {
           // Create new opportunity
           const newOpportunity = new Opportunity({
             ...opportunityData,
             postedAt: new Date(),
             updatedAt: new Date(),
-            status: 'active'
+            status: 'active',
+            timesSeen: 1
           });
           await newOpportunity.save();
-          return newOpportunity.toObject();
+          return { ...newOpportunity.toObject(), isNew: true };
         }
       } else {
         // Use in-memory storage
@@ -186,13 +191,14 @@ class OpportunityService {
         );
 
         if (existingIndex !== -1) {
-          // Update existing opportunity
+          // Update existing opportunity — same listing re-surfaced by a poll, not new
           this.inMemoryOpportunities[existingIndex] = {
             ...this.inMemoryOpportunities[existingIndex],
             ...opportunityData,
-            updatedAt: new Date()
+            updatedAt: new Date(),
+            timesSeen: (this.inMemoryOpportunities[existingIndex].timesSeen || 1) + 1
           };
-          return this.inMemoryOpportunities[existingIndex];
+          return { ...this.inMemoryOpportunities[existingIndex], isNew: false };
         } else {
           // Create new opportunity
           const newOpportunity = {
@@ -200,10 +206,11 @@ class OpportunityService {
             id: this.inMemoryIdCounter++,
             postedAt: new Date(),
             updatedAt: new Date(),
-            status: 'active'
+            status: 'active',
+            timesSeen: 1
           };
           this.inMemoryOpportunities.push(newOpportunity);
-          return newOpportunity;
+          return { ...newOpportunity, isNew: true };
         }
       }
     } catch (error) {

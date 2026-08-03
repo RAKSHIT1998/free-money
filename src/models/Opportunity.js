@@ -45,6 +45,13 @@ const opportunitySchema = new mongoose.Schema({
     type: String,
     enum: ['active', 'expired', 'claimed'],
     default: 'active'
+  },
+  // How many separate polls have re-surfaced this same URL. Lets discovery agents
+  // (and the dashboard) distinguish a genuinely new listing from the same one being
+  // seen again on every hourly poll.
+  timesSeen: {
+    type: Number,
+    default: 1
   }
 });
 

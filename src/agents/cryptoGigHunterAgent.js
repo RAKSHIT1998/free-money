@@ -34,6 +34,15 @@ class CryptoGigHunterAgent extends BaseAgent {
         ...options.config
       }
     });
+
+    // Tracks genuinely-new-vs-already-seen per poll, since the same feed largely
+    // repeats itself hour to hour — raw "surfaced" counts were overstating discovery.
+    this.discoveryStats = {
+      lastPollAt: null,
+      newThisPoll: 0,
+      alreadyKnownThisPoll: 0,
+      totalNewAllTime: 0
+    };
   }
 
   async run() {
@@ -57,19 +66,36 @@ class CryptoGigHunterAgent extends BaseAgent {
     this.state = 'active';
     const jobs = await this.fetchRealCryptoJobs();
 
-    let surfaced = 0;
+    let newCount = 0;
+    let alreadyKnownCount = 0;
     for (const job of jobs.slice(0, this.config.maxResultsPerPoll)) {
       if (!job.url) continue;
 
-      await opportunityService.addOpportunity(this.buildOpportunity(job));
-      surfaced++;
+      const saved = await opportunityService.addOpportunity(this.buildOpportunity(job));
+      if (saved.isNew) newCount++; else alreadyKnownCount++;
     }
+
+    this.discoveryStats = {
+      lastPollAt: new Date(),
+      newThisPoll: newCount,
+      alreadyKnownThisPoll: alreadyKnownCount,
+      totalNewAllTime: this.discoveryStats.totalNewAllTime + newCount
+    };
 
     this.updatePerformance({
       actionsTaken: this.performance.actionsTaken + 1,
-      opportunitiesFound: this.performance.opportunitiesFound + surfaced
+      // Only genuinely new listings count as "found" — re-seeing the same job on a
+      // later poll isn't a new discovery.
+      opportunitiesFound: this.performance.opportunitiesFound + newCount
     });
-    this.log('info', `Surfaced ${surfaced} real crypto/web3 job listings from Remote OK`);
+    this.log('info', `Polled Remote OK: ${newCount} new listing(s), ${alreadyKnownCount} already known`);
+  }
+
+  getStatus() {
+    return {
+      ...super.getStatus(),
+      discovery: { ...this.discoveryStats }
+    };
   }
 
   /**

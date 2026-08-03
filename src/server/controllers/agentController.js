@@ -23,7 +23,10 @@ exports.getAllAgents = async (req, res) => {
       isRunning: agent.isRunning,
       createdAt: agent.createdAt,
       lastActive: agent.lastActive,
-      performance: agent.performance
+      performance: agent.performance,
+      // Discovery agents (cryptoGigHunter, hackerOneBounty) track genuinely-new-vs-
+      // already-seen listings per poll; surface it here when present.
+      ...(agent.discoveryStats ? { discovery: agent.discoveryStats } : {})
     }));
 
     const stats = getAgentManager().getStatistics();

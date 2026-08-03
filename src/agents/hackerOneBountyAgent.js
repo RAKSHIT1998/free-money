@@ -31,6 +31,15 @@ class HackerOneBountyAgent extends BaseAgent {
       }
     });
     this.pollCount = 0;
+
+    // Tracks genuinely-new-vs-already-seen per poll — the rotating single-letter
+    // search terms mean the same top-of-directory programs come back repeatedly.
+    this.discoveryStats = {
+      lastPollAt: null,
+      newThisPoll: 0,
+      alreadyKnownThisPoll: 0,
+      totalNewAllTime: 0
+    };
   }
 
   async run() {
@@ -54,11 +63,12 @@ class HackerOneBountyAgent extends BaseAgent {
     this.state = 'active';
     const programs = await this.fetchPublicPrograms();
 
-    let surfaced = 0;
+    let newCount = 0;
+    let alreadyKnownCount = 0;
     for (const program of programs.slice(0, this.config.maxResultsPerPoll)) {
       if (!program.handle) continue;
 
-      await opportunityService.addOpportunity({
+      const saved = await opportunityService.addOpportunity({
         title: `HackerOne: ${program.name || program.handle}`,
         description: (program.about && program.about.trim())
           ? program.about
@@ -73,15 +83,31 @@ class HackerOneBountyAgent extends BaseAgent {
         ],
         tags: ['hackerone', 'real', 'security-research', 'read-only-discovery']
       });
-      surfaced++;
+      if (saved.isNew) newCount++; else alreadyKnownCount++;
     }
 
     this.pollCount++;
+    this.discoveryStats = {
+      lastPollAt: new Date(),
+      newThisPoll: newCount,
+      alreadyKnownThisPoll: alreadyKnownCount,
+      totalNewAllTime: this.discoveryStats.totalNewAllTime + newCount
+    };
+
     this.updatePerformance({
       actionsTaken: this.performance.actionsTaken + 1,
-      opportunitiesFound: this.performance.opportunitiesFound + surfaced
+      // Only genuinely new programs count as "found" — the rotating search terms
+      // re-surface a lot of the same top-of-directory results every poll.
+      opportunitiesFound: this.performance.opportunitiesFound + newCount
     });
-    this.log('info', `Surfaced ${surfaced} real HackerOne opportunities`);
+    this.log('info', `Polled HackerOne: ${newCount} new program(s), ${alreadyKnownCount} already known`);
+  }
+
+  getStatus() {
+    return {
+      ...super.getStatus(),
+      discovery: { ...this.discoveryStats }
+    };
   }
 
   /**
