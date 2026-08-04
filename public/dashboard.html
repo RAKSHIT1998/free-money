@@ -572,6 +572,13 @@
         </div>
 
         <div class="real-money-section">
+            <h2 class="section-title">⚖️ Real Funding-Rate Arbitrage (Market-Neutral)</h2>
+            <div class="stats-grid" id="real-funding-arb-stats">
+                <div class="loading">Loading funding-rate arbitrage status...</div>
+            </div>
+        </div>
+
+        <div class="real-money-section">
             <h2 class="section-title">🚀 Real Binance Futures DCA Agent (Leveraged)</h2>
             <div class="stats-grid" id="real-futures-dca-stats">
                 <div class="loading">Loading real futures DCA status...</div>
@@ -689,6 +696,7 @@
         const opportunitiesContainer = document.getElementById('opportunities-container');
         const realDcaStatsContainer = document.getElementById('real-dca-stats');
         const realEarnStatsContainer = document.getElementById('real-earn-stats');
+        const realFundingArbStatsContainer = document.getElementById('real-funding-arb-stats');
         const realOpportunitiesContainer = document.getElementById('real-opportunities-container');
         const realSummaryStatsContainer = document.getElementById('real-summary-stats');
         const realAgentsActivityContainer = document.getElementById('real-agents-activity');
@@ -854,6 +862,7 @@
                     opportunitiesResponse,
                     realDcaResponse,
                     realEarnResponse,
+                    realFundingArbResponse,
                     realOpportunitiesResponse,
                     realSummaryResponse,
                     realFuturesDcaResponse,
@@ -866,6 +875,7 @@
                     fetch(`${API_BASE}/opportunities?limit=10`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/binance-dca`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/binance-earn`).then(r => r.json()),
+                    fetch(`${API_BASE}/agents/real/funding-rate-arbitrage`).then(r => r.json()),
                     fetch(`${API_BASE}/opportunities?source=HackerOne-real&limit=10`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/summary`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/binance-futures-dca`).then(r => r.json()),
@@ -889,6 +899,7 @@
                 // Update real-money sections
                 updateRealDcaStats(realDcaResponse.data);
                 updateRealEarnStats(realEarnResponse.data);
+                updateRealFundingArbStats(realFundingArbResponse.data);
                 updateRealOpportunitiesList(realOpportunitiesResponse.data);
                 updateRealSummary(realSummaryResponse.data);
                 updateRealFuturesDcaStats(realFuturesDcaResponse.data);
@@ -1619,6 +1630,42 @@
             });
 
             realEarnStatsContainer.innerHTML = html;
+        }
+
+        // Update the real funding-rate arbitrage stat cards (real money, market-neutral)
+        function updateRealFundingArbStats(arbAgents) {
+            if (!arbAgents || arbAgents.length === 0) {
+                realFundingArbStatsContainer.innerHTML = `
+                    <div class="loading">
+                        No real funding-rate arbitrage agent running yet. Spawn one manually via
+                        POST /api/agents/spawn { "type": "fundingRateArbitrage" } after configuring
+                        real Binance API credentials and LIVE_TRADING_CONFIRMED=true.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            arbAgents.forEach(agent => {
+                const real = agent.real || {};
+                const openCount = (real.openPositions || []).length;
+                const unhedgedCount = (real.unhedgedPositions || []).length;
+                const unhedgedColor = unhedgedCount > 0 ? '#e8827e' : '#7dd382';
+                html += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">⚖️</div>
+                        <div class="stat-value">${openCount}</div>
+                        <div class="stat-label">Open Hedged Pairs</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">${unhedgedCount > 0 ? '🚨' : '✅'}</div>
+                        <div class="stat-value" style="color: ${unhedgedColor};">${unhedgedCount}</div>
+                        <div class="stat-label">Unhedged (needs manual review)${real.halted ? ' — HALTED' : ''}</div>
+                    </div>
+                `;
+            });
+
+            realFundingArbStatsContainer.innerHTML = html;
         }
 
         // Update the real HackerOne opportunities list (read-only, real public data)

@@ -81,6 +81,19 @@ class Config {
           minSubscribeUsd: parseFloat(process.env.BINANCE_EARN_MIN_SUBSCRIBE_USD) || 5,
           checkIntervalMs: parseInt(process.env.BINANCE_EARN_CHECK_INTERVAL_MS) || 21600000
         },
+        // Real, market-neutral funding-rate arbitrage (long spot + short perp of the
+        // same notional). Only places orders when LIVE_TRADING_CONFIRMED=true AND
+        // LIVE_FUTURES_TRADING_CONFIRMED=true and real credentials are set.
+        fundingRateArbitrage: {
+          perTradeNotionalUsd: parseFloat(process.env.FUNDING_ARB_PER_TRADE_NOTIONAL_USD) || 20,
+          futuresLeverage: parseInt(process.env.FUNDING_ARB_FUTURES_LEVERAGE) || 3,
+          marginMode: process.env.FUNDING_ARB_MARGIN_MODE || 'ISOLATED',
+          minFundingRateToEnter: parseFloat(process.env.FUNDING_ARB_MIN_RATE_ENTER) || 0.0003,
+          minFundingRateToExit: parseFloat(process.env.FUNDING_ARB_MIN_RATE_EXIT) || 0.0001,
+          minQuoteVolumeUsd: parseFloat(process.env.FUNDING_ARB_MIN_VOLUME_USD) || 5000000,
+          maxCandidatesPerCycle: parseInt(process.env.FUNDING_ARB_MAX_CANDIDATES_PER_CYCLE) || Infinity,
+          scanIntervalMs: parseInt(process.env.FUNDING_ARB_SCAN_INTERVAL_MS) || 1800000
+        },
         // Real, LEVERAGED Binance USDT-M futures DCA agent. Only places orders when
         // LIVE_TRADING_CONFIRMED=true AND LIVE_FUTURES_TRADING_CONFIRMED=true AND real
         // (non-placeholder) API credentials are configured; otherwise

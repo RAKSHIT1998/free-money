@@ -232,6 +232,25 @@ exports.getBinanceEarnStatus = async (req, res) => {
   }
 };
 
+exports.getFundingRateArbitrageStatus = async (req, res) => {
+  try {
+    const agents = getAgentManager().getAllAgents().filter(agent => agent.type === 'fundingRateArbitrage');
+    const statuses = await Promise.all(agents.map(agent => agent.getStatusExtended()));
+
+    res.json({
+      success: true,
+      data: statuses
+    });
+  } catch (error) {
+    console.error('Error getting funding-rate arbitrage status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get funding-rate arbitrage status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 exports.getBinanceFuturesDcaStatus = async (req, res) => {
   try {
     const agents = getAgentManager().getAllAgents().filter(agent => agent.type === 'binanceFuturesDca');

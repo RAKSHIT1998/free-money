@@ -511,6 +511,24 @@ async function getKlines(symbol, interval, limit = 100) {
   }));
 }
 
+/**
+ * Real current funding rate for a perpetual, straight from Binance's premium index —
+ * the basis for funding-rate arbitrage (short the perp + hold spot when funding is
+ * paid BY longs TO shorts, i.e. lastFundingRate > 0). Funding is settled every 8h;
+ * this returns the currently-accruing rate, not a historical average.
+ * @param {string} symbol e.g. 'BTCUSDT'
+ * @returns {Promise<{symbol: string, lastFundingRate: number, nextFundingTime: number, markPrice: number}>}
+ */
+async function getFundingRate(symbol) {
+  const data = await publicRequest('/fapi/v1/premiumIndex', { symbol });
+  return {
+    symbol: data.symbol,
+    lastFundingRate: parseFloat(data.lastFundingRate),
+    nextFundingTime: data.nextFundingTime,
+    markPrice: parseFloat(data.markPrice)
+  };
+}
+
 function roundDownToStep(quantity, stepSize) {
   const precision = Math.max(0, Math.round(-Math.log10(stepSize)));
   const factor = Math.pow(10, precision);
@@ -966,6 +984,7 @@ module.exports = {
   getQuantityStepSize,
   getPriceTickSize,
   getKlines,
+  getFundingRate,
   getUsdtPerpetualSymbols,
   getAll24hrTickers,
   getSymbolsTradedToday,

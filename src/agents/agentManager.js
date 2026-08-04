@@ -1,6 +1,7 @@
 // Agent Manager - responsible for spawning, tracking, and managing all agents
 const BinanceDcaAgent = require('./binanceDcaAgent');
 const BinanceEarnAgent = require('./binanceEarnAgent');
+const FundingRateArbitrageAgent = require('./fundingRateArbitrageAgent');
 const BinanceFuturesDcaAgent = require('./binanceFuturesDcaAgent');
 const BreakoutFuturesAgent = require('./breakoutFuturesAgent');
 const MeanReversionFuturesAgent = require('./meanReversionFuturesAgent');
@@ -149,6 +150,23 @@ class AgentManager {
           id: this.nextId++,
           config: {
             ...this.config.get('agentTypes.binanceEarn') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'fundingratearbitrage':
+      case 'funding rate arbitrage':
+      case 'fundingratearbitrageagent':
+        // REAL MONEY, market-neutral (long spot + short perp): only ever places live
+        // orders if LIVE_TRADING_CONFIRMED=true AND LIVE_FUTURES_TRADING_CONFIRMED=true
+        // and real Binance credentials are configured (enforced in the underlying
+        // services, not here).
+        agent = new FundingRateArbitrageAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.fundingRateArbitrage') || {},
             ...options.config
           },
           ...options
@@ -506,6 +524,14 @@ class AgentManager {
 
           case 'binanceEarn':
             agent = new BinanceEarnAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'fundingRateArbitrage':
+            agent = new FundingRateArbitrageAgent({
               id: dbAgent.agentId,
               name: dbAgent.name,
               config: dbAgent.config

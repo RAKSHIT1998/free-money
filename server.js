@@ -304,6 +304,14 @@ const startServer = async () => {
             console.error('Error auto-spawning real trading agent binanceEarn:', error.message);
           }
 
+          // Market-neutral (long spot + short perp) — collects funding rate, not price
+          // direction. Added 2026-08-04.
+          try {
+            await spawnIfMissing('fundingRateArbitrage', { name: 'Auto-resumed fundingRateArbitrage' });
+          } catch (error) {
+            console.error('Error auto-spawning real trading agent fundingRateArbitrage:', error.message);
+          }
+
           // Diversified DCA slots across multiple symbols (2026-08-03): same no-signal,
           // scheduled/protected accumulation approach as the original BTCUSDT-only
           // agent, spread across more liquid majors plus one small, lower-leverage

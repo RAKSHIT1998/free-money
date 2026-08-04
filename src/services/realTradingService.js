@@ -121,6 +121,45 @@ async function getCurrentPrice(symbol) {
   return parseFloat(data.price);
 }
 
+let exchangeInfoCache = null;
+let exchangeInfoCacheAt = 0;
+const EXCHANGE_INFO_TTL_MS = 6 * 60 * 60 * 1000; // 6 hours — symbol listings rarely change
+
+async function getExchangeInfo() {
+  const now = Date.now();
+  if (exchangeInfoCache && (now - exchangeInfoCacheAt) < EXCHANGE_INFO_TTL_MS) {
+    return exchangeInfoCache;
+  }
+  const { data } = await axios.get(`${BINANCE_BASE}/api/v3/exchangeInfo`);
+  exchangeInfoCache = data;
+  exchangeInfoCacheAt = now;
+  return data;
+}
+
+/**
+ * Fetch the quantity step size (LOT_SIZE filter) for a spot symbol, so a sell quantity
+ * can be rounded to a value Binance will accept — without this, placeMarketSellOrder
+ * would need a caller to already know the exact precision Binance expects, which
+ * varies per symbol.
+ * @param {string} symbol
+ * @returns {Promise<number>} step size, e.g. 0.00001
+ */
+async function getQuantityStepSize(symbol) {
+  const data = await getExchangeInfo();
+  const symbolInfo = data.symbols.find(s => s.symbol === symbol);
+  if (!symbolInfo) {
+    throw new Error(`Symbol ${symbol} not found in spot exchange info`);
+  }
+  const lotSizeFilter = symbolInfo.filters.find(f => f.filterType === 'LOT_SIZE');
+  return lotSizeFilter ? parseFloat(lotSizeFilter.stepSize) : 0.00001;
+}
+
+function roundDownToStep(quantity, stepSize) {
+  const precision = Math.max(0, Math.round(-Math.log10(stepSize)));
+  const factor = Math.pow(10, precision);
+  return Math.floor(quantity * factor) / factor;
+}
+
 /**
  * Total real USD spent (BUY orders) minus proceeds from SELL orders, for an agent.
  * @param {string} agentId
@@ -228,10 +267,54 @@ async function placeMarketBuyOrder({ symbol, quoteOrderQtyUsd, agentId }) {
     throw error;
   }
 
-  return recordFill(response.data, { symbol, quoteOrderQtyUsd, agentId });
+  return recordFill(response.data, { symbol, side: 'BUY', requestedUsd: quoteOrderQtyUsd, agentId });
 }
 
-async function recordFill(binanceOrderResponse, { symbol, quoteOrderQtyUsd, agentId }) {
+/**
+ * Place a REAL Binance spot market SELL order for an exact base-asset quantity (not a
+ * USD amount) — the counterpart to placeMarketBuyOrder, needed to close/unwind a spot
+ * position (e.g. the spot leg of funding-rate arbitrage) rather than only ever
+ * accumulating.
+ * @param {Object} params
+ * @param {string} params.symbol e.g. 'BTCUSDT'
+ * @param {number} params.quantity base-asset quantity to sell
+ * @param {string} params.agentId
+ * @returns {Promise<Object>} the recorded trade
+ */
+async function placeMarketSellOrder({ symbol, quantity, agentId }) {
+  assertLiveTradingAllowed();
+
+  const stepSize = await getQuantityStepSize(symbol);
+  const roundedQuantity = roundDownToStep(quantity, stepSize);
+  if (roundedQuantity <= 0) {
+    throw new Error(`Sell quantity ${quantity} rounds down to 0 at step size ${stepSize} for ${symbol}`);
+  }
+
+  const timestamp = await getSyncedTimestamp();
+  const queryString = `symbol=${symbol}&side=SELL&type=MARKET&quantity=${roundedQuantity}&timestamp=${timestamp}`;
+  const signature = crypto
+    .createHmac('sha256', process.env.BINANCE_API_SECRET)
+    .update(queryString)
+    .digest('hex');
+
+  let response;
+  try {
+    response = await axios.post(
+      `${BINANCE_BASE}/api/v3/order?${queryString}&signature=${signature}`,
+      null,
+      { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
+    );
+  } catch (error) {
+    if (error.response?.data) {
+      error.message = `${error.message}: ${JSON.stringify(error.response.data)}`;
+    }
+    throw error;
+  }
+
+  return recordFill(response.data, { symbol, side: 'SELL', requestedUsd: null, agentId });
+}
+
+async function recordFill(binanceOrderResponse, { symbol, side, requestedUsd, agentId }) {
   const fills = binanceOrderResponse.fills || [];
   const filledQty = fills.reduce((sum, f) => sum + parseFloat(f.qty), 0) ||
     parseFloat(binanceOrderResponse.executedQty) || 0;
@@ -247,9 +330,12 @@ async function recordFill(binanceOrderResponse, { symbol, quoteOrderQtyUsd, agen
   const tradeRecord = {
     agentId,
     timestamp: new Date(),
-    side: 'BUY',
+    side,
     symbol,
-    requestedUsd: quoteOrderQtyUsd,
+    // A SELL closes a specific quantity rather than targeting a USD spend, so there's
+    // no "requested" USD figure — record the actual proceeds instead, for ledger
+    // consistency with BUY's requestedUsd (both end up representing the trade's size).
+    requestedUsd: requestedUsd != null ? requestedUsd : filledQty * fillPrice,
     filledQty,
     fillPrice,
     commission,
@@ -264,7 +350,9 @@ async function recordFill(binanceOrderResponse, { symbol, quoteOrderQtyUsd, agen
 
 module.exports = {
   getCurrentPrice,
+  getQuantityStepSize,
   placeMarketBuyOrder,
+  placeMarketSellOrder,
   getLedger,
   getTotalSpentUsd,
   getTotalQtyHeld,
