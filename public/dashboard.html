@@ -565,6 +565,13 @@
         </div>
 
         <div class="real-money-section">
+            <h2 class="section-title">🏦 Real Binance Earn (Flexible)</h2>
+            <div class="stats-grid" id="real-earn-stats">
+                <div class="loading">Loading real Earn status...</div>
+            </div>
+        </div>
+
+        <div class="real-money-section">
             <h2 class="section-title">🚀 Real Binance Futures DCA Agent (Leveraged)</h2>
             <div class="stats-grid" id="real-futures-dca-stats">
                 <div class="loading">Loading real futures DCA status...</div>
@@ -681,6 +688,7 @@
         const agentsTableContainer = document.getElementById('agents-table-container');
         const opportunitiesContainer = document.getElementById('opportunities-container');
         const realDcaStatsContainer = document.getElementById('real-dca-stats');
+        const realEarnStatsContainer = document.getElementById('real-earn-stats');
         const realOpportunitiesContainer = document.getElementById('real-opportunities-container');
         const realSummaryStatsContainer = document.getElementById('real-summary-stats');
         const realAgentsActivityContainer = document.getElementById('real-agents-activity');
@@ -845,6 +853,7 @@
                     agentsResponse,
                     opportunitiesResponse,
                     realDcaResponse,
+                    realEarnResponse,
                     realOpportunitiesResponse,
                     realSummaryResponse,
                     realFuturesDcaResponse,
@@ -856,6 +865,7 @@
                     fetch(`${API_BASE}/agents`).then(r => r.json()),
                     fetch(`${API_BASE}/opportunities?limit=10`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/binance-dca`).then(r => r.json()),
+                    fetch(`${API_BASE}/agents/real/binance-earn`).then(r => r.json()),
                     fetch(`${API_BASE}/opportunities?source=HackerOne-real&limit=10`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/summary`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/binance-futures-dca`).then(r => r.json()),
@@ -878,6 +888,7 @@
 
                 // Update real-money sections
                 updateRealDcaStats(realDcaResponse.data);
+                updateRealEarnStats(realEarnResponse.data);
                 updateRealOpportunitiesList(realOpportunitiesResponse.data);
                 updateRealSummary(realSummaryResponse.data);
                 updateRealFuturesDcaStats(realFuturesDcaResponse.data);
@@ -1567,6 +1578,47 @@
             });
 
             realDcaStatsContainer.innerHTML = html;
+        }
+
+        // Update the real Binance Earn agent stat cards (real money, no leverage/directional risk)
+        function updateRealEarnStats(earnAgents) {
+            if (!earnAgents || earnAgents.length === 0) {
+                realEarnStatsContainer.innerHTML = `
+                    <div class="loading">
+                        No real Binance Earn agent running yet. Spawn one manually via
+                        POST /api/agents/spawn { "type": "binanceEarn" } after configuring
+                        real Binance API credentials and LIVE_TRADING_CONFIRMED=true.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            earnAgents.forEach(agent => {
+                const real = agent.real || {};
+                const positions = real.positions || [];
+                const totalEarning = positions.reduce((s, p) => s + parseFloat(p.totalAmount || 0), 0);
+                const bestApy = positions.reduce((max, p) => Math.max(max, parseFloat(p.latestAnnualPercentageRate || 0)), 0);
+                html += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">🏦</div>
+                        <div class="stat-value">${(totalEarning).toFixed(2)}</div>
+                        <div class="stat-label">${escapeHtml(real.asset || '')} Currently Earning Yield</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">💤</div>
+                        <div class="stat-value">${(real.freeSpotBalance != null ? real.freeSpotBalance.toFixed(2) : '—')}</div>
+                        <div class="stat-label">Free Spot Balance (reserve $${real.reserveUsd || 0} kept aside)</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-value" style="color: #7dd382;">${(bestApy * 100).toFixed(2)}%</div>
+                        <div class="stat-label">Current APY${real.halted ? ' (HALTED)' : ''}</div>
+                    </div>
+                `;
+            });
+
+            realEarnStatsContainer.innerHTML = html;
         }
 
         // Update the real HackerOne opportunities list (read-only, real public data)

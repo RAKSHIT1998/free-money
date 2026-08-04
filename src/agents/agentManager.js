@@ -1,5 +1,6 @@
 // Agent Manager - responsible for spawning, tracking, and managing all agents
 const BinanceDcaAgent = require('./binanceDcaAgent');
+const BinanceEarnAgent = require('./binanceEarnAgent');
 const BinanceFuturesDcaAgent = require('./binanceFuturesDcaAgent');
 const BreakoutFuturesAgent = require('./breakoutFuturesAgent');
 const MeanReversionFuturesAgent = require('./meanReversionFuturesAgent');
@@ -110,6 +111,22 @@ class AgentManager {
           id: this.nextId++,
           config: {
             ...this.config.get('agentTypes.binanceDca') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'binanceearn':
+      case 'binance earn':
+      case 'binanceearnagent':
+        // REAL MONEY, but no leverage/directional exposure: only ever subscribes if
+        // LIVE_TRADING_CONFIRMED=true and real Binance credentials are configured
+        // (enforced in binanceEarnService, not here).
+        agent = new BinanceEarnAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.binanceEarn') || {},
             ...options.config
           },
           ...options

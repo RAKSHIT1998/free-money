@@ -71,6 +71,16 @@ class Config {
           budgetCapUsd: parseFloat(process.env.BINANCE_DCA_BUDGET_CAP_USD) || Infinity,
           checkIntervalMs: parseInt(process.env.BINANCE_DCA_CHECK_INTERVAL_MS) || 3600000
         },
+        // Real Binance Simple Earn (flexible) sweeper. No leverage, no directional
+        // market exposure — subscribes idle spot balance above reserveUsd into the
+        // highest-APY flexible product, redeemable back to spot at any time. Only
+        // subscribes when LIVE_TRADING_CONFIRMED=true and real credentials are set.
+        binanceEarn: {
+          asset: process.env.BINANCE_EARN_ASSET || 'USDT',
+          reserveUsd: parseFloat(process.env.BINANCE_EARN_RESERVE_USD) || 20,
+          minSubscribeUsd: parseFloat(process.env.BINANCE_EARN_MIN_SUBSCRIBE_USD) || 5,
+          checkIntervalMs: parseInt(process.env.BINANCE_EARN_CHECK_INTERVAL_MS) || 21600000
+        },
         // Real, LEVERAGED Binance USDT-M futures DCA agent. Only places orders when
         // LIVE_TRADING_CONFIRMED=true AND LIVE_FUTURES_TRADING_CONFIRMED=true AND real
         // (non-placeholder) API credentials are configured; otherwise

@@ -213,6 +213,25 @@ exports.getBinanceDcaStatus = async (req, res) => {
   }
 };
 
+exports.getBinanceEarnStatus = async (req, res) => {
+  try {
+    const agents = getAgentManager().getAllAgents().filter(agent => agent.type === 'binanceEarn');
+    const statuses = await Promise.all(agents.map(agent => agent.getStatusExtended()));
+
+    res.json({
+      success: true,
+      data: statuses
+    });
+  } catch (error) {
+    console.error('Error getting Binance Earn status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get Binance Earn status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 exports.getBinanceFuturesDcaStatus = async (req, res) => {
   try {
     const agents = getAgentManager().getAllAgents().filter(agent => agent.type === 'binanceFuturesDca');

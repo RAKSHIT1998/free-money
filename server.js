@@ -290,6 +290,14 @@ const startServer = async () => {
             console.error('Error auto-spawning real trading agent binanceDca:', error.message);
           }
 
+          // No leverage, no directional exposure — sweeps idle spot USDT above its
+          // reserve into Binance's highest-APY flexible Earn product. Added 2026-08-04.
+          try {
+            await spawnIfMissing('binanceEarn', { name: 'Auto-resumed binanceEarn' });
+          } catch (error) {
+            console.error('Error auto-spawning real trading agent binanceEarn:', error.message);
+          }
+
           // Diversified DCA slots across multiple symbols (2026-08-03): same no-signal,
           // scheduled/protected accumulation approach as the original BTCUSDT-only
           // agent, spread across more liquid majors plus one small, lower-leverage

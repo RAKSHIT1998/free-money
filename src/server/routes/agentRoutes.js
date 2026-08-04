@@ -6,6 +6,7 @@ const agentController = require('../controllers/agentController');
 router.get('/', agentController.getAllAgents);
 // Must be registered before '/:id' so 'real' isn't parsed as an agent ID.
 router.get('/real/binance-dca', agentController.getBinanceDcaStatus);
+router.get('/real/binance-earn', agentController.getBinanceEarnStatus);
 router.get('/real/binance-futures-dca', agentController.getBinanceFuturesDcaStatus);
 router.get('/real/breakout-futures', agentController.getBreakoutFuturesStatus);
 router.get('/real/mean-reversion-futures', agentController.getMeanReversionFuturesStatus);
