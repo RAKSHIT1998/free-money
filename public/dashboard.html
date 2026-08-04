@@ -615,6 +615,23 @@
             <p style="color:var(--text-dim); margin-bottom: 10px;">Live public bug bounty programs. Pursue manually — the app never submits reports or claims bounties on your behalf.</p>
             <div id="real-opportunities-container" class="loading">Loading real opportunities...</div>
         </div>
+
+        <div class="real-money-section">
+            <h2 class="section-title">✍️ Gig Draft Tool</h2>
+            <p style="color:var(--text-dim); margin-bottom: 10px;">Paste in a freelance task (from Upwork, Fiverr, a direct client, wherever) and get an AI-drafted deliverable to review and edit before you send it. Nothing here is submitted or delivered automatically.</p>
+            <div style="display:flex; flex-direction:column; gap:10px; max-width:700px;">
+                <select id="gig-task-type" style="padding:8px; background:var(--bg-panel); color:var(--text); border:1px solid var(--border);">
+                    <option value="writing">Writing</option>
+                    <option value="code">Code</option>
+                    <option value="design-brief">Design brief</option>
+                    <option value="other">Other</option>
+                </select>
+                <textarea id="gig-task-description" placeholder="Paste the task description here..." rows="5" style="padding:8px; background:var(--bg-panel); color:var(--text); border:1px solid var(--border); font-family:inherit;"></textarea>
+                <button id="gig-draft-btn" class="refresh-btn" style="width:fit-content;">Generate Draft</button>
+                <div id="gig-draft-status"></div>
+            </div>
+            <div id="gig-drafts-list" style="margin-top:20px;"></div>
+        </div>
     </div>
 
     <script>
@@ -745,6 +762,7 @@
             await dashboardReady; // blocks here until login succeeds, if not already logged in
             loadDashboardData();
             startAutoUpdate();
+            initGigDraftTool();
 
             // Add refresh button listener
             refreshBtn.addEventListener('click', () => {
@@ -1805,6 +1823,110 @@
             if (updateTimer) {
                 clearInterval(updateTimer);
                 updateTimer = null;
+            }
+        }
+
+        // Gig Draft Tool — not a trading feature, no financial side effects. Generates
+        // a deliverable draft via Claude for the user to review/edit; never submits or
+        // delivers anything itself.
+        function initGigDraftTool() {
+            const draftBtn = document.getElementById('gig-draft-btn');
+            const statusEl = document.getElementById('gig-draft-status');
+            const taskTypeEl = document.getElementById('gig-task-type');
+            const taskDescEl = document.getElementById('gig-task-description');
+
+            draftBtn.addEventListener('click', async () => {
+                const taskDescription = taskDescEl.value.trim();
+                if (!taskDescription) {
+                    statusEl.textContent = 'Paste a task description first.';
+                    return;
+                }
+
+                draftBtn.disabled = true;
+                statusEl.innerHTML = '<span class="spinner"></span> Drafting...';
+
+                try {
+                    const res = await fetch(`${API_BASE}/gigs/drafts`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ taskType: taskTypeEl.value, taskDescription })
+                    });
+                    const body = await res.json();
+                    if (!body.success) throw new Error(body.message || 'Draft generation failed');
+                    statusEl.textContent = 'Draft ready below.';
+                    taskDescEl.value = '';
+                    await loadGigDrafts();
+                } catch (error) {
+                    statusEl.textContent = `Error: ${error.message}`;
+                } finally {
+                    draftBtn.disabled = false;
+                }
+            });
+
+            loadGigDrafts();
+        }
+
+        async function loadGigDrafts() {
+            const container = document.getElementById('gig-drafts-list');
+            try {
+                const res = await fetch(`${API_BASE}/gigs/drafts`);
+                const body = await res.json();
+                const drafts = body.data || [];
+
+                if (drafts.length === 0) {
+                    container.innerHTML = '<div class="loading">No drafts yet.</div>';
+                    return;
+                }
+
+                container.innerHTML = drafts.map(d => {
+                    const displayContent = d.editedContent != null ? d.editedContent : d.draftContent;
+                    const statusColor = d.status === 'delivered' ? '#7dd382' : (d.status === 'discarded' ? '#e8827e' : 'var(--text-dim)');
+                    return `
+                        <div class="stat-card real-stat-card" style="text-align:left; margin-bottom:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                <span style="font-weight:600;">${escapeHtml(d.taskType)}</span>
+                                <span style="color:${statusColor};">${escapeHtml(d.status)}</span>
+                            </div>
+                            <details style="margin-bottom:8px;">
+                                <summary style="cursor:pointer; color:var(--text-dim);">Task description</summary>
+                                <div style="white-space:pre-wrap; margin-top:6px;">${escapeHtml(d.taskDescription)}</div>
+                            </details>
+                            <textarea data-draft-id="${d._id}" rows="8" style="width:100%; padding:8px; background:var(--bg-panel); color:var(--text); border:1px solid var(--border); font-family:inherit;">${escapeHtml(displayContent)}</textarea>
+                            <div style="display:flex; gap:8px; margin-top:8px;">
+                                <button class="refresh-btn gig-save-btn" data-draft-id="${d._id}">Save Edits</button>
+                                <button class="refresh-btn gig-status-btn" data-draft-id="${d._id}" data-status="delivered">Mark Delivered</button>
+                                <button class="refresh-btn gig-status-btn" data-draft-id="${d._id}" data-status="discarded">Discard</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.querySelectorAll('.gig-save-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.draftId;
+                        const textarea = container.querySelector(`textarea[data-draft-id="${id}"]`);
+                        await fetch(`${API_BASE}/gigs/drafts/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ editedContent: textarea.value })
+                        });
+                        loadGigDrafts();
+                    });
+                });
+
+                container.querySelectorAll('.gig-status-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.draftId;
+                        await fetch(`${API_BASE}/gigs/drafts/${id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: btn.dataset.status })
+                        });
+                        loadGigDrafts();
+                    });
+                });
+            } catch (error) {
+                container.innerHTML = `<div class="loading">Failed to load drafts: ${escapeHtml(error.message)}</div>`;
             }
         }
 

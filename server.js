@@ -91,6 +91,7 @@ app.use('/api/auth', require('./src/server/routes/authRoutes'));
 app.use('/api/opportunities', require('./src/server/middleware/auth').authenticateToken, require('./src/server/routes/opportunityRoutes'));
 app.use('/api/agents', require('./src/server/middleware/auth').authenticateToken, require('./src/server/routes/agentRoutes'));
 app.use('/api/wallet', require('./src/server/routes/walletRoutes'));
+app.use('/api/gigs', require('./src/server/middleware/auth').authenticateToken, require('./src/server/routes/gigRoutes'));
 
 // Health check endpoint. Deliberately unauthenticated (matches the plain uptime check
 // it replaces) and only ever makes PUBLIC/unsigned calls — no API keys used, no way to
