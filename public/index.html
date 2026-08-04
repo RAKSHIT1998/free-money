@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Money — Overview</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@500;600;700&display=swap');
+
+        :root {
+            --bg: #100d09;
+            --panel: #17130d;
+            --panel-2: #1d1810;
+            --hair: #3a3226;
+            --hair-soft: #2a2419;
+            --amber: #e0a730;
+            --amber-soft: #f0c470;
+            --green: #4caf50;
+            --green-soft: #7dd382;
+            --red: #d9534f;
+            --red-soft: #e8827e;
+            --text: #ede4d3;
+            --text-dim: #a89778;
+            --text-dimmer: #6b5f49;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        ::selection { background: var(--amber); color: var(--bg); }
+
+        .wrap {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 32px 20px 80px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        header h1 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            letter-spacing: 0.02em;
+        }
+
+        header .updated {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.78rem;
+            color: var(--text-dimmer);
+            margin-top: 4px;
+        }
+
+        .hero {
+            text-align: center;
+            background: var(--panel);
+            border: 1px solid var(--hair);
+            border-radius: 12px;
+            padding: 36px 20px;
+            margin-bottom: 20px;
+        }
+
+        .hero .label {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 10px;
+        }
+
+        .hero .number {
+            font-family: 'IBM Plex Mono', monospace;
+            font-variant-numeric: tabular-nums;
+            font-size: 3.2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .hero .sub {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .status-row .stat {
+            text-align: center;
+        }
+
+        .status-row .stat .n {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .status-row .stat .l {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-top: 2px;
+        }
+
+        .banner {
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            font-size: 0.92rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .banner.ok {
+            background: rgba(76, 175, 80, 0.08);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            color: var(--green-soft);
+        }
+
+        .banner.warn {
+            background: rgba(217, 83, 79, 0.08);
+            border: 1px solid rgba(217, 83, 79, 0.35);
+            color: var(--red-soft);
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--hair);
+            border-radius: 10px;
+            padding: 18px;
+        }
+
+        .card .icon { font-size: 1.4rem; margin-bottom: 8px; }
+
+        .card .title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .card .value {
+            font-family: 'IBM Plex Mono', monospace;
+            font-variant-numeric: tabular-nums;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 6px 0 4px;
+        }
+
+        .card .desc {
+            font-size: 0.82rem;
+            color: var(--text-dim);
+        }
+
+        .activity {
+            background: var(--panel);
+            border: 1px solid var(--hair);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 24px;
+        }
+
+        .activity h2 {
+            font-size: 0.95rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 14px;
+        }
+
+        .activity ul {
+            list-style: none;
+        }
+
+        .activity li {
+            padding: 9px 0;
+            border-bottom: 1px solid var(--hair-soft);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .activity li:last-child { border-bottom: none; }
+
+        .activity .when {
+            color: var(--text-dimmer);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.78rem;
+            white-space: nowrap;
+        }
+
+        .footer-link {
+            display: block;
+            text-align: center;
+            padding: 16px;
+            background: var(--panel-2);
+            border: 1px solid var(--hair);
+            border-radius: 10px;
+            color: var(--amber-soft);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .footer-link:hover { background: var(--hair-soft); }
+
+        .loading {
+            text-align: center;
+            color: var(--text-dimmer);
+            padding: 30px;
+        }
+
+        @media (max-width: 480px) {
+            .hero .number { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <header>
+            <h1>Your Money</h1>
+            <div class="updated" id="updated-at">Loading...</div>
+        </header>
+
+        <div id="content" class="loading">Loading your overview...</div>
+
+        <a href="/dashboard.html" class="footer-link">See every detail →</a>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        const AUTH_TOKEN_KEY = 'freeMoneyAuthToken'; // shared with dashboard.html on purpose
+
+        function getAuthToken() {
+            return localStorage.getItem(AUTH_TOKEN_KEY);
+        }
+
+        async function promptLogin() {
+            while (true) {
+                const username = window.prompt('Username:');
+                if (username === null) continue;
+                const password = window.prompt('Password:');
+                if (password === null) continue;
+                try {
+                    const res = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success && data.data?.token) {
+                        localStorage.setItem(AUTH_TOKEN_KEY, data.data.token);
+                        return;
+                    }
+                    window.alert(data.message || 'Login failed, try again.');
+                } catch (error) {
+                    window.alert('Login request failed: ' + error.message);
+                }
+            }
+        }
+
+        async function authedFetch(path) {
+            let token = getAuthToken();
+            let res = await fetch(`${API_BASE}${path}`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
+            });
+            if (res.status === 401) {
+                localStorage.removeItem(AUTH_TOKEN_KEY);
+                await promptLogin();
+                token = getAuthToken();
+                res = await fetch(`${API_BASE}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+            }
+            return res.json();
+        }
+
+        function fmtMoney(n) {
+            const v = Number(n) || 0;
+            const sign = v < 0 ? '-' : '';
+            return `${sign}$${Math.abs(v).toFixed(2)}`;
+        }
+
+        function timeAgo(dateStr) {
+            if (!dateStr) return '';
+            const seconds = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+            if (seconds < 60) return 'just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+            return `${Math.floor(seconds / 86400)}d ago`;
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
+        async function loadOverview() {
+            if (!getAuthToken()) {
+                await promptLogin();
+            }
+
+            const [summary, earn, arb, grid, drafts, agents] = await Promise.all([
+                authedFetch('/agents/real/summary'),
+                authedFetch('/agents/real/binance-earn'),
+                authedFetch('/agents/real/funding-rate-arbitrage'),
+                authedFetch('/agents/real/grid-trading'),
+                authedFetch('/gigs/drafts'),
+                authedFetch('/agents')
+            ]);
+
+            const s = summary.data || {};
+            const positions = s.futuresPositions || [];
+            const unrealized = positions.reduce((sum, p) => sum + (p.unrealizedProfit || 0), 0) + (s.spot?.unrealizedPnl || 0);
+            const today = (s.futuresToday?.realizedPnlUsd || 0) + (s.futuresToday?.commissionUsd || 0);
+            const allTime = s.futuresHistory?.netUsd || 0;
+
+            const earnAgent = (earn.data || [])[0];
+            const earnPositions = earnAgent?.real?.positions || [];
+            const earnTotal = earnPositions.reduce((sum, p) => sum + parseFloat(p.totalAmount || 0), 0);
+
+            const arbAgent = (arb.data || [])[0];
+            const arbOpen = (arbAgent?.real?.openPositions || []).length;
+            const arbUnhedged = (arbAgent?.real?.unhedgedPositions || []).length;
+
+            const gridAgent = (grid.data || [])[0];
+            const gridProfit = gridAgent?.real?.realizedProfitUsd || 0;
+
+            const draftList = drafts.data || [];
+            const delivered = draftList.filter(d => d.status === 'delivered').length;
+            const paid = draftList.filter(d => d.paymentStatus === 'paid').length;
+            const paidTotal = draftList.filter(d => d.paymentStatus === 'paid').reduce((sum, d) => sum + (d.paymentAmount || 0), 0);
+
+            const allAgents = agents.data?.agents || [];
+            const needsAttention = allAgents.filter(a => a.state === 'error' || a.haltedReason);
+
+            const totalPnl = unrealized + allTime;
+
+            const html = [];
+
+            html.push(`
+                <div class="hero">
+                    <div class="label">Total Real Money — Live + All-Time</div>
+                    <div class="number" style="color:${totalPnl >= 0 ? 'var(--green-soft)' : 'var(--red-soft)'};">${fmtMoney(totalPnl)}</div>
+                    <div class="sub">${fmtMoney(unrealized)} sitting in open positions right now, ${fmtMoney(allTime)} banked all-time from crypto trading</div>
+                    <div class="status-row">
+                        <div class="stat">
+                            <div class="n" style="color:${today >= 0 ? 'var(--green-soft)' : 'var(--red-soft)'};">${fmtMoney(today)}</div>
+                            <div class="l">Made today</div>
+                        </div>
+                        <div class="stat">
+                            <div class="n">${paidTotal > 0 ? fmtMoney(paidTotal) : '$0.00'}</div>
+                            <div class="l">From freelance work</div>
+                        </div>
+                    </div>
+                </div>
+            `);
+
+            if (needsAttention.length > 0) {
+                html.push(`<div class="banner warn">⚠️ ${needsAttention.length} of ${allAgents.length} things need a look (see "every detail" below)</div>`);
+            } else if (arbUnhedged > 0) {
+                html.push(`<div class="banner warn">⚠️ A trade got out of sync and needs manual review — check "every detail" below</div>`);
+            } else {
+                html.push(`<div class="banner ok">✅ Everything running normally — ${allAgents.length} things active, nothing needs your attention</div>`);
+            }
+
+            html.push('<div class="cards">');
+            html.push(`
+                <div class="card">
+                    <div class="icon">📈</div>
+                    <div class="title">Crypto Trading</div>
+                    <div class="value" style="color:${unrealized >= 0 ? 'var(--green-soft)' : 'var(--red-soft)'};">${fmtMoney(unrealized)}</div>
+                    <div class="desc">Currently open, could still go up or down</div>
+                </div>
+            `);
+            html.push(`
+                <div class="card">
+                    <div class="icon">🏦</div>
+                    <div class="title">Savings (Earning Interest)</div>
+                    <div class="value">${earnTotal.toFixed(2)}</div>
+                    <div class="desc">Idle cash automatically parked for yield</div>
+                </div>
+            `);
+            html.push(`
+                <div class="card">
+                    <div class="icon">🔲</div>
+                    <div class="title">Range Trading</div>
+                    <div class="value" style="color:${gridProfit >= 0 ? 'var(--green-soft)' : 'var(--red-soft)'};">${fmtMoney(gridProfit)}</div>
+                    <div class="desc">Profit locked in from price swings</div>
+                </div>
+            `);
+            html.push(`
+                <div class="card">
+                    <div class="icon">✍️</div>
+                    <div class="title">Freelance Work</div>
+                    <div class="value">${delivered} sent, ${paid} paid</div>
+                    <div class="desc">${draftList.length} drafts written total</div>
+                </div>
+            `);
+            html.push('</div>');
+
+            const recentTrades = [
+                ...positions.slice(0, 3).map(p => ({
+                    when: null,
+                    text: `Open position: ${p.symbol} (${fmtMoney(p.unrealizedProfit)} right now)`
+                }))
+            ];
+            const recentDrafts = draftList.slice(0, 3).map(d => ({
+                when: d.createdAt,
+                text: `Drafted a ${d.taskType} response${d.paymentStatus === 'paid' ? ' — got paid ' + fmtMoney(d.paymentAmount) : ''}`
+            }));
+            const activity = [...recentDrafts, ...recentTrades].slice(0, 6);
+
+            if (activity.length > 0) {
+                html.push(`
+                    <div class="activity">
+                        <h2>Recent Activity</h2>
+                        <ul>
+                            ${activity.map(a => `<li><span>${escapeHtml(a.text)}</span><span class="when">${a.when ? timeAgo(a.when) : ''}</span></li>`).join('')}
+                        </ul>
+                    </div>
+                `);
+            }
+
+            document.getElementById('content').innerHTML = html.join('');
+            document.getElementById('updated-at').textContent = 'Updated ' + new Date().toLocaleTimeString();
+        }
+
+        async function init() {
+            try {
+                await loadOverview();
+            } catch (error) {
+                document.getElementById('content').innerHTML = `<div class="loading">Couldn't load your overview: ${escapeHtml(error.message)}</div>`;
+            }
+            setInterval(() => loadOverview().catch(() => {}), 15000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
