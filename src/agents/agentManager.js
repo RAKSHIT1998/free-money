@@ -47,12 +47,23 @@ class AgentManager {
     // Track start time for uptime calculation
     this.startTime = Date.now();
 
-    // Load existing agents from database if persistence is enabled
-    if (this.options.persistenceEnabled) {
-      this.loadAgentsFromDatabase().catch(err => {
-        console.warn('Warning: Failed to load agents from database:', err.message);
-      });
-    }
+    // Load existing agents from database if persistence is enabled. This used to be
+    // fire-and-forget (no await, can't await inside a constructor) — server.js's
+    // auto-spawn block ran on a flat 5-second timer that assumed this would always
+    // finish first. Against a remote database (Atlas, higher latency than local Mongo)
+    // it sometimes didn't: the timer fired while this was still in flight, so
+    // spawnIfMissing saw an empty in-memory agent list and spawned a full duplicate
+    // set of every real-money agent, which then remained alongside the originals once
+    // this restore finally completed and added THEM too — two live copies of every
+    // trading strategy in the same process (observed in practice, 2026-08-04, before
+    // any duplicate order was placed only because a Binance IP ban happened to still
+    // be active at the time). readyPromise lets callers actually wait for this instead
+    // of guessing at a timeout.
+    this.readyPromise = this.options.persistenceEnabled
+      ? this.loadAgentsFromDatabase().catch(err => {
+          console.warn('Warning: Failed to load agents from database:', err.message);
+        })
+      : Promise.resolve();
 
     // Start cleanup interval
     this.cleanupInterval = setInterval(() => this.cleanup(), this.options.cleanupInterval);
@@ -84,6 +95,17 @@ class AgentManager {
       throw new Error('AgentManager not initialized. Call initialize() first.');
     }
     return instance;
+  }
+
+  /**
+   * Resolves once any persisted agents have been restored from the database (or
+   * immediately, if persistence is disabled). Callers that need to check "does an
+   * agent of this type already exist" — like server.js's auto-spawn dedup — MUST wait
+   * on this first, or they'll race the restore and spawn duplicates.
+   * @returns {Promise<void>}
+   */
+  async waitUntilReady() {
+    await this.readyPromise;
   }
 
   /**
@@ -476,6 +498,14 @@ class AgentManager {
         switch (dbAgent.type) {
           case 'binanceDca':
             agent = new BinanceDcaAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'binanceEarn':
+            agent = new BinanceEarnAgent({
               id: dbAgent.agentId,
               name: dbAgent.name,
               config: dbAgent.config

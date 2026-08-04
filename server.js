@@ -225,7 +225,13 @@ const startServer = async () => {
       await agentManager.spawnAgent(type, options);
     };
 
-    setTimeout(async () => {
+    // Wait for any persisted agents to actually finish restoring from the database
+    // before running the dedup checks below — a flat setTimeout here (what this used
+    // to be) assumed that restore would always be fast, which isn't reliable against a
+    // remote database. See agentManager.js's readyPromise comment for what went wrong
+    // in practice without this.
+    (async () => {
+      await agentManager.waitUntilReady();
       try {
         // Real, read-only HackerOne opportunity feed — zero financial risk (no orders,
         // no withdrawals), safe to auto-spawn by default.
@@ -361,7 +367,7 @@ const startServer = async () => {
       } catch (error) {
         console.error('Error spawning initial agents:', error);
       }
-    }, 5000); // Wait 5 seconds after server starts
+    })();
   });
 };
 
