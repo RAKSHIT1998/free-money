@@ -7,6 +7,7 @@ const BinanceFuturesDcaAgent = require('./binanceFuturesDcaAgent');
 const BreakoutFuturesAgent = require('./breakoutFuturesAgent');
 const MeanReversionFuturesAgent = require('./meanReversionFuturesAgent');
 const HackerOneBountyAgent = require('./hackerOneBountyAgent');
+const GithubBountyHunterAgent = require('./githubBountyHunterAgent');
 const CryptoGigHunterAgent = require('./cryptoGigHunterAgent');
 const RealAgentMonitorAgent = require('./realAgentMonitorAgent');
 const { Config } = require('../config/config');
@@ -245,6 +246,19 @@ class AgentManager {
           id: this.nextId++,
           config: {
             ...this.config.get('agentTypes.hackerOneBounty') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'githubbountyhunter':
+      case 'github bounty hunter':
+      case 'githubbountyhunteragent':
+        agent = new GithubBountyHunterAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.githubBountyHunter') || {},
             ...options.config
           },
           ...options
@@ -589,6 +603,14 @@ class AgentManager {
 
           case 'hackerOneBounty':
             agent = new HackerOneBountyAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'githubBountyHunter':
+            agent = new GithubBountyHunterAgent({
               id: dbAgent.agentId,
               name: dbAgent.name,
               config: dbAgent.config

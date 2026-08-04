@@ -167,6 +167,12 @@ class Config {
           pollIntervalMs: parseInt(process.env.HACKERONE_POLL_INTERVAL_MS) || 3600000,
           maxResultsPerPoll: parseInt(process.env.HACKERONE_MAX_RESULTS) || 20
         },
+        // Read-only real GitHub paid-bounty issue feed. No auth, no comment/PR
+        // submission — surfaces real opportunities for the user to act on manually.
+        githubBountyHunter: {
+          pollIntervalMs: parseInt(process.env.GITHUB_BOUNTY_POLL_INTERVAL_MS) || 3600000,
+          maxResultsPerPoll: parseInt(process.env.GITHUB_BOUNTY_MAX_RESULTS) || 20
+        },
         // Read-only real Remote OK crypto/web3 job feed. No auth, no application
         // submission — surfaces real opportunities for the user to act on manually.
         cryptoGigHunter: {

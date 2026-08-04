@@ -904,7 +904,7 @@
                     fetch(`${API_BASE}/agents/real/binance-earn`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/funding-rate-arbitrage`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/grid-trading`).then(r => r.json()),
-                    fetch(`${API_BASE}/opportunities?source=HackerOne-real&limit=10`).then(r => r.json()),
+                    fetchMergedRealOpportunities(),
                     fetch(`${API_BASE}/agents/real/summary`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/binance-futures-dca`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/breakout-futures`).then(r => r.json()),
@@ -1737,6 +1737,31 @@
         }
 
         // Update the real HackerOne opportunities list (read-only, real public data)
+        // Merges every read-only real opportunity feed (HackerOne bounties, GitHub
+        // paid-bounty issues, RemoteOK crypto/web3 jobs) into one list, newest first.
+        // The opportunities API only filters by a single exact `source`, so this fires
+        // one request per source and combines them client-side.
+        async function fetchMergedRealOpportunities() {
+            const sources = ['HackerOne-real', 'GitHub-real', 'RemoteOK-real'];
+            const responses = await Promise.all(
+                sources.map(source => fetch(`${API_BASE}/opportunities?source=${source}&limit=10`).then(r => r.json()))
+            );
+            const merged = responses.flatMap(r => r.data || []);
+            merged.sort((a, b) => new Date(b.postedAt) - new Date(a.postedAt));
+            return { data: merged };
+        }
+
+        // Pre-fills the gig draft tool from a surfaced opportunity and scrolls to it —
+        // the human still reviews, edits, and submits the result themselves.
+        function draftResponseForOpportunity(title, description, url) {
+            const taskDescEl = document.getElementById('gig-task-description');
+            const taskTypeEl = document.getElementById('gig-task-type');
+            taskDescEl.value = `${title}\n\n${description}\n\nSource: ${url}`;
+            taskTypeEl.value = /code|bounty/i.test(title) ? 'code' : 'writing';
+            taskDescEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            taskDescEl.focus();
+        }
+
         function updateRealOpportunitiesList(realOpportunities) {
             if (!realOpportunities || realOpportunities.length === 0) {
                 realOpportunitiesContainer.innerHTML = '<div class="loading">No real opportunities surfaced yet.</div>';
@@ -1759,12 +1784,22 @@
                             <span>🔗 <a href="${opp.url}" target="_blank" rel="noopener noreferrer">${escapeHtml(opp.url)}</a></span>
                             <span>🕒 ${timeAgo}</span>
                         </div>
+                        <button class="refresh-btn opp-draft-btn" style="margin-top:8px;"
+                            data-title="${escapeHtml(opp.title)}" data-description="${escapeHtml(opp.description)}" data-url="${escapeHtml(opp.url)}">
+                            ✍️ Draft Response
+                        </button>
                     </div>
                 `;
             });
 
             html += '</div>';
             realOpportunitiesContainer.innerHTML = html;
+
+            realOpportunitiesContainer.querySelectorAll('.opp-draft-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    draftResponseForOpportunity(btn.dataset.title, btn.dataset.description, btn.dataset.url);
+                });
+            });
         }
 
         // Helper function to get time ago string

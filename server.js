@@ -254,6 +254,16 @@ const startServer = async () => {
           }
         });
 
+        // Real, read-only GitHub paid-bounty issue feed — zero financial risk (no
+        // comments posted, no PRs opened), safe to auto-spawn by default.
+        await spawnIfMissing('githubBountyHunter', {
+          name: 'Initial GitHub Bounty Hunter',
+          config: {
+            pollIntervalMs: configInstance.get('agentTypes.githubBountyHunter.pollIntervalMs') || 3600000,
+            maxResultsPerPoll: configInstance.get('agentTypes.githubBountyHunter.maxResultsPerPoll') || 20
+          }
+        });
+
         // Health monitor for all other agents — restarts anything stuck in 'error'
         // state. Zero financial risk itself (no orders, no withdrawals), safe to
         // auto-spawn by default.
