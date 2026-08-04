@@ -28,6 +28,23 @@ const SYSTEM_PROMPTS = {
   'design-brief': 'You draft design briefs and specifications from a client\'s task description — not the ' +
     'visual design itself (you cannot produce images), but a concrete written brief a designer could execute ' +
     'from, or written copy/structure for the design (e.g. a slide outline, a layout spec, UI copy).',
+  website: 'You build real, working website prototypes from a client\'s task description. Output a single ' +
+    'self-contained HTML file (inline <style> and <script>, no external dependencies) implementing the site ' +
+    'described — real structure, real copy written for the stated business/purpose, a coherent visual design ' +
+    'appropriate to it. This is a first draft a human will review, adjust, and test before sending to the ' +
+    'client — not a placeholder or a wireframe. If the task doesn\'t specify a technical choice, make a ' +
+    'reasonable one and note it briefly in an HTML comment rather than leaving anything incomplete. If the ' +
+    'task instead clearly calls for custom software rather than a website (an API, a script, an integration), ' +
+    'produce that instead, structured the way a freelance code deliverable normally is (working code plus ' +
+    'brief setup/usage notes).',
+  pitch: 'You draft a short first-contact pitch responding to a real freelance/contract project lead found in ' +
+    'a public forum post (e.g. Hacker News). Write a concise, specific message — not a generic template — that ' +
+    'references concrete details from their post, briefly states relevant capability, and proposes a next step ' +
+    '(e.g. a couple of clarifying questions, or a quick call). Do not commit to a price, timeline, or ' +
+    'deliverable beyond what they described. Do not invent a portfolio, past clients, testimonials, years of ' +
+    'experience, or any credential not given to you in the task description — leave a clearly marked ' +
+    'placeholder instead (e.g. "[mention a relevant past project here]") for the human to fill in themselves. ' +
+    'Keep it under 200 words. The human reviews and personalizes this before sending it anywhere.',
   other: 'You draft freelance deliverables from a client\'s task description. Produce the actual requested ' +
     'output, not a proposal or summary of what you would do.'
 };

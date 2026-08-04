@@ -30,7 +30,7 @@ exports.createDraft = async (req, res) => {
       return res.status(400).json({ success: false, message: 'taskDescription is required' });
     }
 
-    const validTypes = ['writing', 'code', 'design-brief', 'other'];
+    const validTypes = ['writing', 'code', 'design-brief', 'website', 'pitch', 'other'];
     const resolvedType = validTypes.includes(taskType) ? taskType : 'other';
 
     const { content, model } = await gigDraftService.generateDraft({

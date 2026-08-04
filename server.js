@@ -264,6 +264,19 @@ const startServer = async () => {
           }
         });
 
+        // Real, read-only Hacker News company/project-lead feed — never posts, never
+        // contacts anyone. Small, capped real Claude API cost for auto-drafted pitch
+        // responses (never sent automatically); no orders, no payments. Safe to
+        // auto-spawn by default.
+        await spawnIfMissing('companyLeadHunter', {
+          name: 'Initial Company Lead Hunter',
+          config: {
+            pollIntervalMs: configInstance.get('agentTypes.companyLeadHunter.pollIntervalMs') || 21600000,
+            maxResultsPerPoll: configInstance.get('agentTypes.companyLeadHunter.maxResultsPerPoll') || 10,
+            maxAutoDraftsPerPoll: configInstance.get('agentTypes.companyLeadHunter.maxAutoDraftsPerPoll') || 3
+          }
+        });
+
         // Health monitor for all other agents — restarts anything stuck in 'error'
         // state. Zero financial risk itself (no orders, no withdrawals), safe to
         // auto-spawn by default.

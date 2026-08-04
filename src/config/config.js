@@ -179,6 +179,15 @@ class Config {
           pollIntervalMs: parseInt(process.env.CRYPTO_GIG_HUNTER_POLL_INTERVAL_MS) || 3600000,
           maxResultsPerPoll: parseInt(process.env.CRYPTO_GIG_HUNTER_MAX_RESULTS) || 20
         },
+        // Read-only real Hacker News company/project-lead feed ("Who is hiring?" +
+        // "Seeking freelancer?" monthly threads). No auth, never posts/replies —
+        // surfaces real leads plus a capped number of auto-drafted pitch responses
+        // (real Claude API cost) for the user to review manually.
+        companyLeadHunter: {
+          pollIntervalMs: parseInt(process.env.COMPANY_LEAD_HUNTER_POLL_INTERVAL_MS) || 21600000,
+          maxResultsPerPoll: parseInt(process.env.COMPANY_LEAD_HUNTER_MAX_RESULTS) || 10,
+          maxAutoDraftsPerPoll: parseInt(process.env.COMPANY_LEAD_HUNTER_MAX_AUTO_DRAFTS) || 3
+        },
         // Health monitor: restarts (in place, same agent ID) any agent stuck in
         // 'error' state for errorCyclesBeforeRestart consecutive checks. Never
         // touches real trading agents' budget-cap tracking since the ID is preserved.

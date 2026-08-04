@@ -617,17 +617,19 @@
         <div class="tab-panel" data-tab="gigs">
             <div class="real-money-section">
                 <h2 class="section-title">🔎 Real Opportunities <span class="real-badge">REAL</span></h2>
-                <p style="color:var(--text-dim); margin-bottom: 10px;">Live bug bounties and freelance/crypto jobs from HackerOne, GitHub, and RemoteOK. Pursue manually — the app never submits reports or applies on your behalf.</p>
+                <p style="color:var(--text-dim); margin-bottom: 10px;">Live bug bounties, freelance/crypto jobs, and company project leads from HackerOne, GitHub, RemoteOK, and Hacker News. Pursue manually — the app never submits reports, applies, or contacts anyone on your behalf.</p>
                 <div id="real-opportunities-container" class="loading">Loading real opportunities...</div>
             </div>
 
             <div class="real-money-section">
                 <h2 class="section-title">✍️ Gig Draft Tool</h2>
-                <p style="color:var(--text-dim); margin-bottom: 10px;">Paste in a freelance task (from Upwork, Fiverr, a direct client, wherever) and get an AI-drafted deliverable to review and edit before you send it. Nothing here is submitted or delivered automatically.</p>
+                <p style="color:var(--text-dim); margin-bottom: 10px;">Paste in a freelance task (from Upwork, Fiverr, a direct client, wherever) and get an AI-drafted deliverable to review and edit before you send it. Nothing here is submitted or delivered automatically. Leads found below by the Company Lead Hunter get a pitch draft written automatically — look for the ⚡ auto badge.</p>
                 <div style="display:flex; flex-direction:column; gap:10px; max-width:700px;">
                     <select id="gig-task-type" style="padding:8px; background:var(--bg-panel); color:var(--text); border:1px solid var(--border);">
                         <option value="writing">Writing</option>
                         <option value="code">Code</option>
+                        <option value="website">Website / software (full build)</option>
+                        <option value="pitch">Client pitch response</option>
                         <option value="design-brief">Design brief</option>
                         <option value="other">Other</option>
                     </select>
@@ -1805,7 +1807,7 @@
         // The opportunities API only filters by a single exact `source`, so this fires
         // one request per source and combines them client-side.
         async function fetchMergedRealOpportunities() {
-            const sources = ['HackerOne-real', 'GitHub-real', 'RemoteOK-real'];
+            const sources = ['HackerOne-real', 'GitHub-real', 'RemoteOK-real', 'HackerNews-real'];
             const responses = await Promise.all(
                 sources.map(source => fetch(`${API_BASE}/opportunities?source=${source}&limit=10`).then(r => r.json()))
             );
@@ -1820,7 +1822,7 @@
             const taskDescEl = document.getElementById('gig-task-description');
             const taskTypeEl = document.getElementById('gig-task-type');
             taskDescEl.value = `${title}\n\n${description}\n\nSource: ${url}`;
-            taskTypeEl.value = /code|bounty/i.test(title) ? 'code' : 'writing';
+            taskTypeEl.value = /project lead/i.test(title) ? 'pitch' : (/code|bounty/i.test(title) ? 'code' : 'writing');
             taskDescEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
             taskDescEl.focus();
         }
@@ -1964,6 +1966,55 @@
             loadGigDrafts();
         }
 
+        // Renders the "deposit" step for a delivered draft — requestPayment creates a
+        // real PayPal payment LINK (no charge yet), confirmPayment actually captures
+        // the funds once the client has approved it. Both are real money; nothing
+        // here fires without the human clicking the button.
+        function renderPaymentSection(d) {
+            if (d.status !== 'delivered') return '';
+
+            const status = d.paymentStatus || 'none';
+
+            if (status === 'pending' && d.paymentApprovalUrl) {
+                return `
+                    <div style="margin-top:10px; padding:10px; border:1px solid var(--border); background:var(--bg-panel);">
+                        <div style="color:var(--text-dim); margin-bottom:6px;">💰 Payment link sent for ${escapeHtml(d.paymentCurrency || 'USD')} ${Number(d.paymentAmount || 0).toFixed(2)} — send this to your client, then confirm once they've paid:</div>
+                        <a href="${d.paymentApprovalUrl}" target="_blank" rel="noopener noreferrer" style="word-break:break-all;">${escapeHtml(d.paymentApprovalUrl)}</a>
+                        <div style="margin-top:8px;">
+                            <button class="refresh-btn gig-confirm-payment-btn" data-draft-id="${d._id}">Confirm Payment Received (deposits to PayPal)</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (status === 'paid') {
+                return `
+                    <div style="margin-top:10px; padding:10px; border:1px solid var(--border); background:var(--bg-panel); color:#7dd382;">
+                        ✅ Deposited: ${escapeHtml(d.paymentCurrency || 'USD')} ${Number(d.paymentAmount || 0).toFixed(2)} captured to your PayPal account.
+                    </div>
+                `;
+            }
+
+            const failedNote = status === 'failed'
+                ? '<div style="color:#e8827e; margin-bottom:6px;">⚠️ Last payment attempt failed or the client hasn\'t approved it yet — you can try again below.</div>'
+                : '';
+
+            return `
+                <div style="margin-top:10px; padding:10px; border:1px solid var(--border); background:var(--bg-panel);">
+                    ${failedNote}
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <input type="number" min="0" step="0.01" class="gig-payment-amount" data-draft-id="${d._id}" placeholder="Amount" style="width:100px; padding:6px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+                        <select class="gig-payment-currency" data-draft-id="${d._id}" style="padding:6px; background:var(--bg); color:var(--text); border:1px solid var(--border);">
+                            <option value="usd">USD</option>
+                            <option value="eur">EUR</option>
+                            <option value="gbp">GBP</option>
+                        </select>
+                        <button class="refresh-btn gig-request-payment-btn" data-draft-id="${d._id}">Request Payment</button>
+                    </div>
+                </div>
+            `;
+        }
+
         async function loadGigDrafts() {
             const container = document.getElementById('gig-drafts-list');
             try {
@@ -1979,12 +2030,17 @@
                 container.innerHTML = drafts.map(d => {
                     const displayContent = d.editedContent != null ? d.editedContent : d.draftContent;
                     const statusColor = d.status === 'delivered' ? '#7dd382' : (d.status === 'discarded' ? '#e8827e' : 'var(--text-dim)');
+                    const autoBadge = d.autoGenerated ? '<span title="Auto-drafted the moment this lead was discovered" style="color:#f4c95d;">⚡ auto</span>' : '';
+                    const sourceLink = d.sourceOpportunityUrl
+                        ? `<div style="margin-bottom:8px;"><a href="${d.sourceOpportunityUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--text-dim); font-size:0.9em;">🔗 From lead: ${escapeHtml(d.sourceOpportunityUrl)}</a></div>`
+                        : '';
                     return `
                         <div class="stat-card real-stat-card" style="text-align:left; margin-bottom:12px;">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                                <span style="font-weight:600;">${escapeHtml(d.taskType)}</span>
+                                <span style="font-weight:600;">${escapeHtml(d.taskType)} ${autoBadge}</span>
                                 <span style="color:${statusColor};">${escapeHtml(d.status)}</span>
                             </div>
+                            ${sourceLink}
                             <details style="margin-bottom:8px;">
                                 <summary style="cursor:pointer; color:var(--text-dim);">Task description</summary>
                                 <div style="white-space:pre-wrap; margin-top:6px;">${escapeHtml(d.taskDescription)}</div>
@@ -1995,6 +2051,7 @@
                                 <button class="refresh-btn gig-status-btn" data-draft-id="${d._id}" data-status="delivered">Mark Delivered</button>
                                 <button class="refresh-btn gig-status-btn" data-draft-id="${d._id}" data-status="discarded">Discard</button>
                             </div>
+                            ${renderPaymentSection(d)}
                         </div>
                     `;
                 }).join('');
@@ -2021,6 +2078,54 @@
                             body: JSON.stringify({ status: btn.dataset.status })
                         });
                         loadGigDrafts();
+                    });
+                });
+
+                container.querySelectorAll('.gig-request-payment-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.draftId;
+                        const amountEl = container.querySelector(`.gig-payment-amount[data-draft-id="${id}"]`);
+                        const currencyEl = container.querySelector(`.gig-payment-currency[data-draft-id="${id}"]`);
+                        const amount = parseFloat(amountEl.value);
+                        if (!amount || amount <= 0) {
+                            alert('Enter an amount greater than 0 first.');
+                            return;
+                        }
+                        btn.disabled = true;
+                        btn.textContent = 'Requesting...';
+                        try {
+                            const res = await fetch(`${API_BASE}/gigs/drafts/${id}/request-payment`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ amount, currency: currencyEl.value })
+                            });
+                            const result = await res.json();
+                            if (!result.success) throw new Error(result.message || 'Failed to request payment');
+                            await loadGigDrafts();
+                        } catch (error) {
+                            alert(`Error requesting payment: ${error.message}`);
+                            btn.disabled = false;
+                            btn.textContent = 'Request Payment';
+                        }
+                    });
+                });
+
+                container.querySelectorAll('.gig-confirm-payment-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.draftId;
+                        if (!confirm('Only confirm this after your client has actually approved the payment in PayPal. Continue?')) return;
+                        btn.disabled = true;
+                        btn.textContent = 'Confirming...';
+                        try {
+                            const res = await fetch(`${API_BASE}/gigs/drafts/${id}/confirm-payment`, { method: 'POST' });
+                            const result = await res.json();
+                            if (!result.success) throw new Error(result.message || 'Failed to confirm payment');
+                            await loadGigDrafts();
+                        } catch (error) {
+                            alert(`Error confirming payment: ${error.message}`);
+                            btn.disabled = false;
+                            btn.textContent = 'Confirm Payment Received (deposits to PayPal)';
+                        }
                     });
                 });
             } catch (error) {
