@@ -57,6 +57,15 @@ class BinanceFuturesDcaAgent extends BaseAgent {
       `take-profit ${(this.config.takeProfitPct * 100).toFixed(2)}%`
     );
 
+    // All 8 symbol slots (plus breakout/mean-reversion) spawn within the same few
+    // seconds at boot, and each immediately runs its first cycle before this loop's
+    // own jitter (below) ever applies — that first-cycle burst alone was enough to get
+    // a brand-new IP 418-banned within seconds of a fresh deploy (observed in
+    // practice). Stagger the very first cycle too, not just the steady-state interval.
+    if (this.isRunning) {
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 60000));
+    }
+
     while (this.isRunning) {
       try {
         await this.maybeOpenDailyPosition();

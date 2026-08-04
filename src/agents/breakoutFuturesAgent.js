@@ -86,6 +86,14 @@ class BreakoutFuturesAgent extends BaseAgent {
       `short signal = within ${(this.config.nearLowThresholdPct * 100).toFixed(2)}% of 24h low and 24h change < -${this.config.breakdownThresholdPct}%`
     );
 
+    // Avoids landing this scan's startup burst (getAll24hrTickers + up to
+    // maxCandidatesPerCycle position opens) in the exact same instant as the DCA
+    // slots' and mean-reversion's own startup bursts, all spawned within the same
+    // few seconds at boot.
+    if (this.isRunning) {
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 60000));
+    }
+
     while (this.isRunning) {
       try {
         await this.scanAndTrade();

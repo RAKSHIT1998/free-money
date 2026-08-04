@@ -37,6 +37,10 @@ class BinanceDcaAgent extends BaseAgent {
       `Starting Binance DCA agent for ${this.config.symbol}: $${this.config.dailyBuyUsd}/day, budget cap $${this.config.budgetCapUsd}`
     );
 
+    if (this.isRunning) {
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 60000));
+    }
+
     while (this.isRunning) {
       try {
         await this.maybePlaceDailyOrder();

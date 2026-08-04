@@ -73,6 +73,13 @@ class MeanReversionFuturesAgent extends BaseAgent {
       `short signal = RSI(${this.config.rsiPeriod}) on ${this.config.rsiInterval} > ${this.config.rsiOverboughtThreshold}`
     );
 
+    // Avoids landing this scan's startup burst in the same instant as the DCA slots'
+    // and breakout's own startup bursts, all spawned within the same few seconds at
+    // boot — on top of the per-symbol pacing inside scanAndTrade's klines loop below.
+    if (this.isRunning) {
+      await new Promise(resolve => setTimeout(resolve, Math.random() * 60000));
+    }
+
     while (this.isRunning) {
       try {
         await this.scanAndTrade();
@@ -112,6 +119,13 @@ class MeanReversionFuturesAgent extends BaseAgent {
 
     const candidates = [];
     for (const ticker of watchlist) {
+      // With watchlistSize uncapped, this loop can cover 300+ perpetuals. Firing that
+      // many klines requests back-to-back with no pacing is exactly the kind of burst
+      // that gets a fresh IP 418-banned within seconds of startup (observed in
+      // practice on first deploy) — a small delay between requests turns a spike into
+      // a trickle. 150ms * 300 symbols ~= 45s per scan cycle, negligible against a
+      // 15-minute scanIntervalMs.
+      await new Promise(resolve => setTimeout(resolve, 150));
       try {
         const klines = await realFuturesTradingService.getKlines(ticker.symbol, this.config.rsiInterval, this.config.rsiPeriod + 20);
         const closes = klines.map(k => k.close);
