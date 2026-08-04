@@ -312,6 +312,13 @@ const startServer = async () => {
             console.error('Error auto-spawning real trading agent fundingRateArbitrage:', error.message);
           }
 
+          // Spot, no leverage — profits from range-bound price action. Added 2026-08-04.
+          try {
+            await spawnIfMissing('gridTrading', { name: 'Auto-resumed gridTrading' });
+          } catch (error) {
+            console.error('Error auto-spawning real trading agent gridTrading:', error.message);
+          }
+
           // Diversified DCA slots across multiple symbols (2026-08-03): same no-signal,
           // scheduled/protected accumulation approach as the original BTCUSDT-only
           // agent, spread across more liquid majors plus one small, lower-leverage

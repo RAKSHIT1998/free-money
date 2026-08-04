@@ -94,6 +94,21 @@ class Config {
           maxCandidatesPerCycle: parseInt(process.env.FUNDING_ARB_MAX_CANDIDATES_PER_CYCLE) || Infinity,
           scanIntervalMs: parseInt(process.env.FUNDING_ARB_SCAN_INTERVAL_MS) || 1800000
         },
+        // Real spot (no leverage) grid trading — profits from range-bound sideways
+        // price action, not directional moves. Only places orders when
+        // LIVE_TRADING_CONFIRMED=true and real credentials are set. lowerPrice/
+        // upperPrice are left unset (null) by default so the agent auto-computes them
+        // from recent history on first run; set explicitly to override.
+        gridTrading: {
+          symbol: process.env.GRID_TRADING_SYMBOL || 'BTCUSDT',
+          gridLevels: parseInt(process.env.GRID_TRADING_LEVELS) || 10,
+          perLevelUsd: parseFloat(process.env.GRID_TRADING_PER_LEVEL_USD) || 5,
+          lowerPrice: process.env.GRID_TRADING_LOWER_PRICE ? parseFloat(process.env.GRID_TRADING_LOWER_PRICE) : null,
+          upperPrice: process.env.GRID_TRADING_UPPER_PRICE ? parseFloat(process.env.GRID_TRADING_UPPER_PRICE) : null,
+          boundsLookbackDays: parseInt(process.env.GRID_TRADING_BOUNDS_LOOKBACK_DAYS) || 90,
+          boundsPaddingPct: parseFloat(process.env.GRID_TRADING_BOUNDS_PADDING_PCT) || 0.05,
+          scanIntervalMs: parseInt(process.env.GRID_TRADING_SCAN_INTERVAL_MS) || 300000
+        },
         // Real, LEVERAGED Binance USDT-M futures DCA agent. Only places orders when
         // LIVE_TRADING_CONFIRMED=true AND LIVE_FUTURES_TRADING_CONFIRMED=true AND real
         // (non-placeholder) API credentials are configured; otherwise

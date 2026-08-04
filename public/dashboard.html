@@ -579,6 +579,13 @@
         </div>
 
         <div class="real-money-section">
+            <h2 class="section-title">🔲 Real Grid Trading (Spot, Range-Bound)</h2>
+            <div class="stats-grid" id="real-grid-stats">
+                <div class="loading">Loading grid trading status...</div>
+            </div>
+        </div>
+
+        <div class="real-money-section">
             <h2 class="section-title">🚀 Real Binance Futures DCA Agent (Leveraged)</h2>
             <div class="stats-grid" id="real-futures-dca-stats">
                 <div class="loading">Loading real futures DCA status...</div>
@@ -697,6 +704,7 @@
         const realDcaStatsContainer = document.getElementById('real-dca-stats');
         const realEarnStatsContainer = document.getElementById('real-earn-stats');
         const realFundingArbStatsContainer = document.getElementById('real-funding-arb-stats');
+        const realGridStatsContainer = document.getElementById('real-grid-stats');
         const realOpportunitiesContainer = document.getElementById('real-opportunities-container');
         const realSummaryStatsContainer = document.getElementById('real-summary-stats');
         const realAgentsActivityContainer = document.getElementById('real-agents-activity');
@@ -863,6 +871,7 @@
                     realDcaResponse,
                     realEarnResponse,
                     realFundingArbResponse,
+                    realGridResponse,
                     realOpportunitiesResponse,
                     realSummaryResponse,
                     realFuturesDcaResponse,
@@ -876,6 +885,7 @@
                     fetch(`${API_BASE}/agents/real/binance-dca`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/binance-earn`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/funding-rate-arbitrage`).then(r => r.json()),
+                    fetch(`${API_BASE}/agents/real/grid-trading`).then(r => r.json()),
                     fetch(`${API_BASE}/opportunities?source=HackerOne-real&limit=10`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/summary`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/binance-futures-dca`).then(r => r.json()),
@@ -900,6 +910,7 @@
                 updateRealDcaStats(realDcaResponse.data);
                 updateRealEarnStats(realEarnResponse.data);
                 updateRealFundingArbStats(realFundingArbResponse.data);
+                updateRealGridStats(realGridResponse.data);
                 updateRealOpportunitiesList(realOpportunitiesResponse.data);
                 updateRealSummary(realSummaryResponse.data);
                 updateRealFuturesDcaStats(realFuturesDcaResponse.data);
@@ -1666,6 +1677,45 @@
             });
 
             realFundingArbStatsContainer.innerHTML = html;
+        }
+
+        // Update the real grid trading stat cards (real money, spot, range-bound)
+        function updateRealGridStats(gridAgents) {
+            if (!gridAgents || gridAgents.length === 0) {
+                realGridStatsContainer.innerHTML = `
+                    <div class="loading">
+                        No real grid trading agent running yet. Spawn one manually via
+                        POST /api/agents/spawn { "type": "gridTrading" } after configuring
+                        real Binance API credentials and LIVE_TRADING_CONFIRMED=true.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            gridAgents.forEach(agent => {
+                const real = agent.real || {};
+                const profitColor = (real.realizedProfitUsd || 0) >= 0 ? '#7dd382' : '#e8827e';
+                html += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">🔲</div>
+                        <div class="stat-value">${escapeHtml(real.symbol || '')}</div>
+                        <div class="stat-label">Range $${(real.lowerPrice || 0).toFixed(0)} - $${(real.upperPrice || 0).toFixed(0)} (${real.gridLevels || 0} levels)</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-value">${real.openPositionsCount || 0}</div>
+                        <div class="stat-label">Open Grid Positions</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-value" style="color: ${profitColor};">$${(real.realizedProfitUsd || 0).toFixed(2)}</div>
+                        <div class="stat-label">Realized Profit (last 10 closed)${real.halted ? ' — HALTED' : ''}</div>
+                    </div>
+                `;
+            });
+
+            realGridStatsContainer.innerHTML = html;
         }
 
         // Update the real HackerOne opportunities list (read-only, real public data)

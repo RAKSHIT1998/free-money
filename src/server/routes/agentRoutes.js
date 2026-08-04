@@ -8,6 +8,7 @@ router.get('/', agentController.getAllAgents);
 router.get('/real/binance-dca', agentController.getBinanceDcaStatus);
 router.get('/real/binance-earn', agentController.getBinanceEarnStatus);
 router.get('/real/funding-rate-arbitrage', agentController.getFundingRateArbitrageStatus);
+router.get('/real/grid-trading', agentController.getGridTradingStatus);
 router.get('/real/binance-futures-dca', agentController.getBinanceFuturesDcaStatus);
 router.get('/real/breakout-futures', agentController.getBreakoutFuturesStatus);
 router.get('/real/mean-reversion-futures', agentController.getMeanReversionFuturesStatus);

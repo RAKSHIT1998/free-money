@@ -2,6 +2,7 @@
 const BinanceDcaAgent = require('./binanceDcaAgent');
 const BinanceEarnAgent = require('./binanceEarnAgent');
 const FundingRateArbitrageAgent = require('./fundingRateArbitrageAgent');
+const GridTradingAgent = require('./gridTradingAgent');
 const BinanceFuturesDcaAgent = require('./binanceFuturesDcaAgent');
 const BreakoutFuturesAgent = require('./breakoutFuturesAgent');
 const MeanReversionFuturesAgent = require('./meanReversionFuturesAgent');
@@ -167,6 +168,22 @@ class AgentManager {
           id: this.nextId++,
           config: {
             ...this.config.get('agentTypes.fundingRateArbitrage') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'gridtrading':
+      case 'grid trading':
+      case 'gridtradingagent':
+        // REAL MONEY, spot (no leverage): only ever places live orders if
+        // LIVE_TRADING_CONFIRMED=true and real Binance credentials are configured
+        // (enforced in realTradingService, not here).
+        agent = new GridTradingAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.gridTrading') || {},
             ...options.config
           },
           ...options
@@ -532,6 +549,14 @@ class AgentManager {
 
           case 'fundingRateArbitrage':
             agent = new FundingRateArbitrageAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'gridTrading':
+            agent = new GridTradingAgent({
               id: dbAgent.agentId,
               name: dbAgent.name,
               config: dbAgent.config
