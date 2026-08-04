@@ -195,9 +195,13 @@ class PaymentService {
           }
         );
 
-        // Check if payment is completed
+        // A CAPTURE-intent order has no `payments` object at all until it has
+        // actually been captured — status alone (CREATED/APPROVED/COMPLETED) is what
+        // distinguishes "buyer hasn't paid yet" from "buyer approved but we haven't
+        // captured" from "money has actually moved." Reading captures[0] unguarded
+        // here threw on every pending order instead of reporting its real status.
         const purchaseUnit = response.data.purchase_units[0];
-        const paymentCapture = purchaseUnit.payments.captures[0];
+        const paymentCapture = purchaseUnit.payments?.captures?.[0];
 
         return {
           id: response.data.id,
@@ -213,6 +217,46 @@ class PaymentService {
       console.error('Error verifying payment:', error);
       throw error;
     }
+  }
+
+  /**
+   * Actually collect the funds for a PayPal CAPTURE-intent order the buyer has
+   * approved. Creating an order (createPaymentIntent) never moves money by itself —
+   * without this explicit capture call, an approved order just sits there forever and
+   * nothing is ever collected. Stripe payment intents don't need this: verifyPayment's
+   * confirm step already finalizes the charge for that provider.
+   * @param {string} orderId PayPal order ID from createPaymentIntent
+   * @returns {Promise<Object>} capture result
+   */
+  async capturePayment(orderId) {
+    if (!(this.provider instanceof Stripe)) {
+      const accessToken = await this.getPayPalAccessToken();
+      const response = await axios.post(
+        `${this.provider.baseUrl}/v2/checkout/orders/${orderId}/capture`,
+        {},
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`
+          }
+        }
+      );
+
+      const purchaseUnit = response.data.purchase_units[0];
+      const capture = purchaseUnit.payments?.captures?.[0];
+
+      return {
+        id: response.data.id,
+        status: response.data.status,
+        capture_id: capture ? capture.id : null,
+        capture_status: capture ? capture.status : null,
+        amount: capture ? parseFloat(capture.amount.value) : null,
+        currency: capture ? capture.amount.currency_code : null,
+        provider: 'paypal'
+      };
+    }
+
+    throw new Error('capturePayment is only implemented for PayPal — Stripe payment intents are captured via verifyPayment/confirm');
   }
 
   /**

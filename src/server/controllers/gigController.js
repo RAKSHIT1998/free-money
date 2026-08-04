@@ -1,7 +1,10 @@
-// Controller for the gig-fulfillment draft tool — NOT real-money trading. Generates
-// deliverable drafts via Claude for a human to review/edit before they send them
-// anywhere themselves; never submits or delivers anything on its own.
+// Controller for the gig-fulfillment draft tool. Draft generation has no financial
+// side effects. The payment endpoints below are real money: requestPayment creates a
+// real PayPal order (a payment LINK, not a charge) for the human to send their client;
+// confirmPayment actually captures the funds, and must only be called after the human
+// has confirmed their client approved the payment.
 const gigDraftService = require('../../services/gigDraftService');
+const { paymentService } = require('../../services/paymentService');
 const { Config } = require('../../config/config');
 
 const config = new Config();
@@ -123,6 +126,113 @@ exports.updateDraft = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to update draft',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+async function findDraft(id) {
+  if (persistenceEnabled) {
+    const Model = getGigDraftModel();
+    return Model.findById(id);
+  }
+  return memoryDrafts.find(d => d._id === id) || null;
+}
+
+async function saveDraft(draft) {
+  if (persistenceEnabled) {
+    await draft.save();
+    return draft.toObject();
+  }
+  return draft;
+}
+
+/**
+ * Creates a real PayPal payment order — a payment LINK sent to the client, not a
+ * charge. No money moves until confirmPayment (below) is explicitly called after the
+ * client has actually approved it.
+ */
+exports.requestPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, currency, description } = req.body;
+
+    const parsedAmount = parseFloat(amount);
+    if (!parsedAmount || parsedAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'amount must be a positive number' });
+    }
+
+    const draft = await findDraft(id);
+    if (!draft) {
+      return res.status(404).json({ success: false, message: 'Draft not found' });
+    }
+
+    const order = await paymentService.createPaymentIntent(
+      parsedAmount,
+      currency || 'usd',
+      description || `Payment for: ${draft.taskDescription.slice(0, 100)}`,
+      { draftId: id }
+    );
+
+    const approvalUrl = (order.links || []).find(l => l.rel === 'approve')?.href || null;
+
+    draft.paymentStatus = 'pending';
+    draft.paymentAmount = parsedAmount;
+    draft.paymentCurrency = (currency || 'usd').toUpperCase();
+    draft.paymentOrderId = order.id;
+    draft.paymentApprovalUrl = approvalUrl;
+    draft.updatedAt = new Date();
+
+    const saved = await saveDraft(draft);
+    res.json({ success: true, data: saved });
+  } catch (error) {
+    console.error('Error requesting payment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create payment request',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * Actually collects the funds for a pending order. Only call this after the client
+ * has told you (or you've otherwise confirmed) they completed the PayPal approval —
+ * calling it before that just returns PayPal's error for an unapproved order.
+ */
+exports.confirmPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const draft = await findDraft(id);
+    if (!draft) {
+      return res.status(404).json({ success: false, message: 'Draft not found' });
+    }
+    if (!draft.paymentOrderId) {
+      return res.status(400).json({ success: false, message: 'No payment has been requested for this draft yet' });
+    }
+
+    let capture;
+    try {
+      capture = await paymentService.capturePayment(draft.paymentOrderId);
+    } catch (captureError) {
+      draft.paymentStatus = 'failed';
+      draft.updatedAt = new Date();
+      await saveDraft(draft);
+      throw captureError;
+    }
+
+    draft.paymentStatus = capture.capture_status === 'COMPLETED' ? 'paid' : 'failed';
+    draft.paymentCaptureId = capture.capture_id;
+    draft.updatedAt = new Date();
+
+    const saved = await saveDraft(draft);
+    res.json({ success: true, data: saved });
+  } catch (error) {
+    console.error('Error confirming payment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to confirm payment — the client may not have approved it in PayPal yet',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
