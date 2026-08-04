@@ -413,6 +413,46 @@
             margin-top: 4px;
         }
 
+        /* Tab bar — styled as a terminal mode-line (like a tmux/vim status bar's pane
+           selector) rather than rounded SaaS pills, to match the existing Bloomberg-
+           terminal identity. Segregates the page into four purpose-built panes so
+           unrelated things (a grid-trading level count, a gig draft) are never on
+           screen at the same time competing for attention. */
+        .tab-nav {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--hair);
+            overflow-x: auto;
+        }
+        .tab-btn {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-dim);
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 10px 16px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .tab-btn:hover { color: var(--text); }
+        .tab-btn.active {
+            color: var(--amber-soft);
+            border-bottom-color: var(--amber);
+        }
+        .tab-btn .tab-flag {
+            display: inline-block;
+            margin-left: 6px;
+            color: var(--red-soft);
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
         a { color: var(--amber-soft); }
 
         @media (max-width: 768px) {
@@ -436,7 +476,7 @@
         <header>
             <h1>⌗ Multi-Agent Money-Making System</h1>
             <p class="subtitle">Autonomous agents seeking financial opportunities with survival-of-the-fittest evolution</p>
-            <div class="live-indicator" style="justify-content:center; margin-top:12px;"><span class="dot"></span> LIVE — auto-refresh every <span id="refresh-interval-label">5</span>s</div>
+            <div class="live-indicator" style="justify-content:center; margin-top:12px;"><span class="dot"></span> LIVE — auto-refresh every <span id="refresh-interval-label">5</span>s · <a href="/index.html" style="color:var(--text-dim);">Simple view →</a></div>
         </header>
 
         <div class="money-banner" id="money-banner">
@@ -458,179 +498,197 @@
             </div>
         </div>
 
-        <div class="command-deck">
-            <div class="command-row">
-                <select class="cmd-select" id="spawn-agent-type" title="Agent to spawn">
-                    <option value="binanceDca">binanceDca (spot DCA)</option>
-                    <option value="binanceFuturesDca">binanceFuturesDca (leveraged)</option>
-                    <option value="breakoutFutures">breakoutFutures (leveraged)</option>
-                    <option value="meanReversionFutures">meanReversionFutures (leveraged)</option>
-                    <option value="hackerOneBounty">hackerOneBounty (discovery)</option>
-                    <option value="cryptoGigHunter">cryptoGigHunter (discovery)</option>
-                    <option value="realAgentMonitor">realAgentMonitor (monitor)</option>
-                </select>
-                <button class="cmd-btn" id="spawn-agent-btn">▶ Spawn</button>
-
-                <select class="cmd-select" id="terminate-agent-select" title="Agent to terminate">
-                    <option value="">Loading agents…</option>
-                </select>
-                <button class="cmd-btn danger" id="terminate-agent-btn">■ Terminate</button>
-
-                <select class="cmd-select" id="refresh-interval-select" style="max-width:100px;" title="Auto-refresh interval">
-                    <option value="5000">5s</option>
-                    <option value="10000">10s</option>
-                    <option value="30000">30s</option>
-                    <option value="0">Off</option>
-                </select>
-                <button class="cmd-btn" id="manual-refresh-btn">⟳ Refresh</button>
-
-                <button class="cmd-btn danger" id="close-all-positions-btn" style="margin-left:auto;">⛔ Close All Positions</button>
-            </div>
-            <div class="cmd-status" id="command-status"></div>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">👥</div>
-                <div class="stat-value" id="total-agents">--</div>
-                <div class="stat-label">Total Agents</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🎯</div>
-                <div class="stat-value" id="total-opportunities">0</div>
-                <div class="stat-label">Opportunities Found</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">⚡</div>
-                <div class="stat-value" id="system-uptime">00:00:00</div>
-                <div class="stat-label">System Uptime</div>
-            </div>
-        </div>
-
-        <div class="charts-container">
-            <div class="chart-card">
-                <h3 class="chart-title">Agent Distribution</h3>
-                <canvas id="agentTypeChart"></canvas>
-            </div>
-            <div class="chart-card">
-                <h3 class="chart-title">Performance Overview</h3>
-                <canvas id="performanceChart"></canvas>
-            </div>
-        </div>
-
-        <div class="agents-section">
-            <h2 class="section-title">🤖 Active Agents</h2>
-            <div id="agents-table-container" class="loading">Loading agents...</div>
-        </div>
-
-        <div class="opportunities-section">
-            <h2 class="section-title">💎 Recent Opportunities (real)</h2>
-            <div id="opportunities-container" class="loading">Loading opportunities...</div>
-            <div style="text-align: center; margin-top: 15px;">
-                <button class="refresh-btn">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
-                      <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
-                      <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-                    </svg>
-                    Refresh Data
-                </button>
-            </div>
-        </div>
-
         <div class="mode-banner real">
-            ✅ REAL MONEY — Binance DCA (spot), Binance Futures DCA and Breakout Scanner (leveraged), and real HackerOne bounty programs below. Verify everything yourself before acting; the app never auto-submits reports and only ever places the orders these agents are configured to place.
+            ✅ REAL MONEY — every section below places real orders or drafts real deliverables. Verify everything yourself before acting; nothing here auto-submits on your behalf beyond what each agent is explicitly configured to place.
         </div>
 
-        <div class="real-money-section" id="real-summary-section">
-            <h2 class="section-title">📊 Today's Real Money Summary</h2>
-            <div class="stats-grid" id="real-summary-stats">
-                <div class="loading">Loading real summary...</div>
+        <!-- Four purpose-built panes instead of one long scroll: each tab holds only
+             the things that belong together, so a grid-trading level count is never
+             sharing a screen with a gig draft. -->
+        <div class="tab-nav" id="tab-nav">
+            <button class="tab-btn active" data-tab="overview">Overview</button>
+            <button class="tab-btn" data-tab="crypto">Crypto Trading</button>
+            <button class="tab-btn" data-tab="gigs">Freelance &amp; Gigs</button>
+            <button class="tab-btn" data-tab="system">System</button>
+        </div>
+
+        <div class="tab-panel active" data-tab="overview">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value" id="total-agents">--</div>
+                    <div class="stat-label">Total Agents</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value" id="total-opportunities">0</div>
+                    <div class="stat-label">Opportunities Found</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-value" id="system-uptime">00:00:00</div>
+                    <div class="stat-label">System Uptime</div>
+                </div>
             </div>
-            <div id="real-agents-activity" style="margin-top: 15px;"></div>
-            <div id="real-open-positions" style="margin-top: 15px;"></div>
-        </div>
 
-        <div class="real-money-section" id="real-history-section">
-            <h2 class="section-title">🧠 All-Time Trade History <span title="Derived fresh from Binance's own records every load — survives restarts, not a separate cache">(persists across restarts)</span></h2>
-            <div class="stats-grid" id="real-history-stats">
-                <div class="loading">Loading trade history...</div>
-            </div>
-        </div>
-
-        <div class="real-money-section">
-            <h2 class="section-title">💵 Real Binance Spot DCA Agent</h2>
-            <div class="stats-grid" id="real-dca-stats">
-                <div class="loading">Loading real trading status...</div>
-            </div>
-        </div>
-
-        <div class="real-money-section">
-            <h2 class="section-title">🏦 Real Binance Earn (Flexible)</h2>
-            <div class="stats-grid" id="real-earn-stats">
-                <div class="loading">Loading real Earn status...</div>
-            </div>
-        </div>
-
-        <div class="real-money-section">
-            <h2 class="section-title">⚖️ Real Funding-Rate Arbitrage (Market-Neutral)</h2>
-            <div class="stats-grid" id="real-funding-arb-stats">
-                <div class="loading">Loading funding-rate arbitrage status...</div>
-            </div>
-        </div>
-
-        <div class="real-money-section">
-            <h2 class="section-title">🔲 Real Grid Trading (Spot, Range-Bound)</h2>
-            <div class="stats-grid" id="real-grid-stats">
-                <div class="loading">Loading grid trading status...</div>
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3 class="chart-title">Agent Distribution</h3>
+                    <canvas id="agentTypeChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Performance Overview</h3>
+                    <canvas id="performanceChart"></canvas>
+                </div>
             </div>
         </div>
 
-        <div class="real-money-section">
-            <h2 class="section-title">🚀 Real Binance Futures DCA Agent (Leveraged)</h2>
-            <div class="stats-grid" id="real-futures-dca-stats">
-                <div class="loading">Loading real futures DCA status...</div>
+        <div class="tab-panel" data-tab="crypto">
+            <div class="real-money-section" id="real-summary-section">
+                <h2 class="section-title">📊 Today's Real Money Summary</h2>
+                <div class="stats-grid" id="real-summary-stats">
+                    <div class="loading">Loading real summary...</div>
+                </div>
+                <div id="real-agents-activity" style="margin-top: 15px;"></div>
+                <div id="real-open-positions" style="margin-top: 15px;"></div>
+            </div>
+
+            <div class="real-money-section" id="real-history-section">
+                <h2 class="section-title">🧠 All-Time Trade History <span title="Derived fresh from Binance's own records every load — survives restarts, not a separate cache">(persists across restarts)</span></h2>
+                <div class="stats-grid" id="real-history-stats">
+                    <div class="loading">Loading trade history...</div>
+                </div>
+            </div>
+
+            <div class="real-money-section">
+                <h2 class="section-title">💵 Real Binance Spot DCA Agent</h2>
+                <div class="stats-grid" id="real-dca-stats">
+                    <div class="loading">Loading real trading status...</div>
+                </div>
+            </div>
+
+            <div class="real-money-section">
+                <h2 class="section-title">🏦 Real Binance Earn (Flexible)</h2>
+                <div class="stats-grid" id="real-earn-stats">
+                    <div class="loading">Loading real Earn status...</div>
+                </div>
+            </div>
+
+            <div class="real-money-section">
+                <h2 class="section-title">⚖️ Real Funding-Rate Arbitrage (Market-Neutral)</h2>
+                <div class="stats-grid" id="real-funding-arb-stats">
+                    <div class="loading">Loading funding-rate arbitrage status...</div>
+                </div>
+            </div>
+
+            <div class="real-money-section">
+                <h2 class="section-title">🔲 Real Grid Trading (Spot, Range-Bound)</h2>
+                <div class="stats-grid" id="real-grid-stats">
+                    <div class="loading">Loading grid trading status...</div>
+                </div>
+            </div>
+
+            <div class="real-money-section">
+                <h2 class="section-title">🚀 Real Binance Futures DCA Agent (Leveraged)</h2>
+                <div class="stats-grid" id="real-futures-dca-stats">
+                    <div class="loading">Loading real futures DCA status...</div>
+                </div>
+            </div>
+
+            <div class="real-money-section">
+                <h2 class="section-title">📈 Real Breakout Futures Scanner (Leveraged)</h2>
+                <div class="stats-grid" id="real-breakout-stats">
+                    <div class="loading">Loading real breakout scanner status...</div>
+                </div>
+                <div id="real-breakout-candidates" style="margin-top: 15px;"></div>
+                <div id="real-breakout-trades" style="margin-top: 15px;"></div>
+            </div>
+
+            <div class="real-money-section">
+                <h2 class="section-title">📉 Real Mean-Reversion Futures Scanner (Leveraged)</h2>
+                <div class="stats-grid" id="real-mean-reversion-stats">
+                    <div class="loading">Loading real mean-reversion scanner status...</div>
+                </div>
+                <div id="real-mean-reversion-candidates" style="margin-top: 15px;"></div>
+                <div id="real-mean-reversion-trades" style="margin-top: 15px;"></div>
             </div>
         </div>
 
-        <div class="real-money-section">
-            <h2 class="section-title">📈 Real Breakout Futures Scanner (Leveraged)</h2>
-            <div class="stats-grid" id="real-breakout-stats">
-                <div class="loading">Loading real breakout scanner status...</div>
+        <div class="tab-panel" data-tab="gigs">
+            <div class="real-money-section">
+                <h2 class="section-title">🔎 Real Opportunities <span class="real-badge">REAL</span></h2>
+                <p style="color:var(--text-dim); margin-bottom: 10px;">Live bug bounties and freelance/crypto jobs from HackerOne, GitHub, and RemoteOK. Pursue manually — the app never submits reports or applies on your behalf.</p>
+                <div id="real-opportunities-container" class="loading">Loading real opportunities...</div>
             </div>
-            <div id="real-breakout-candidates" style="margin-top: 15px;"></div>
-            <div id="real-breakout-trades" style="margin-top: 15px;"></div>
+
+            <div class="real-money-section">
+                <h2 class="section-title">✍️ Gig Draft Tool</h2>
+                <p style="color:var(--text-dim); margin-bottom: 10px;">Paste in a freelance task (from Upwork, Fiverr, a direct client, wherever) and get an AI-drafted deliverable to review and edit before you send it. Nothing here is submitted or delivered automatically.</p>
+                <div style="display:flex; flex-direction:column; gap:10px; max-width:700px;">
+                    <select id="gig-task-type" style="padding:8px; background:var(--bg-panel); color:var(--text); border:1px solid var(--border);">
+                        <option value="writing">Writing</option>
+                        <option value="code">Code</option>
+                        <option value="design-brief">Design brief</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <textarea id="gig-task-description" placeholder="Paste the task description here..." rows="5" style="padding:8px; background:var(--bg-panel); color:var(--text); border:1px solid var(--border); font-family:inherit;"></textarea>
+                    <button id="gig-draft-btn" class="refresh-btn" style="width:fit-content;">Generate Draft</button>
+                    <div id="gig-draft-status"></div>
+                </div>
+                <div id="gig-drafts-list" style="margin-top:20px;"></div>
+            </div>
         </div>
 
-        <div class="real-money-section">
-            <h2 class="section-title">📉 Real Mean-Reversion Futures Scanner (Leveraged)</h2>
-            <div class="stats-grid" id="real-mean-reversion-stats">
-                <div class="loading">Loading real mean-reversion scanner status...</div>
-            </div>
-            <div id="real-mean-reversion-candidates" style="margin-top: 15px;"></div>
-            <div id="real-mean-reversion-trades" style="margin-top: 15px;"></div>
-        </div>
+        <div class="tab-panel" data-tab="system">
+            <div class="command-deck">
+                <div class="command-row">
+                    <select class="cmd-select" id="spawn-agent-type" title="Agent to spawn">
+                        <option value="binanceDca">binanceDca (spot DCA)</option>
+                        <option value="binanceFuturesDca">binanceFuturesDca (leveraged)</option>
+                        <option value="breakoutFutures">breakoutFutures (leveraged)</option>
+                        <option value="meanReversionFutures">meanReversionFutures (leveraged)</option>
+                        <option value="hackerOneBounty">hackerOneBounty (discovery)</option>
+                        <option value="cryptoGigHunter">cryptoGigHunter (discovery)</option>
+                        <option value="realAgentMonitor">realAgentMonitor (monitor)</option>
+                    </select>
+                    <button class="cmd-btn" id="spawn-agent-btn">▶ Spawn</button>
 
-        <div class="real-money-section">
-            <h2 class="section-title">🔎 Real HackerOne Opportunities <span class="real-badge">REAL</span></h2>
-            <p style="color:var(--text-dim); margin-bottom: 10px;">Live public bug bounty programs. Pursue manually — the app never submits reports or claims bounties on your behalf.</p>
-            <div id="real-opportunities-container" class="loading">Loading real opportunities...</div>
-        </div>
+                    <select class="cmd-select" id="terminate-agent-select" title="Agent to terminate">
+                        <option value="">Loading agents…</option>
+                    </select>
+                    <button class="cmd-btn danger" id="terminate-agent-btn">■ Terminate</button>
 
-        <div class="real-money-section">
-            <h2 class="section-title">✍️ Gig Draft Tool</h2>
-            <p style="color:var(--text-dim); margin-bottom: 10px;">Paste in a freelance task (from Upwork, Fiverr, a direct client, wherever) and get an AI-drafted deliverable to review and edit before you send it. Nothing here is submitted or delivered automatically.</p>
-            <div style="display:flex; flex-direction:column; gap:10px; max-width:700px;">
-                <select id="gig-task-type" style="padding:8px; background:var(--bg-panel); color:var(--text); border:1px solid var(--border);">
-                    <option value="writing">Writing</option>
-                    <option value="code">Code</option>
-                    <option value="design-brief">Design brief</option>
-                    <option value="other">Other</option>
-                </select>
-                <textarea id="gig-task-description" placeholder="Paste the task description here..." rows="5" style="padding:8px; background:var(--bg-panel); color:var(--text); border:1px solid var(--border); font-family:inherit;"></textarea>
-                <button id="gig-draft-btn" class="refresh-btn" style="width:fit-content;">Generate Draft</button>
-                <div id="gig-draft-status"></div>
+                    <select class="cmd-select" id="refresh-interval-select" style="max-width:100px;" title="Auto-refresh interval">
+                        <option value="5000">5s</option>
+                        <option value="10000">10s</option>
+                        <option value="30000">30s</option>
+                        <option value="0">Off</option>
+                    </select>
+                    <button class="cmd-btn" id="manual-refresh-btn">⟳ Refresh</button>
+
+                    <button class="cmd-btn danger" id="close-all-positions-btn" style="margin-left:auto;">⛔ Close All Positions</button>
+                </div>
+                <div class="cmd-status" id="command-status"></div>
             </div>
-            <div id="gig-drafts-list" style="margin-top:20px;"></div>
+
+            <div class="agents-section">
+                <h2 class="section-title">🤖 Active Agents</h2>
+                <div id="agents-table-container" class="loading">Loading agents...</div>
+            </div>
+
+            <div class="opportunities-section">
+                <h2 class="section-title">💎 Raw Opportunity Feed (unfiltered)</h2>
+                <div id="opportunities-container" class="loading">Loading opportunities...</div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <button class="refresh-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                          <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                        </svg>
+                        Refresh Data
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -921,6 +979,9 @@
                 updateAgentsTable(agentsResponse.data);
                 updateTerminateAgentOptions(agentsResponse.data.agents);
 
+                const erroredAgents = (agentsResponse.data.agents || []).filter(a => a.state === 'error' || a.haltedReason);
+                setTabFlag('system', erroredAgents.length > 0);
+
                 // Update opportunities list
                 updateOpportunitiesList(opportunitiesResponse.data);
 
@@ -928,6 +989,8 @@
                 updateRealDcaStats(realDcaResponse.data);
                 updateRealEarnStats(realEarnResponse.data);
                 updateRealFundingArbStats(realFundingArbResponse.data);
+                const unhedgedCount = (realFundingArbResponse.data || []).reduce((sum, a) => sum + ((a.real?.unhedgedPositions || []).length), 0);
+                setTabFlag('crypto', unhedgedCount > 0);
                 updateRealGridStats(realGridResponse.data);
                 updateRealOpportunitiesList(realOpportunitiesResponse.data);
                 updateRealSummary(realSummaryResponse.data);
@@ -1965,8 +2028,57 @@
             }
         }
 
+        // Tab switching. Purely a display toggle — every existing render function keeps
+        // targeting the same element IDs regardless of which tab is visible, so
+        // whichever tab is hidden still updates on schedule and is instant to show.
+        // Selection persists across reloads so refreshing doesn't dump you back on
+        // Overview if you were deep in Crypto Trading.
+        const TAB_STORAGE_KEY = 'freeMoneyActiveTab';
+
+        function initTabs() {
+            const buttons = document.querySelectorAll('.tab-btn');
+            const panels = document.querySelectorAll('.tab-panel');
+
+            const activate = (tabName) => {
+                buttons.forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+                panels.forEach(p => p.classList.toggle('active', p.dataset.tab === tabName));
+                localStorage.setItem(TAB_STORAGE_KEY, tabName);
+            };
+
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => activate(btn.dataset.tab));
+            });
+
+            const saved = localStorage.getItem(TAB_STORAGE_KEY);
+            if (saved && document.querySelector(`.tab-panel[data-tab="${saved}"]`)) {
+                activate(saved);
+            }
+        }
+
+        // Lights up a small red marker on a tab when something inside it actually
+        // needs a look — halted/errored agents under System, an out-of-sync funding-
+        // arb leg under Crypto Trading — so you know where to go without visiting
+        // every tab. Cleared automatically once nothing is flagged.
+        function setTabFlag(tabName, hasIssue) {
+            const btn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+            if (!btn) return;
+            const existing = btn.querySelector('.tab-flag');
+            if (hasIssue && !existing) {
+                const flag = document.createElement('span');
+                flag.className = 'tab-flag';
+                flag.textContent = '●';
+                flag.title = 'Something here needs attention';
+                btn.appendChild(flag);
+            } else if (!hasIssue && existing) {
+                existing.remove();
+            }
+        }
+
         // Initialize when DOM is loaded
-        document.addEventListener('DOMContentLoaded', initDashboard);
+        document.addEventListener('DOMContentLoaded', () => {
+            initTabs();
+            initDashboard();
+        });
 
         // Cleanup when page is unloaded
         window.addEventListener('beforeunload', stopAutoUpdate);
