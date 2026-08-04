@@ -26,7 +26,7 @@ class BinanceFuturesDcaAgent extends BaseAgent {
       config: {
         symbol: options.config?.symbol || 'BTCUSDT',
         dailyMarginUsd: options.config?.dailyMarginUsd || 5,
-        budgetCapUsd: options.config?.budgetCapUsd || 50,
+        budgetCapUsd: options.config?.budgetCapUsd || Infinity,
         leverage: options.config?.leverage || 50,
         marginMode: options.config?.marginMode || 'ISOLATED',
         stopLossPct: options.config?.stopLossPct != null ? options.config.stopLossPct : 0.01,
@@ -66,7 +66,12 @@ class BinanceFuturesDcaAgent extends BaseAgent {
       }
 
       if (this.isRunning) {
-        await new Promise(resolve => setTimeout(resolve, this.config.checkIntervalMs));
+        // Jitter avoids every symbol slot's hourly check landing in the same instant —
+        // all 8 slots start within the same few seconds at boot and share checkIntervalMs,
+        // so without this they'd stay synchronized forever, turning what should be spread
+        // load into a recurring burst of simultaneous Binance calls every hour.
+        const jitterMs = Math.random() * 0.1 * this.config.checkIntervalMs;
+        await new Promise(resolve => setTimeout(resolve, this.config.checkIntervalMs + jitterMs));
       }
     }
   }

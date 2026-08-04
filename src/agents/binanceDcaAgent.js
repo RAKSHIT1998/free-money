@@ -21,7 +21,7 @@ class BinanceDcaAgent extends BaseAgent {
       config: {
         symbol: options.config?.symbol || 'BTCUSDT',
         dailyBuyUsd: options.config?.dailyBuyUsd || 5,
-        budgetCapUsd: options.config?.budgetCapUsd || 50,
+        budgetCapUsd: options.config?.budgetCapUsd || Infinity,
         checkIntervalMs: options.config?.checkIntervalMs || 3600000,
         ...options.config
       }
@@ -63,7 +63,7 @@ class BinanceDcaAgent extends BaseAgent {
       return null;
     }
 
-    const spentSoFar = await realTradingService.getTotalSpentUsd(this.id);
+    const spentSoFar = await realTradingService.getTotalSpentUsd(this.id, this.config.symbol);
     if (spentSoFar >= this.config.budgetCapUsd) {
       this.haltedReason = `Budget cap of $${this.config.budgetCapUsd} reached (spent $${spentSoFar.toFixed(2)})`;
       this.log('warn', this.haltedReason);

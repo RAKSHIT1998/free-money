@@ -1,12 +1,15 @@
 // REAL MONEY, LEVERAGED agent: continuously scans all USDT-margined Binance futures
-// perpetuals for a simple breakout signal and opens a leveraged long when triggered.
+// perpetuals for a breakout (long) or breakdown (short) signal and opens a leveraged
+// position when triggered.
 //
 // Signal (deliberately simple, NOT backtested, NOT a proven-profitable strategy):
-//   a symbol qualifies as "breaking out" when its last price is within
+//   a symbol qualifies for a LONG as "breaking out" when its last price is within
 //   nearHighThresholdPct of its own 24h high AND its 24h priceChangePercent exceeds
-//   momentumThresholdPct. Both numbers come from a single bulk 24hr-ticker API call
-//   covering every symbol, so scanning "all coins" costs one request per cycle, not
-//   one per symbol.
+//   momentumThresholdPct. It qualifies for a SHORT as "breaking down" when its last
+//   price is within nearLowThresholdPct of its own 24h low AND its 24h
+//   priceChangePercent is below -breakdownThresholdPct — the mirror image of the long
+//   signal. Both numbers come from a single bulk 24hr-ticker API call covering every
+//   symbol, so scanning "all coins" costs one request per cycle, not one per symbol.
 //
 // Safety properties (do not remove without updating the plan/tests):
 // - Never calls walletService.addEarnings — zero interaction with the fabricated
@@ -40,7 +43,7 @@ class BreakoutFuturesAgent extends BaseAgent {
         sizingMode: options.config?.sizingMode || 'percentOfBalance',
         riskPct: options.config?.riskPct != null ? options.config.riskPct : 0.2,
         perTradeMarginUsd: options.config?.perTradeMarginUsd || 5,
-        budgetCapUsd: options.config?.budgetCapUsd || 50,
+        budgetCapUsd: options.config?.budgetCapUsd || Infinity,
         leverage: options.config?.leverage || 50,
         marginMode: options.config?.marginMode || 'ISOLATED',
         stopLossPct: options.config?.stopLossPct != null ? options.config.stopLossPct : 0.01,
@@ -49,8 +52,17 @@ class BreakoutFuturesAgent extends BaseAgent {
           ? options.config.nearHighThresholdPct : 0.001, // within 0.1% of 24h high
         momentumThresholdPct: options.config?.momentumThresholdPct != null
           ? options.config.momentumThresholdPct : 5, // 24h priceChangePercent > 5%
+        // Mirror-image breakdown signal: within nearLowThresholdPct of the 24h low AND
+        // down beyond breakdownThresholdPct on the day opens a short instead of a long.
+        nearLowThresholdPct: options.config?.nearLowThresholdPct != null
+          ? options.config.nearLowThresholdPct : 0.001, // within 0.1% of 24h low
+        breakdownThresholdPct: options.config?.breakdownThresholdPct != null
+          ? options.config.breakdownThresholdPct : 5, // 24h priceChangePercent < -5%
         minQuoteVolumeUsd: options.config?.minQuoteVolumeUsd || 5000000, // liquidity floor
-        maxCandidatesPerCycle: options.config?.maxCandidatesPerCycle || 3,
+        // Uncapped by default (explicit user decision): every symbol that qualifies
+        // this cycle gets a position, not just the top few. Still bounded in practice
+        // by the $5M liquidity floor and one-open-per-symbol-per-day rule above.
+        maxCandidatesPerCycle: options.config?.maxCandidatesPerCycle || Infinity,
         scanIntervalMs: options.config?.scanIntervalMs || 300000, // 5 minutes
         ...options.config
       }
@@ -70,8 +82,8 @@ class BreakoutFuturesAgent extends BaseAgent {
       `${sizingDesc} @ ${this.config.leverage}x ${this.config.marginMode}, ` +
       `shared lifetime budget cap $${this.config.budgetCapUsd} (hard backstop regardless of sizing), ` +
       `stop-loss ${(this.config.stopLossPct * 100).toFixed(2)}%, take-profit ${(this.config.takeProfitPct * 100).toFixed(2)}%, ` +
-      `breakout = within ${(this.config.nearHighThresholdPct * 100).toFixed(2)}% of 24h high ` +
-      `and 24h change > ${this.config.momentumThresholdPct}%`
+      `long signal = within ${(this.config.nearHighThresholdPct * 100).toFixed(2)}% of 24h high and 24h change > ${this.config.momentumThresholdPct}%, ` +
+      `short signal = within ${(this.config.nearLowThresholdPct * 100).toFixed(2)}% of 24h low and 24h change < -${this.config.breakdownThresholdPct}%`
     );
 
     while (this.isRunning) {
@@ -83,7 +95,8 @@ class BreakoutFuturesAgent extends BaseAgent {
       }
 
       if (this.isRunning) {
-        await new Promise(resolve => setTimeout(resolve, this.config.scanIntervalMs));
+        const jitterMs = Math.random() * 0.1 * this.config.scanIntervalMs;
+        await new Promise(resolve => setTimeout(resolve, this.config.scanIntervalMs + jitterMs));
       }
     }
   }
@@ -109,19 +122,35 @@ class BreakoutFuturesAgent extends BaseAgent {
     ]);
 
     const perpetualSet = new Set(perpetualSymbols);
-    const candidates = tickers.filter(t =>
-      perpetualSet.has(t.symbol) &&
-      !symbolsTradedToday.has(t.symbol) &&
-      t.quoteVolume >= this.config.minQuoteVolumeUsd &&
-      t.highPrice > 0 &&
-      t.lastPrice >= t.highPrice * (1 - this.config.nearHighThresholdPct) &&
-      t.priceChangePercent >= this.config.momentumThresholdPct
-    );
+    const eligible = t => perpetualSet.has(t.symbol) && !symbolsTradedToday.has(t.symbol) && t.quoteVolume >= this.config.minQuoteVolumeUsd;
 
-    // Strongest momentum first.
-    candidates.sort((a, b) => b.priceChangePercent - a.priceChangePercent);
+    const longCandidates = tickers
+      .filter(t =>
+        eligible(t) &&
+        t.highPrice > 0 &&
+        t.lastPrice >= t.highPrice * (1 - this.config.nearHighThresholdPct) &&
+        t.priceChangePercent >= this.config.momentumThresholdPct
+      )
+      .map(t => ({ ...t, direction: 'long' }));
+
+    // Mirror-image of the breakout signal: near the 24h low AND down beyond
+    // breakdownThresholdPct on the day opens a short instead of a long.
+    const shortCandidates = tickers
+      .filter(t =>
+        eligible(t) &&
+        t.lowPrice > 0 &&
+        t.lastPrice <= t.lowPrice * (1 + this.config.nearLowThresholdPct) &&
+        t.priceChangePercent <= -this.config.breakdownThresholdPct
+      )
+      .map(t => ({ ...t, direction: 'short' }));
+
+    // Strongest move (either direction) first.
+    const candidates = [...longCandidates, ...shortCandidates]
+      .sort((a, b) => Math.abs(b.priceChangePercent) - Math.abs(a.priceChangePercent));
+
     this.lastScanCandidates = candidates.slice(0, 10).map(c => ({
       symbol: c.symbol,
+      direction: c.direction,
       priceChangePercent: c.priceChangePercent,
       lastPrice: c.lastPrice
     }));
@@ -157,7 +186,10 @@ class BreakoutFuturesAgent extends BaseAgent {
       if (marginUsd <= 0) continue;
 
       try {
-        const result = await realFuturesTradingService.openLeveragedLong({
+        const openFn = candidate.direction === 'long'
+          ? realFuturesTradingService.openLeveragedLong
+          : realFuturesTradingService.openLeveragedShort;
+        const result = await openFn({
           symbol: candidate.symbol,
           marginUsd,
           leverage: this.config.leverage,
@@ -174,7 +206,7 @@ class BreakoutFuturesAgent extends BaseAgent {
 
         this.log(
           'info',
-          `Breakout entry: $${marginUsd} margin @ ${this.config.leverage}x of ${candidate.symbol} ` +
+          `Breakout ${candidate.direction} entry: $${marginUsd} margin @ ${this.config.leverage}x of ${candidate.symbol} ` +
           `(24h change ${candidate.priceChangePercent}%) -> qty=${result.filledQty} @ ${result.fillPrice}` +
           (result.stopPrice ? `, stop-loss @ ${result.stopPrice}` : ', NO STOP-LOSS PLACED (check logs for error)')
         );

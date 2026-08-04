@@ -1,13 +1,15 @@
 // REAL MONEY, LEVERAGED agent: mean-reversion strategy, distinct signal source from
-// breakoutFuturesAgent (momentum) — buys liquid USDT perpetuals whose 14-period RSI
-// on the 1h chart indicates oversold conditions, betting on a bounce back toward the
-// mean rather than continued momentum in either direction.
+// breakoutFuturesAgent (momentum) — trades liquid USDT perpetuals whose 14-period RSI
+// on the 1h chart indicates an overextended move, betting on a bounce back toward the
+// mean rather than continued momentum in either direction. Oversold opens a long,
+// overbought opens a short.
 //
 // Signal (deliberately simple, NOT backtested, NOT a proven-profitable strategy):
-//   among the most liquid perpetuals (by 24h quote volume), a symbol qualifies when
-//   its 1h RSI(14) is below rsiOversoldThreshold. RSI is a well-known, publicly
-//   documented indicator — using it here is not a claim that this particular
-//   application of it is reliably profitable.
+//   among the most liquid perpetuals (by 24h quote volume), a symbol qualifies for a
+//   LONG when its 1h RSI(14) is below rsiOversoldThreshold, and for a SHORT when it's
+//   above rsiOverboughtThreshold. RSI is a well-known, publicly documented indicator —
+//   using it here is not a claim that this particular application of it is reliably
+//   profitable.
 //
 // Safety properties (do not remove without updating the plan/tests):
 // - Never calls walletService.addEarnings — zero interaction with the fabricated
@@ -36,7 +38,7 @@ class MeanReversionFuturesAgent extends BaseAgent {
       type: 'meanReversionFutures',
       config: {
         perTradeMarginUsd: options.config?.perTradeMarginUsd || 5,
-        budgetCapUsd: options.config?.budgetCapUsd || 50,
+        budgetCapUsd: options.config?.budgetCapUsd || Infinity,
         leverage: options.config?.leverage || 50,
         marginMode: options.config?.marginMode || 'ISOLATED',
         stopLossPct: options.config?.stopLossPct != null ? options.config.stopLossPct : 0.01,
@@ -44,9 +46,13 @@ class MeanReversionFuturesAgent extends BaseAgent {
         rsiPeriod: options.config?.rsiPeriod || 14,
         rsiInterval: options.config?.rsiInterval || '1h',
         rsiOversoldThreshold: options.config?.rsiOversoldThreshold != null ? options.config.rsiOversoldThreshold : 30,
+        rsiOverboughtThreshold: options.config?.rsiOverboughtThreshold != null ? options.config.rsiOverboughtThreshold : 70,
         minQuoteVolumeUsd: options.config?.minQuoteVolumeUsd || 5000000,
-        watchlistSize: options.config?.watchlistSize || 30,
-        maxCandidatesPerCycle: options.config?.maxCandidatesPerCycle || 2,
+        // Uncapped by default (explicit user decision): RSI is checked on every
+        // perpetual clearing the liquidity floor, not just the most liquid 30, and
+        // every qualifying candidate gets a position, not just the top few.
+        watchlistSize: options.config?.watchlistSize || Infinity,
+        maxCandidatesPerCycle: options.config?.maxCandidatesPerCycle || Infinity,
         scanIntervalMs: options.config?.scanIntervalMs || 900000, // 15 minutes
         ...options.config
       }
@@ -63,7 +69,8 @@ class MeanReversionFuturesAgent extends BaseAgent {
       `$${this.config.perTradeMarginUsd} margin/trade @ ${this.config.leverage}x ${this.config.marginMode}, ` +
       `per-agent budget cap $${this.config.budgetCapUsd} (also bound by the global cross-agent cap), ` +
       `stop-loss ${(this.config.stopLossPct * 100).toFixed(2)}%, take-profit ${(this.config.takeProfitPct * 100).toFixed(2)}%, ` +
-      `signal = RSI(${this.config.rsiPeriod}) on ${this.config.rsiInterval} < ${this.config.rsiOversoldThreshold}`
+      `long signal = RSI(${this.config.rsiPeriod}) on ${this.config.rsiInterval} < ${this.config.rsiOversoldThreshold}, ` +
+      `short signal = RSI(${this.config.rsiPeriod}) on ${this.config.rsiInterval} > ${this.config.rsiOverboughtThreshold}`
     );
 
     while (this.isRunning) {
@@ -75,7 +82,8 @@ class MeanReversionFuturesAgent extends BaseAgent {
       }
 
       if (this.isRunning) {
-        await new Promise(resolve => setTimeout(resolve, this.config.scanIntervalMs));
+        const jitterMs = Math.random() * 0.1 * this.config.scanIntervalMs;
+        await new Promise(resolve => setTimeout(resolve, this.config.scanIntervalMs + jitterMs));
       }
     }
   }
@@ -108,18 +116,22 @@ class MeanReversionFuturesAgent extends BaseAgent {
         const klines = await realFuturesTradingService.getKlines(ticker.symbol, this.config.rsiInterval, this.config.rsiPeriod + 20);
         const closes = klines.map(k => k.close);
         const rsi = calculateRsi(closes, this.config.rsiPeriod);
-        if (rsi !== null && rsi < this.config.rsiOversoldThreshold) {
-          candidates.push({ symbol: ticker.symbol, rsi, lastPrice: ticker.lastPrice });
+        if (rsi === null) continue;
+        if (rsi < this.config.rsiOversoldThreshold) {
+          candidates.push({ symbol: ticker.symbol, rsi, lastPrice: ticker.lastPrice, direction: 'long' });
+        } else if (rsi > this.config.rsiOverboughtThreshold) {
+          candidates.push({ symbol: ticker.symbol, rsi, lastPrice: ticker.lastPrice, direction: 'short' });
         }
       } catch (error) {
         this.log('warn', `Failed to compute RSI for ${ticker.symbol}:`, error.message);
       }
     }
 
-    candidates.sort((a, b) => a.rsi - b.rsi); // most oversold first
+    // Most extreme RSI reading first, oversold or overbought alike.
+    candidates.sort((a, b) => Math.abs(b.rsi - 50) - Math.abs(a.rsi - 50));
     this.lastScanCandidates = candidates.slice(0, 10);
 
-    this.log('info', `Found ${candidates.length} oversold candidate(s)`);
+    this.log('info', `Found ${candidates.length} oversold/overbought candidate(s)`);
 
     const opened = [];
     for (const candidate of candidates.slice(0, this.config.maxCandidatesPerCycle)) {
@@ -140,7 +152,10 @@ class MeanReversionFuturesAgent extends BaseAgent {
       if (marginUsd <= 0) continue;
 
       try {
-        const result = await realFuturesTradingService.openLeveragedLong({
+        const openFn = candidate.direction === 'long'
+          ? realFuturesTradingService.openLeveragedLong
+          : realFuturesTradingService.openLeveragedShort;
+        const result = await openFn({
           symbol: candidate.symbol,
           marginUsd,
           leverage: this.config.leverage,
@@ -157,7 +172,7 @@ class MeanReversionFuturesAgent extends BaseAgent {
 
         this.log(
           'info',
-          `Mean-reversion entry: $${marginUsd} margin @ ${this.config.leverage}x of ${candidate.symbol} ` +
+          `Mean-reversion ${candidate.direction} entry: $${marginUsd} margin @ ${this.config.leverage}x of ${candidate.symbol} ` +
           `(RSI ${candidate.rsi.toFixed(1)}) -> qty=${result.filledQty} @ ${result.fillPrice}` +
           (result.stopPrice ? `, stop-loss @ ${result.stopPrice}` : ', NO STOP-LOSS PLACED (check logs for error)')
         );

@@ -17,6 +17,15 @@ dotenv.config();
 // Load environment variables (duplicate line removed)
 // dotenv.config();
 
+// A mongodb+srv:// URI (used by MongoDB Atlas) requires a DNS SRV record lookup before
+// the driver can even open a connection. Some networks' default DNS resolvers (seen
+// here: an ISP resolver that answers plain A/AAAA queries fine but refuses SRV
+// queries, verified independently of this app via `dns.resolveSrv`) cause that lookup
+// to fail outright with ECONNREFUSED, even though the connection string itself is
+// valid. Pointing Node's resolver at public DNS sidesteps it — safe everywhere (not
+// just this network), so left in rather than only diagnosed and skipped.
+require('dns').setServers(['8.8.8.8', '1.1.1.1']);
+
 // Function to get or generate a unique device ID
 function getOrCreateDeviceId() {
   const idFile = path.join(process.cwd(), '.device-id');
@@ -83,13 +92,35 @@ app.use('/api/opportunities', require('./src/server/middleware/auth').authentica
 app.use('/api/agents', require('./src/server/middleware/auth').authenticateToken, require('./src/server/routes/agentRoutes'));
 app.use('/api/wallet', require('./src/server/routes/walletRoutes'));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Health check endpoint. Deliberately unauthenticated (matches the plain uptime check
+// it replaces) and only ever makes PUBLIC/unsigned calls — no API keys used, no way to
+// place an order through this route. Exists specifically to answer "can THIS deployed
+// instance actually reach Binance" post-deploy, since some cloud/datacenter IP ranges
+// get blocked or rate-limited differently than a home connection would be.
+app.get('/health', async (req, res) => {
+  const checks = { mongo: 'skipped', binance: 'skipped' };
+
+  if (mongoose.connection.readyState === 1) {
+    checks.mongo = 'ok';
+  } else if (process.env.PERSISTENCE_ENABLED !== 'false') {
+    checks.mongo = `not connected (state=${mongoose.connection.readyState})`;
+  }
+
+  try {
+    const axios = require('axios');
+    const start = Date.now();
+    await axios.get('https://fapi.binance.com/fapi/v1/ping', { timeout: 5000 });
+    checks.binance = `ok (${Date.now() - start}ms)`;
+  } catch (error) {
+    checks.binance = `unreachable: ${error.message}`;
+  }
+
   res.status(200).json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     service: 'Money Making API',
-    version: '1.0.0'
+    version: '1.0.0',
+    checks
   });
 });
 
@@ -236,14 +267,16 @@ const startServer = async () => {
         // a meaningfully different risk than a one-time manual spawn.
         if (process.env.AUTO_SPAWN_REAL_TRADING_AGENTS === 'true') {
           console.log('AUTO_SPAWN_REAL_TRADING_AGENTS=true — auto-spawning real-money trading agents');
-          // meanReversionFutures excluded: backtested against 90 days of real BTC/ETH/
-          // SOL/BNB 1h data at live risk settings and showed a clear historical loss
-          // (274 trades, -$183.44, 20.8% win rate — see backtests/backtest_results.json).
-          // breakoutFutures excluded: looked positive on a too-small 4-symbol/22-trade
-          // sample (+$19.49), but expanding to 10 symbols/80 trades reversed that to a
-          // clear loss (-$49.99, see backtests/backtest_breakout_extended_results.json).
-          // Both retired rather than left running on strategies with demonstrated
-          // negative real-data expectancy.
+          // meanReversionFutures and breakoutFutures were previously excluded here:
+          // meanReversionFutures backtested against 90 days of real BTC/ETH/SOL/BNB 1h
+          // data at live risk settings and showed a historical loss (274 trades,
+          // -$183.44, 20.8% win rate — see backtests/backtest_results.json).
+          // breakoutFutures looked positive on a too-small 4-symbol/22-trade sample
+          // (+$19.49), but expanding to 10 symbols/80 trades reversed that to a loss
+          // (-$49.99, see backtests/backtest_breakout_extended_results.json).
+          // Re-enabled 2026-08-04 as an explicit user decision (accepting that risk,
+          // not a claim the negative expectancy was fixed), alongside removing the
+          // global/per-agent budget caps and adding a short side to both strategies.
           // binanceFuturesDca: was briefly excluded (2026-08-03) after Binance's
           // 2025-12-09 migration of conditional orders to a dedicated Algo Order API
           // broke stop-loss/take-profit placement (error -4120) — a real position
@@ -264,6 +297,11 @@ const startServer = async () => {
           // coin, not because any signal backtested well on it; DCA makes no such
           // claim either way). Dedupe by symbol so each instance independently
           // survives a restart.
+          // PAXGUSDT added 2026-08-04 at the user's request for commodity-flavored
+          // exposure — Binance has no actual crude oil/WTI futures product, PAXG
+          // (a gold-backed token) is the closest thing it lists. Lower leverage than
+          // the crypto majors since it's a different volatility profile (backed by a
+          // physical commodity, not free-floating crypto).
           const FUTURES_DCA_SLOTS = [
             { symbol: 'BTCUSDT', leverage: 50, dailyMarginUsd: 5 },
             { symbol: 'ETHUSDT', leverage: 10, dailyMarginUsd: 2 },
@@ -271,7 +309,8 @@ const startServer = async () => {
             { symbol: 'BNBUSDT', leverage: 10, dailyMarginUsd: 2 },
             { symbol: 'ADAUSDT', leverage: 10, dailyMarginUsd: 2 },
             { symbol: 'XRPUSDT', leverage: 10, dailyMarginUsd: 2 },
-            { symbol: 'DOGEUSDT', leverage: 5, dailyMarginUsd: 1 }
+            { symbol: 'DOGEUSDT', leverage: 5, dailyMarginUsd: 1 },
+            { symbol: 'PAXGUSDT', leverage: 5, dailyMarginUsd: 2 }
           ];
           for (const slot of FUTURES_DCA_SLOTS) {
             try {
@@ -283,12 +322,30 @@ const startServer = async () => {
                   dailyMarginUsd: slot.dailyMarginUsd,
                   stopLossPct: 0.01,
                   takeProfitPct: 0.03,
-                  budgetCapUsd: 50
+                  budgetCapUsd: Infinity
                 }
               });
             } catch (error) {
               console.error(`Error auto-spawning binanceFuturesDca (${slot.symbol}):`, error.message);
             }
+          }
+
+          try {
+            await spawnIfMissing('breakoutFutures', {
+              name: 'Auto-resumed breakoutFutures',
+              config: { budgetCapUsd: Infinity }
+            });
+          } catch (error) {
+            console.error('Error auto-spawning breakoutFutures:', error.message);
+          }
+
+          try {
+            await spawnIfMissing('meanReversionFutures', {
+              name: 'Auto-resumed meanReversionFutures',
+              config: { budgetCapUsd: Infinity }
+            });
+          } catch (error) {
+            console.error('Error auto-spawning meanReversionFutures:', error.message);
           }
         }
 

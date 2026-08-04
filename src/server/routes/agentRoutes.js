@@ -12,6 +12,7 @@ router.get('/real/mean-reversion-futures', agentController.getMeanReversionFutur
 router.get('/real/monitor', agentController.getRealAgentMonitorStatus);
 router.get('/real/summary', agentController.getRealMoneySummary);
 router.post('/real/futures/:symbol/close', agentController.closeFuturesPosition);
+router.post('/real/futures/:symbol/open', agentController.openFuturesPosition);
 router.get('/:id', agentController.getAgentById);
 router.post('/spawn', agentController.spawnAgent);
 router.delete('/:id', agentController.terminateAgent);

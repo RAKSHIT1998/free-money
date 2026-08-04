@@ -365,6 +365,64 @@ exports.getRealMoneySummary = async (req, res) => {
  * agent is running (falls back to 'manual' if none), so it still shows up in that
  * agent's ledger/budget accounting.
  */
+/**
+ * Manually open a REAL leveraged futures position — long or short — for a discretionary
+ * call the automated agents wouldn't make on their own (none of the currently-running
+ * strategies generate short signals; breakout/mean-reversion are retired and DCA is a
+ * fixed long). Attributed to whichever real futures agent is running so it still counts
+ * against that agent's budget cap (falls back to 'manual' if none is running, still
+ * subject to the global cross-agent cap via assertLiveFuturesTradingAllowed/margin checks
+ * inside openLeveragedLong/openLeveragedShort).
+ */
+exports.openFuturesPosition = async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const { direction, marginUsd, leverage, marginMode, stopLossPct, takeProfitPct } = req.body;
+
+    if (!symbol) {
+      return res.status(400).json({ success: false, message: 'symbol is required' });
+    }
+    if (direction !== 'long' && direction !== 'short') {
+      return res.status(400).json({ success: false, message: "direction must be 'long' or 'short'" });
+    }
+    if (!marginUsd || !leverage || !marginMode) {
+      return res.status(400).json({ success: false, message: 'marginUsd, leverage, and marginMode are required' });
+    }
+
+    const futuresAgent = getAgentManager().getAllAgents()
+      .find(a => ['binanceFuturesDca', 'breakoutFutures', 'meanReversionFutures'].includes(a.type));
+    const agentId = futuresAgent ? futuresAgent.id : 'manual';
+
+    // Automated agents size their own trades off this same check before calling
+    // openLeveragedLong/Short — a manual open must respect it too, or it's a way to
+    // silently blow past the global cross-agent exposure cap.
+    const perAgentCapUsd = futuresAgent ? futuresAgent.config.budgetCapUsd : marginUsd;
+    const budget = await realFuturesTradingService.getEffectiveRemainingBudgetUsd(agentId, perAgentCapUsd);
+    if (marginUsd > budget.remaining) {
+      return res.status(400).json({
+        success: false,
+        message: `Requested marginUsd ($${marginUsd}) exceeds remaining budget ($${budget.remaining.toFixed(2)})`,
+        data: budget
+      });
+    }
+
+    const openFn = direction === 'long'
+      ? realFuturesTradingService.openLeveragedLong
+      : realFuturesTradingService.openLeveragedShort;
+
+    const result = await openFn({ symbol, marginUsd, leverage, marginMode, stopLossPct, takeProfitPct, agentId });
+
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Error opening futures position:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to open futures position',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 exports.closeFuturesPosition = async (req, res) => {
   try {
     const { symbol } = req.params;

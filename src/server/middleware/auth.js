@@ -2,24 +2,39 @@
 const jwt = require('jsonwebtoken');
 const { Config } = require('../../config/config');
 
-// Load configuration to get JWT secret
+// Load configuration to get JWT secret. No hardcoded fallback string — this guards
+// real-money endpoints (/api/agents/*), so a missing secret must fail loudly rather
+// than silently accept a well-known placeholder value anyone could sign tokens with.
 const config = new Config();
-const JWT_SECRET = config.get('jwtSecret') || process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = config.get('jwtSecret') || process.env.JWT_SECRET;
 
 /**
- * Verify JWT token middleware
- * Bypasses authentication in development mode for easier testing
+ * Verify JWT token middleware.
+ *
+ * The dev-mode bypass below used to trigger on NODE_ENV==='development' alone — which
+ * is exactly the misconfiguration this app was actually running under (checked
+ * 2026-08-04): NODE_ENV=development in .env with real Binance credentials and
+ * LIVE_TRADING_CONFIRMED=true, meaning every /api/agents/* route (including opening
+ * real leveraged positions) was reachable with NO authentication at all. Now requires
+ * a SECOND, explicit opt-in (ALLOW_DEV_AUTH_BYPASS=true) so the bypass can never
+ * activate just from NODE_ENV being left at its default.
  */
 const authenticateToken = (req, res, next) => {
-  // Skip authentication in development mode
-  if (process.env.NODE_ENV === 'development') {
-    // Attach a default user for development
+  if (process.env.NODE_ENV === 'development' && process.env.ALLOW_DEV_AUTH_BYPASS === 'true') {
     req.user = {
       id: 'dev-user-id',
       username: 'dev-user',
       role: 'admin'
     };
     return next();
+  }
+
+  if (!JWT_SECRET) {
+    console.error('Auth blocked: no JWT secret configured (set jwtSecret in config or JWT_SECRET env var)');
+    return res.status(503).json({
+      success: false,
+      message: 'Authentication is not configured on this server'
+    });
   }
 
   const authHeader = req.headers['authorization'];

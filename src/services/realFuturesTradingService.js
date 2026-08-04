@@ -118,10 +118,19 @@ async function getLedger(agentId) {
  * @param {string} agentId
  * @returns {Promise<number>}
  */
+// Whether a margin+SELL trade is opening a short (uses margin) or closing a long
+// (frees margin) can't be told apart from `side` alone once shorts exist. Trades
+// recorded going forward carry an explicit `action`; older ledger entries (recorded
+// before shorts existed, all long-only) have none, so for those the pre-existing
+// inference — anything that isn't a BUY is a close — still applies unchanged.
+function isCloseTrade(trade) {
+  return trade.action ? trade.action === 'close' : trade.side !== 'BUY';
+}
+
 async function getTotalMarginUsd(agentId) {
   const ledger = await getLedger(agentId);
   return ledger.reduce((sum, trade) => {
-    return trade.side === 'BUY' ? sum + trade.marginUsd : sum - trade.marginUsd;
+    return isCloseTrade(trade) ? sum - trade.marginUsd : sum + trade.marginUsd;
   }, 0);
 }
 
@@ -150,7 +159,7 @@ async function getFullLedger() {
 async function getTotalMarginUsdAllAgents() {
   const ledger = await getFullLedger();
   return ledger.reduce((sum, trade) => {
-    return trade.side === 'BUY' ? sum + trade.marginUsd : sum - trade.marginUsd;
+    return isCloseTrade(trade) ? sum - trade.marginUsd : sum + trade.marginUsd;
   }, 0);
 }
 
@@ -210,9 +219,18 @@ async function getEffectiveRemainingBudgetUsd(agentId, perAgentCapUsd) {
  * anything else — not dependent on this app's local ledger).
  * @returns {Promise<Array<{symbol, positionAmt, entryPrice, unrealizedProfit, leverage}>>}
  */
+let openPositionsCache = null;
+let openPositionsCacheAt = 0;
+const OPEN_POSITIONS_CACHE_TTL_MS = 3000; // the dashboard polls this every 5s (possibly from
+// multiple open tabs) — a short cache collapses concurrent/overlapping polls into one call.
+
 async function getOpenPositions() {
+  const now = Date.now();
+  if (openPositionsCache && (now - openPositionsCacheAt) < OPEN_POSITIONS_CACHE_TTL_MS) {
+    return openPositionsCache;
+  }
   const data = await signedRequest('GET', '/fapi/v2/positionRisk', {});
-  return data
+  const mapped = data
     .filter(p => parseFloat(p.positionAmt) !== 0)
     .map(p => ({
       symbol: p.symbol,
@@ -222,6 +240,9 @@ async function getOpenPositions() {
       unrealizedProfit: parseFloat(p.unRealizedProfit),
       leverage: parseFloat(p.leverage)
     }));
+  openPositionsCache = mapped;
+  openPositionsCacheAt = now;
+  return mapped;
 }
 
 /**
@@ -233,11 +254,28 @@ async function getOpenPositions() {
  * @param {string} [params.incomeType] e.g. 'REALIZED_PNL', 'COMMISSION', 'FUNDING_FEE'
  * @returns {Promise<Array>}
  */
+// The dashboard polls the real-money summary every few seconds, and each poll was
+// firing off up to 4 separate /fapi/v1/income requests (weight 30 each). Income
+// history doesn't change faster than trades close, so a short TTL cache collapses
+// bursts of identical requests into one Binance call — this is what keeps the app
+// from tripping Binance's rate limiter into a 418 IP ban under normal dashboard use.
+const INCOME_CACHE_TTL_MS = 20000;
+const incomeCache = new Map();
+
 async function getIncomeHistory({ startTime, incomeType } = {}) {
   const params = { limit: 1000 };
   if (startTime) params.startTime = startTime;
   if (incomeType) params.incomeType = incomeType;
-  return signedRequest('GET', '/fapi/v1/income', params);
+
+  const cacheKey = JSON.stringify(params);
+  const cached = incomeCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.data;
+  }
+
+  const data = await signedRequest('GET', '/fapi/v1/income', params);
+  incomeCache.set(cacheKey, { data, expiresAt: Date.now() + INCOME_CACHE_TTL_MS });
+  return data;
 }
 
 function startOfTodayUtcMs() {
@@ -337,9 +375,7 @@ async function getSymbolsTradedToday(agentId) {
  * @returns {Promise<number>}
  */
 async function getCurrentPrice(symbol) {
-  const { data } = await axios.get(`${FAPI_BASE}/fapi/v1/ticker/price`, {
-    params: { symbol }
-  });
+  const data = await publicRequest('/fapi/v1/ticker/price', { symbol });
   return parseFloat(data.price);
 }
 
@@ -352,7 +388,7 @@ async function getExchangeInfo() {
   if (exchangeInfoCache && (now - exchangeInfoCacheAt) < EXCHANGE_INFO_TTL_MS) {
     return exchangeInfoCache;
   }
-  const { data } = await axios.get(`${FAPI_BASE}/fapi/v1/exchangeInfo`);
+  const data = await publicRequest('/fapi/v1/exchangeInfo');
   exchangeInfoCache = data;
   exchangeInfoCacheAt = now;
   return data;
@@ -431,15 +467,29 @@ async function getUsdtPerpetualSymbols() {
  * rate limits compared to per-symbol requests). Used as the input to breakout detection.
  * @returns {Promise<Array<{symbol, lastPrice, highPrice, priceChangePercent, quoteVolume}>>}
  */
+let tickersCache = null;
+let tickersCacheAt = 0;
+const TICKERS_CACHE_TTL_MS = 30000; // both breakoutFutures (5min) and meanReversionFutures
+// (15min) scan cycles call this weight-40 endpoint independently — a short cache means
+// two scanners that happen to fire close together share one Binance call instead of two.
+
 async function getAll24hrTickers() {
-  const { data } = await axios.get(`${FAPI_BASE}/fapi/v1/ticker/24hr`);
-  return data.map(t => ({
+  const now = Date.now();
+  if (tickersCache && (now - tickersCacheAt) < TICKERS_CACHE_TTL_MS) {
+    return tickersCache;
+  }
+  const data = await publicRequest('/fapi/v1/ticker/24hr');
+  const mapped = data.map(t => ({
     symbol: t.symbol,
     lastPrice: parseFloat(t.lastPrice),
     highPrice: parseFloat(t.highPrice),
+    lowPrice: parseFloat(t.lowPrice),
     priceChangePercent: parseFloat(t.priceChangePercent),
     quoteVolume: parseFloat(t.quoteVolume)
   }));
+  tickersCache = mapped;
+  tickersCacheAt = now;
+  return mapped;
 }
 
 /**
@@ -450,9 +500,7 @@ async function getAll24hrTickers() {
  * @returns {Promise<Array<{closeTime, open, high, low, close, volume}>>}
  */
 async function getKlines(symbol, interval, limit = 100) {
-  const { data } = await axios.get(`${FAPI_BASE}/fapi/v1/klines`, {
-    params: { symbol, interval, limit }
-  });
+  const data = await publicRequest('/fapi/v1/klines', { symbol, interval, limit });
   return data.map(k => ({
     closeTime: k[6],
     open: parseFloat(k[1]),
@@ -480,15 +528,90 @@ function signedQuery(params) {
   return `${queryString}&signature=${signature}`;
 }
 
+// Binance responds 429 (soft limit) then 418 (IP banned) to callers that keep
+// sending requests after being told to slow down. Once either happens, honor the
+// Retry-After it sends and refuse ALL further Binance calls — signed AND public,
+// since Binance bans by IP, not by endpoint or credential — until it elapses.
+// Retrying immediately during a ban only extends it, and previously only
+// signedRequest respected this, so getCurrentPrice/getAll24hrTickers/getKlines/
+// getExchangeInfo (all unsigned) kept hitting Binance during an active ban and
+// could each independently trigger Binance to extend it further.
+let rateLimitedUntil = 0;
+
+function assertNotRateLimited() {
+  if (Date.now() < rateLimitedUntil) {
+    const waitSec = Math.ceil((rateLimitedUntil - Date.now()) / 1000);
+    throw new Error(`Binance rate limit/ban in effect, retry in ${waitSec}s`);
+  }
+}
+
+function noteRateLimitResponse(error) {
+  const status = error.response?.status;
+  if (status === 429 || status === 418) {
+    const retryAfterSec = parseInt(error.response.headers['retry-after'], 10);
+    const cooldownMs = Number.isFinite(retryAfterSec) ? retryAfterSec * 1000 : 60000;
+    rateLimitedUntil = Date.now() + cooldownMs;
+  }
+}
+
+// Binance rejects a signed request if its `timestamp` is ahead of Binance's own server
+// clock by more than ~1000ms (error -1021) — about the LOCAL machine's clock drifting,
+// not request latency. Measured against realTradingService's identical fix (spot side
+// was hitting this on every single DCA cycle); synced independently here since futures
+// uses its own base URL/server-time endpoint.
+let timeOffsetMs = 0;
+let timeOffsetSyncedAt = 0;
+const TIME_OFFSET_TTL_MS = 30 * 60 * 1000;
+
+async function getSyncedTimestamp() {
+  const now = Date.now();
+  if (now - timeOffsetSyncedAt > TIME_OFFSET_TTL_MS) {
+    try {
+      const { data } = await axios.get(`${FAPI_BASE}/fapi/v1/time`);
+      timeOffsetMs = data.serverTime - Date.now();
+      timeOffsetSyncedAt = now;
+    } catch (error) {
+      // Fall back to whatever offset is already known rather than blocking the caller.
+    }
+  }
+  return Date.now() + timeOffsetMs;
+}
+
 async function signedRequest(method, endpoint, params) {
-  const query = signedQuery({ ...params, timestamp: Date.now() });
+  assertNotRateLimited();
+
+  const query = signedQuery({ ...params, timestamp: await getSyncedTimestamp() });
   const url = `${FAPI_BASE}${endpoint}?${query}`;
-  const { data } = await axios({
-    method,
-    url,
-    headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY }
-  });
-  return data;
+  try {
+    const { data } = await axios({
+      method,
+      url,
+      headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY }
+    });
+    return data;
+  } catch (error) {
+    noteRateLimitResponse(error);
+    throw error;
+  }
+}
+
+/**
+ * Unsigned/public Binance Futures GET, sharing the same rate-limit cooldown as
+ * signedRequest — Binance bans the IP regardless of which endpoint tripped it.
+ * @param {string} endpoint e.g. '/fapi/v1/ticker/price'
+ * @param {Object} [params]
+ * @returns {Promise<*>}
+ */
+async function publicRequest(endpoint, params = {}) {
+  assertNotRateLimited();
+
+  try {
+    const { data } = await axios.get(`${FAPI_BASE}${endpoint}`, { params });
+    return data;
+  } catch (error) {
+    noteRateLimitResponse(error);
+    throw error;
+  }
 }
 
 /**
@@ -576,7 +699,7 @@ async function getOrderTrades(symbol, orderId) {
 }
 
 /**
- * Open a REAL leveraged long position via market order, sized so that
+ * Open a REAL leveraged position (long or short) via market order, sized so that
  * marginUsd * leverage is spent at the current market price, then attach a
  * STOP_MARKET order (if stopLossPct given) and/or a TAKE_PROFIT_MARKET order (if
  * takeProfitPct given) to close the position automatically. Without a take-profit,
@@ -586,6 +709,7 @@ async function getOrderTrades(symbol, orderId) {
  * gain was never closed and was later liquidated on the way back down).
  * @param {Object} params
  * @param {string} params.symbol e.g. 'BTCUSDT'
+ * @param {'BUY'|'SELL'} params.side entry side — BUY opens a long, SELL opens a short
  * @param {number} params.marginUsd USD margin to commit to this position
  * @param {number} params.leverage e.g. 50
  * @param {string} params.marginMode 'ISOLATED' or 'CROSSED'
@@ -594,7 +718,7 @@ async function getOrderTrades(symbol, orderId) {
  * @param {string} params.agentId
  * @returns {Promise<Object>} the recorded trade
  */
-async function openLeveragedLong({ symbol, marginUsd, leverage, marginMode, stopLossPct, takeProfitPct, agentId }) {
+async function openLeveragedPosition({ symbol, side, marginUsd, leverage, marginMode, stopLossPct, takeProfitPct, agentId }) {
   assertLiveFuturesTradingAllowed();
 
   await setMarginType(symbol, marginMode);
@@ -618,7 +742,7 @@ async function openLeveragedLong({ symbol, marginUsd, leverage, marginMode, stop
 
   const placedOrder = await signedRequest('POST', '/fapi/v1/order', {
     symbol,
-    side: 'BUY',
+    side,
     type: 'MARKET',
     quantity
   });
@@ -628,7 +752,15 @@ async function openLeveragedLong({ symbol, marginUsd, leverage, marginMode, stop
     ? await getOrderTrades(symbol, placedOrder.orderId).catch(() => [])
     : [];
 
-  const trade = await recordFill(finalOrder, orderTrades, { symbol, marginUsd, leverage, marginMode, agentId });
+  const trade = await recordFill(finalOrder, orderTrades, { symbol, side, marginUsd, leverage, marginMode, agentId });
+
+  // A short's stop-loss/take-profit close in the opposite direction of a long's: the
+  // closing side is always the entry side's inverse, and stop/take-profit trigger
+  // prices sit on opposite sides of the fill price (a short loses money as price
+  // rises, so its stop-loss triggers ABOVE the fill price, not below).
+  const closeSide = side === 'BUY' ? 'SELL' : 'BUY';
+  const stopDirection = side === 'BUY' ? -1 : 1;
+  const takeProfitDirection = side === 'BUY' ? 1 : -1;
 
   if (stopLossPct && trade.status === 'filled') {
     try {
@@ -636,7 +768,7 @@ async function openLeveragedLong({ symbol, marginUsd, leverage, marginMode, stop
       // (LOT_SIZE.stepSize, `stepSize` above) — using the wrong one previously produced
       // stop prices Binance silently rejected, leaving real positions unprotected.
       const priceTickSize = await getPriceTickSize(symbol);
-      const rawStopPrice = trade.fillPrice * (1 - stopLossPct);
+      const rawStopPrice = trade.fillPrice * (1 + stopDirection * stopLossPct);
       const stopPriceFormatted = formatPriceForTickSize(rawStopPrice, priceTickSize);
       // Binance migrated conditional orders (STOP_MARKET/TAKE_PROFIT_MARKET/etc.) off
       // /fapi/v1/order to a dedicated Algo Order API effective 2025-12-09 (error -4120
@@ -646,7 +778,7 @@ async function openLeveragedLong({ symbol, marginUsd, leverage, marginMode, stop
       const stopOrder = await signedRequest('POST', '/fapi/v1/algoOrder', {
         algoType: 'CONDITIONAL',
         symbol,
-        side: 'SELL',
+        side: closeSide,
         type: 'STOP_MARKET',
         triggerPrice: stopPriceFormatted,
         closePosition: 'true',
@@ -667,12 +799,12 @@ async function openLeveragedLong({ symbol, marginUsd, leverage, marginMode, stop
   if (takeProfitPct && trade.status === 'filled') {
     try {
       const priceTickSize = await getPriceTickSize(symbol);
-      const rawTakeProfitPrice = trade.fillPrice * (1 + takeProfitPct);
+      const rawTakeProfitPrice = trade.fillPrice * (1 + takeProfitDirection * takeProfitPct);
       const takeProfitPriceFormatted = formatPriceForTickSize(rawTakeProfitPrice, priceTickSize);
       const takeProfitOrder = await signedRequest('POST', '/fapi/v1/algoOrder', {
         algoType: 'CONDITIONAL',
         symbol,
-        side: 'SELL',
+        side: closeSide,
         type: 'TAKE_PROFIT_MARKET',
         triggerPrice: takeProfitPriceFormatted,
         closePosition: 'true',
@@ -690,7 +822,26 @@ async function openLeveragedLong({ symbol, marginUsd, leverage, marginMode, stop
   return trade;
 }
 
-async function recordFill(finalOrder, orderTrades, { symbol, marginUsd, leverage, marginMode, agentId }) {
+/**
+ * Open a REAL leveraged long position. See openLeveragedPosition for full details.
+ * @returns {Promise<Object>} the recorded trade
+ */
+async function openLeveragedLong(params) {
+  return openLeveragedPosition({ ...params, side: 'BUY' });
+}
+
+/**
+ * Open a REAL leveraged short position. See openLeveragedPosition for full details.
+ * A short profits when price falls: entry is a SELL, and the resulting positionAmt
+ * from /fapi/v2/positionRisk will be negative — closePosition() already handles that
+ * sign correctly (it closes with BUY when positionAmt < 0), no changes needed there.
+ * @returns {Promise<Object>} the recorded trade
+ */
+async function openLeveragedShort(params) {
+  return openLeveragedPosition({ ...params, side: 'SELL' });
+}
+
+async function recordFill(finalOrder, orderTrades, { symbol, side, marginUsd, leverage, marginMode, agentId }) {
   const filledQty = orderTrades.reduce((sum, t) => sum + parseFloat(t.qty), 0) ||
     parseFloat(finalOrder.executedQty) || 0;
   const totalCost = orderTrades.reduce((sum, t) => sum + parseFloat(t.qty) * parseFloat(t.price), 0);
@@ -707,7 +858,8 @@ async function recordFill(finalOrder, orderTrades, { symbol, marginUsd, leverage
   const tradeRecord = {
     agentId,
     timestamp: new Date(),
-    side: 'BUY',
+    action: 'open',
+    side,
     symbol,
     leverage,
     marginMode,
@@ -791,6 +943,7 @@ async function closePosition(symbol, agentId) {
   const closeTrade = await appendTrade({
     agentId,
     timestamp: new Date(),
+    action: 'close',
     side: closeSide === 'SELL' ? 'SELL' : 'BUY',
     symbol,
     leverage: position.leverage,
@@ -824,6 +977,7 @@ module.exports = {
   getTradeHistorySummary,
   getSymbolPerformance,
   openLeveragedLong,
+  openLeveragedShort,
   closePosition,
   getOrderStatus,
   getOrderTrades,

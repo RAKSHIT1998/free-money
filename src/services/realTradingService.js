@@ -16,6 +16,31 @@ const realTradesFilePath = path.join(process.cwd(), 'real_trades.json');
 
 const BINANCE_BASE = 'https://api.binance.com';
 
+// Binance rejects a signed request if its `timestamp` is ahead of Binance's own server
+// clock by more than ~1000ms (error -1021), regardless of recvWindow — this is about
+// the LOCAL machine's clock being ahead, not request latency. Rather than trust
+// Date.now() directly, periodically measure the offset against Binance's own /time
+// endpoint and apply it, so real clock drift on the host doesn't silently break every
+// signed request (this exact failure mode was firing on every single spot DCA cycle).
+let timeOffsetMs = 0;
+let timeOffsetSyncedAt = 0;
+const TIME_OFFSET_TTL_MS = 30 * 60 * 1000; // 30 minutes — drift accumulates slowly
+
+async function getSyncedTimestamp() {
+  const now = Date.now();
+  if (now - timeOffsetSyncedAt > TIME_OFFSET_TTL_MS) {
+    try {
+      const { data } = await axios.get(`${BINANCE_BASE}/api/v3/time`);
+      timeOffsetMs = data.serverTime - Date.now();
+      timeOffsetSyncedAt = now;
+    } catch (error) {
+      // If the sync call itself fails, fall back to whatever offset (possibly 0) is
+      // already known rather than blocking the caller on a clock-sync failure.
+    }
+  }
+  return Date.now() + timeOffsetMs;
+}
+
 let RealTrade;
 function getRealTradeModel() {
   if (!RealTrade) {
@@ -99,14 +124,17 @@ async function getCurrentPrice(symbol) {
 /**
  * Total real USD spent (BUY orders) minus proceeds from SELL orders, for an agent.
  * @param {string} agentId
+ * @param {string} symbol
  * @returns {Promise<number>}
  */
-async function getTotalSpentUsd(agentId) {
+async function getTotalSpentUsd(agentId, symbol) {
   const ledger = await getLedger(agentId);
-  return ledger.reduce((sum, trade) => {
-    const cost = trade.filledQty * trade.fillPrice;
-    return trade.side === 'BUY' ? sum + cost : sum - cost;
-  }, 0);
+  return ledger
+    .filter(trade => trade.symbol === symbol)
+    .reduce((sum, trade) => {
+      const cost = trade.filledQty * trade.fillPrice;
+      return trade.side === 'BUY' ? sum + cost : sum - cost;
+    }, 0);
 }
 
 /**
@@ -131,7 +159,7 @@ async function getTotalQtyHeld(agentId, symbol) {
 async function computeUnrealizedPnl(agentId, symbol) {
   const [qty, spent, currentPrice] = await Promise.all([
     getTotalQtyHeld(agentId, symbol),
-    getTotalSpentUsd(agentId),
+    getTotalSpentUsd(agentId, symbol),
     getCurrentPrice(symbol)
   ]);
   const currentValue = qty * currentPrice;
@@ -174,18 +202,31 @@ function assertLiveTradingAllowed() {
 async function placeMarketBuyOrder({ symbol, quoteOrderQtyUsd, agentId }) {
   assertLiveTradingAllowed();
 
-  const timestamp = Date.now();
+  const timestamp = await getSyncedTimestamp();
   const queryString = `symbol=${symbol}&side=BUY&type=MARKET&quoteOrderQty=${quoteOrderQtyUsd}&timestamp=${timestamp}`;
   const signature = crypto
     .createHmac('sha256', process.env.BINANCE_API_SECRET)
     .update(queryString)
     .digest('hex');
 
-  const response = await axios.post(
-    `${BINANCE_BASE}/api/v3/order?${queryString}&signature=${signature}`,
-    null,
-    { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
-  );
+  let response;
+  try {
+    response = await axios.post(
+      `${BINANCE_BASE}/api/v3/order?${queryString}&signature=${signature}`,
+      null,
+      { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
+    );
+  } catch (error) {
+    // Binance's actual reason (e.g. -2010 insufficient balance, -1013 NOTIONAL filter
+    // failure) lives in error.response.data, not error.message — axios only gives the
+    // generic "Request failed with status code 400" there. Without this, every caller
+    // (agent cycle logs, this function's callers) only ever sees "400" with no way to
+    // tell WHY, which is what let this exact order silently fail the same way for days.
+    if (error.response?.data) {
+      error.message = `${error.message}: ${JSON.stringify(error.response.data)}`;
+    }
+    throw error;
+  }
 
   return recordFill(response.data, { symbol, quoteOrderQtyUsd, agentId });
 }

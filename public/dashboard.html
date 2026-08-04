@@ -599,6 +599,74 @@
     <script>
         // Configuration
         const API_BASE = '/api';
+
+        // Auth gate: every /api/agents and /api/opportunities route now requires a
+        // real Bearer token (2026-08-04 — the previous dev-mode auth bypass was closed
+        // since it left every real-money endpoint reachable with zero credentials once
+        // this app left localhost). Rather than touch every fetch() call site below,
+        // wrap the global fetch once: attach the stored token to same-origin /api
+        // requests, and on a 401 clear it and prompt for login again. authFetch is used
+        // internally for the login call itself, before a token exists yet.
+        const AUTH_TOKEN_KEY = 'freeMoneyAuthToken';
+
+        function getAuthToken() {
+            return localStorage.getItem(AUTH_TOKEN_KEY);
+        }
+
+        async function authFetch(url, options) {
+            return window.__nativeFetch(url, options);
+        }
+
+        async function promptLogin() {
+            while (true) {
+                const username = window.prompt('Dashboard username:');
+                if (username === null) continue; // don't allow dismissing — no data without auth
+                const password = window.prompt('Dashboard password:');
+                if (password === null) continue;
+                try {
+                    const res = await authFetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success && data.data?.token) {
+                        localStorage.setItem(AUTH_TOKEN_KEY, data.data.token);
+                        return;
+                    }
+                    window.alert(data.message || 'Login failed, try again.');
+                } catch (error) {
+                    window.alert('Login request failed: ' + error.message);
+                }
+            }
+        }
+
+        window.__nativeFetch = window.fetch.bind(window);
+        window.fetch = async function patchedFetch(input, init) {
+            const url = typeof input === 'string' ? input : input.url;
+            const isApiCall = url.startsWith(API_BASE) || url.startsWith(window.location.origin + API_BASE);
+
+            if (!isApiCall || url.includes('/auth/login')) {
+                return window.__nativeFetch(input, init);
+            }
+
+            const token = getAuthToken();
+            const opts = { ...(init || {}) };
+            opts.headers = { ...(opts.headers || {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+
+            let res = await window.__nativeFetch(input, opts);
+            if (res.status === 401) {
+                localStorage.removeItem(AUTH_TOKEN_KEY);
+                await promptLogin();
+                opts.headers.Authorization = `Bearer ${getAuthToken()}`;
+                res = await window.__nativeFetch(input, opts);
+            }
+            return res;
+        };
+
+        // Block on login before any dashboard data loads, if no token is already stored.
+        const dashboardReady = getAuthToken() ? Promise.resolve() : promptLogin();
+
         let UPDATE_INTERVAL = 5000; // 5 seconds, adjustable via Command Deck
         let updateTimer = null;
         let charts = {};
@@ -649,7 +717,8 @@
         }
 
         // Initialize the dashboard
-        function initDashboard() {
+        async function initDashboard() {
+            await dashboardReady; // blocks here until login succeeds, if not already logged in
             loadDashboardData();
             startAutoUpdate();
 

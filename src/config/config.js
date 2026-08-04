@@ -33,8 +33,11 @@ class Config {
         }
       },
 
-      // JWT Configuration
-      jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+      // JWT Configuration. No placeholder fallback — a guessable default here would let
+      // anyone forge a valid admin token against every /api/agents/* real-money route.
+      // Must be set via JWT_SECRET in the environment; auth.js/authController.js both
+      // refuse to operate (503, not a silent bypass) if this comes back undefined.
+      jwtSecret: process.env.JWT_SECRET,
 
       // Agent Manager Settings
       agentManager: {
@@ -65,7 +68,7 @@ class Config {
         binanceDca: {
           symbol: process.env.BINANCE_DCA_SYMBOL || 'BTCUSDT',
           dailyBuyUsd: parseFloat(process.env.BINANCE_DCA_DAILY_USD) || 5,
-          budgetCapUsd: parseFloat(process.env.BINANCE_DCA_BUDGET_CAP_USD) || 50,
+          budgetCapUsd: parseFloat(process.env.BINANCE_DCA_BUDGET_CAP_USD) || Infinity,
           checkIntervalMs: parseInt(process.env.BINANCE_DCA_CHECK_INTERVAL_MS) || 3600000
         },
         // Real, LEVERAGED Binance USDT-M futures DCA agent. Only places orders when
@@ -76,7 +79,7 @@ class Config {
         binanceFuturesDca: {
           symbol: process.env.BINANCE_FUTURES_DCA_SYMBOL || 'BTCUSDT',
           dailyMarginUsd: parseFloat(process.env.BINANCE_FUTURES_DCA_DAILY_MARGIN_USD) || 5,
-          budgetCapUsd: parseFloat(process.env.BINANCE_FUTURES_DCA_BUDGET_CAP_USD) || 50,
+          budgetCapUsd: parseFloat(process.env.BINANCE_FUTURES_DCA_BUDGET_CAP_USD) || Infinity,
           leverage: parseInt(process.env.BINANCE_FUTURES_DCA_LEVERAGE) || 50,
           marginMode: process.env.BINANCE_FUTURES_DCA_MARGIN_MODE || 'ISOLATED',
           stopLossPct: parseFloat(process.env.BINANCE_FUTURES_DCA_STOP_LOSS_PCT) || 0.01,
@@ -91,7 +94,7 @@ class Config {
           sizingMode: process.env.BREAKOUT_FUTURES_SIZING_MODE || 'percentOfBalance',
           riskPct: parseFloat(process.env.BREAKOUT_FUTURES_RISK_PCT) || 0.2,
           perTradeMarginUsd: parseFloat(process.env.BREAKOUT_FUTURES_PER_TRADE_MARGIN_USD) || 5,
-          budgetCapUsd: parseFloat(process.env.BREAKOUT_FUTURES_BUDGET_CAP_USD) || 50,
+          budgetCapUsd: parseFloat(process.env.BREAKOUT_FUTURES_BUDGET_CAP_USD) || Infinity,
           leverage: parseInt(process.env.BREAKOUT_FUTURES_LEVERAGE) || 50,
           marginMode: process.env.BREAKOUT_FUTURES_MARGIN_MODE || 'ISOLATED',
           stopLossPct: parseFloat(process.env.BREAKOUT_FUTURES_STOP_LOSS_PCT) || 0.01,
@@ -99,7 +102,7 @@ class Config {
           nearHighThresholdPct: parseFloat(process.env.BREAKOUT_FUTURES_NEAR_HIGH_PCT) || 0.001,
           momentumThresholdPct: parseFloat(process.env.BREAKOUT_FUTURES_MOMENTUM_PCT) || 5,
           minQuoteVolumeUsd: parseFloat(process.env.BREAKOUT_FUTURES_MIN_VOLUME_USD) || 5000000,
-          maxCandidatesPerCycle: parseInt(process.env.BREAKOUT_FUTURES_MAX_CANDIDATES_PER_CYCLE) || 3,
+          maxCandidatesPerCycle: parseInt(process.env.BREAKOUT_FUTURES_MAX_CANDIDATES_PER_CYCLE) || Infinity,
           scanIntervalMs: parseInt(process.env.BREAKOUT_FUTURES_SCAN_INTERVAL_MS) || 300000
         },
         // Real, LEVERAGED mean-reversion (RSI oversold) scanner — distinct signal from
@@ -107,7 +110,7 @@ class Config {
         // global cross-agent cap, enforced in realFuturesTradingService.
         meanReversionFutures: {
           perTradeMarginUsd: parseFloat(process.env.MEAN_REVERSION_FUTURES_PER_TRADE_MARGIN_USD) || 5,
-          budgetCapUsd: parseFloat(process.env.MEAN_REVERSION_FUTURES_BUDGET_CAP_USD) || 50,
+          budgetCapUsd: parseFloat(process.env.MEAN_REVERSION_FUTURES_BUDGET_CAP_USD) || Infinity,
           leverage: parseInt(process.env.MEAN_REVERSION_FUTURES_LEVERAGE) || 50,
           marginMode: process.env.MEAN_REVERSION_FUTURES_MARGIN_MODE || 'ISOLATED',
           stopLossPct: parseFloat(process.env.MEAN_REVERSION_FUTURES_STOP_LOSS_PCT) || 0.01,
@@ -116,8 +119,8 @@ class Config {
           rsiInterval: process.env.MEAN_REVERSION_FUTURES_RSI_INTERVAL || '1h',
           rsiOversoldThreshold: parseFloat(process.env.MEAN_REVERSION_FUTURES_RSI_OVERSOLD) || 30,
           minQuoteVolumeUsd: parseFloat(process.env.MEAN_REVERSION_FUTURES_MIN_VOLUME_USD) || 5000000,
-          watchlistSize: parseInt(process.env.MEAN_REVERSION_FUTURES_WATCHLIST_SIZE) || 30,
-          maxCandidatesPerCycle: parseInt(process.env.MEAN_REVERSION_FUTURES_MAX_CANDIDATES_PER_CYCLE) || 2,
+          watchlistSize: parseInt(process.env.MEAN_REVERSION_FUTURES_WATCHLIST_SIZE) || Infinity,
+          maxCandidatesPerCycle: parseInt(process.env.MEAN_REVERSION_FUTURES_MAX_CANDIDATES_PER_CYCLE) || Infinity,
           scanIntervalMs: parseInt(process.env.MEAN_REVERSION_FUTURES_SCAN_INTERVAL_MS) || 900000
         },
         // Read-only real HackerOne public-program feed. No auth, no order/report
@@ -217,9 +220,10 @@ class Config {
       liveTrading: {
         confirmed: process.env.LIVE_TRADING_CONFIRMED === 'true',
         // Shared cap across EVERY real futures agent/strategy combined, checked in
-        // addition to each agent's own per-agent budgetCapUsd. Running more strategies
-        // simultaneously must not silently multiply real exposure past this ceiling.
-        globalFuturesBudgetCapUsd: parseFloat(process.env.GLOBAL_FUTURES_BUDGET_CAP_USD) || 50
+        // addition to each agent's own per-agent budgetCapUsd. Uncapped by default
+        // (explicit user decision, accepting unlimited real leveraged exposure) — set
+        // GLOBAL_FUTURES_BUDGET_CAP_USD to reinstate a hard ceiling.
+        globalFuturesBudgetCapUsd: parseFloat(process.env.GLOBAL_FUTURES_BUDGET_CAP_USD) || Infinity
       },
 
       // Payment Configuration

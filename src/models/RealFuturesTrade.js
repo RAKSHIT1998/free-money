@@ -17,6 +17,15 @@ const realFuturesTradeSchema = new mongoose.Schema({
     enum: ['BUY', 'SELL'],
     required: true
   },
+  // Distinguishes opening margin usage from closing margin release — cannot be
+  // inferred from `side` alone once shorts exist (a short's open is a SELL, its
+  // close is a BUY, the reverse of a long). Absent on records written before shorts
+  // existed; getTotalMarginUsd/getTotalMarginUsdAllAgents fall back to inferring from
+  // `side` for those legacy rows.
+  action: {
+    type: String,
+    enum: ['open', 'close']
+  },
   symbol: {
     type: String,
     required: true
