@@ -108,9 +108,13 @@ app.get('/health', async (req, res) => {
   }
 
   try {
-    const axios = require('axios');
+    // Routed through realFuturesTradingService's shared rate-limit gate (not a raw
+    // axios call) so a health check during an active Binance ban doesn't itself send
+    // a fresh request and extend it — see pingBinance's own comment for why this
+    // matters.
+    const realFuturesTradingService = require('./src/services/realFuturesTradingService');
     const start = Date.now();
-    await axios.get('https://fapi.binance.com/fapi/v1/ping', { timeout: 5000 });
+    await realFuturesTradingService.pingBinance();
     checks.binance = `ok (${Date.now() - start}ms)`;
   } catch (error) {
     checks.binance = `unreachable: ${error.message}`;

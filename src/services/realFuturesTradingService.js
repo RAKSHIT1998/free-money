@@ -633,6 +633,18 @@ async function publicRequest(endpoint, params = {}) {
 }
 
 /**
+ * Lightweight connectivity check for the /health endpoint. Routed through the same
+ * shared rate-limit gate as every other call (assertNotRateLimited/publicRequest)
+ * specifically so a health check fired during an active ban doesn't itself send a
+ * fresh request to Binance and extend it — a raw, ungated ping call was doing exactly
+ * that (discovered 2026-08-05: repeated /health polling was independently triggering/
+ * prolonging 418s that had nothing to do with the trading agents' own request volume).
+ */
+async function pingBinance() {
+  await publicRequest('/fapi/v1/ping');
+}
+
+/**
  * Defense-in-depth guard: real leveraged futures orders require BOTH the general
  * live-trading opt-in AND a second, separate futures-specific opt-in, plus real
  * (non-placeholder) Binance credentials. Independent of realTradingService's (spot)
@@ -1006,5 +1018,6 @@ module.exports = {
   getTotalMarginUsd,
   getTotalMarginUsdAllAgents,
   getEffectiveRemainingBudgetUsd,
-  assertLiveFuturesTradingAllowed
+  assertLiveFuturesTradingAllowed,
+  pingBinance
 };
