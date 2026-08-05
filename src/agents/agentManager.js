@@ -565,8 +565,17 @@ class AgentManager {
       const dbAgents = await Agent.find({});
 
       for (const dbAgent of dbAgents) {
+        // agentId is stored as a String in Mongo (schema) but fresh spawns via
+        // spawnAgent() use a Number (this.nextId++) as the in-memory Map key.
+        // Without normalizing here, a DB-restored agent's in-memory id is a String,
+        // silently breaking every Number(id)-based lookup (removeAgent,
+        // getAgentById, removeAgentFromDatabase) for that agent until its next
+        // restart — found live: a real agent became untargetable by the terminate
+        // endpoint immediately after a routine restart.
+        const numericAgentId = Number(dbAgent.agentId);
+
         // Skip if we already have this agent in memory (shouldn't happen, but safe)
-        if (this.agents.has(dbAgent.agentId)) {
+        if (this.agents.has(numericAgentId)) {
           continue;
         }
 
@@ -575,7 +584,7 @@ class AgentManager {
         switch (dbAgent.type) {
           case 'binanceDca':
             agent = new BinanceDcaAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -583,7 +592,7 @@ class AgentManager {
 
           case 'binanceEarn':
             agent = new BinanceEarnAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -591,7 +600,7 @@ class AgentManager {
 
           case 'fundingRateArbitrage':
             agent = new FundingRateArbitrageAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -599,7 +608,7 @@ class AgentManager {
 
           case 'gridTrading':
             agent = new GridTradingAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -607,7 +616,7 @@ class AgentManager {
 
           case 'binanceFuturesDca':
             agent = new BinanceFuturesDcaAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -615,7 +624,7 @@ class AgentManager {
 
           case 'breakoutFutures':
             agent = new BreakoutFuturesAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -623,7 +632,7 @@ class AgentManager {
 
           case 'meanReversionFutures':
             agent = new MeanReversionFuturesAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -631,7 +640,7 @@ class AgentManager {
 
           case 'hackerOneBounty':
             agent = new HackerOneBountyAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -639,7 +648,7 @@ class AgentManager {
 
           case 'githubBountyHunter':
             agent = new GithubBountyHunterAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -647,7 +656,7 @@ class AgentManager {
 
           case 'cryptoGigHunter':
             agent = new CryptoGigHunterAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -655,7 +664,7 @@ class AgentManager {
 
           case 'companyLeadHunter':
             agent = new CompanyLeadHunterAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -663,7 +672,7 @@ class AgentManager {
 
           case 'pumpFunSniper':
             agent = new PumpFunSniperAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -671,7 +680,7 @@ class AgentManager {
 
           case 'realAgentMonitor':
             agent = new RealAgentMonitorAgent({
-              id: dbAgent.agentId,
+              id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config
             });
@@ -705,7 +714,7 @@ class AgentManager {
           });
         }
 
-        this.nextId = Math.max(this.nextId, dbAgent.agentId + 1);
+        this.nextId = Math.max(this.nextId, numericAgentId + 1);
       }
 
       console.log(`Loaded ${dbAgents.length} agents from database`);
