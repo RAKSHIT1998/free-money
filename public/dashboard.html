@@ -1981,6 +1981,21 @@
             if (d.status !== 'delivered') return '';
 
             const status = d.paymentStatus || 'none';
+            const method = d.paymentMethod || 'paypal';
+
+            if (status === 'pending' && method === 'crypto' && d.paymentCryptoAddress) {
+                return `
+                    <div style="margin-top:10px; padding:10px; border:1px solid var(--hair); background:var(--panel);">
+                        <div style="color:var(--text-dim); margin-bottom:6px;">₿ Waiting for ${Number(d.paymentAmount || 0)} ${escapeHtml(d.paymentCryptoAsset)} (${escapeHtml(d.paymentCryptoNetwork)} network) — send your client this address:</div>
+                        <div style="font-family:'IBM Plex Mono',monospace; word-break:break-all; padding:8px; background:var(--bg); border:1px solid var(--hair);">${escapeHtml(d.paymentCryptoAddress)}</div>
+                        ${d.paymentCryptoTag ? `<div style="color:var(--text-dim); margin-top:6px; font-size:0.85em;">Memo/Tag (required by this network): ${escapeHtml(d.paymentCryptoTag)}</div>` : ''}
+                        <div style="margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                            <button class="refresh-btn gig-check-crypto-btn" data-draft-id="${d._id}">Check for Payment</button>
+                            <span class="gig-crypto-check-status" data-draft-id="${d._id}" style="color:var(--text-dim); font-size:0.85em;"></span>
+                        </div>
+                    </div>
+                `;
+            }
 
             if (status === 'pending' && d.paymentApprovalUrl) {
                 return `
@@ -1995,15 +2010,18 @@
             }
 
             if (status === 'paid') {
+                const methodNote = method === 'crypto'
+                    ? `${escapeHtml(d.paymentCryptoAsset || '')} received on-chain${d.paymentCaptureId ? ' (tx ' + escapeHtml(d.paymentCaptureId.slice(0, 12)) + '…)' : ''}`
+                    : 'captured to your PayPal account';
                 return `
                     <div style="margin-top:10px; padding:10px; border:1px solid var(--hair); background:var(--panel); color:#238040;">
-                        ✅ Deposited: ${escapeHtml(d.paymentCurrency || 'USD')} ${Number(d.paymentAmount || 0).toFixed(2)} captured to your PayPal account.
+                        ✅ Paid: ${Number(d.paymentAmount || 0)} ${escapeHtml(d.paymentCurrency || 'USD')} — ${methodNote}.
                     </div>
                 `;
             }
 
             const failedNote = status === 'failed'
-                ? '<div style="color:#c7392f; margin-bottom:6px;">⚠️ Last payment attempt failed or the client hasn\'t approved it yet — you can try again below.</div>'
+                ? '<div style="color:#c7392f; margin-bottom:6px;">⚠️ Last payment attempt failed, or PayPal is rejecting it (e.g. an account restriction) — try crypto instead below.</div>'
                 : '';
 
             return `
@@ -2016,7 +2034,15 @@
                             <option value="eur">EUR</option>
                             <option value="gbp">GBP</option>
                         </select>
-                        <button class="refresh-btn gig-request-payment-btn" data-draft-id="${d._id}">Request Payment</button>
+                        <button class="refresh-btn gig-request-payment-btn" data-draft-id="${d._id}">Request via PayPal</button>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px; padding-top:8px; border-top:1px dashed var(--hair);">
+                        <input type="number" min="0" step="0.000001" class="gig-crypto-amount" data-draft-id="${d._id}" placeholder="Amount" style="width:100px; padding:6px; background:var(--bg); color:var(--text); border:1px solid var(--hair);">
+                        <select class="gig-crypto-asset" data-draft-id="${d._id}" style="padding:6px; background:var(--bg); color:var(--text); border:1px solid var(--hair);">
+                            <option value="USDT">USDT (TRC20)</option>
+                            <option value="BTC">BTC</option>
+                        </select>
+                        <button class="refresh-btn gig-request-crypto-btn" data-draft-id="${d._id}">Request via Crypto</button>
                     </div>
                 </div>
             `;
@@ -2135,7 +2161,60 @@
                         } catch (error) {
                             alert(`Error requesting payment: ${error.message}`);
                             btn.disabled = false;
-                            btn.textContent = 'Request Payment';
+                            btn.textContent = 'Request via PayPal';
+                        }
+                    });
+                });
+
+                container.querySelectorAll('.gig-request-crypto-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.draftId;
+                        const amountEl = container.querySelector(`.gig-crypto-amount[data-draft-id="${id}"]`);
+                        const assetEl = container.querySelector(`.gig-crypto-asset[data-draft-id="${id}"]`);
+                        const amount = parseFloat(amountEl.value);
+                        if (!amount || amount <= 0) {
+                            alert('Enter an amount greater than 0 first.');
+                            return;
+                        }
+                        btn.disabled = true;
+                        btn.textContent = 'Requesting...';
+                        try {
+                            const res = await fetch(`${API_BASE}/gigs/drafts/${id}/request-crypto-payment`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ amount, asset: assetEl.value })
+                            });
+                            const result = await res.json();
+                            if (!result.success) throw new Error(result.message || 'Failed to request crypto payment');
+                            await loadGigDrafts();
+                        } catch (error) {
+                            alert(`Error requesting crypto payment: ${error.message}`);
+                            btn.disabled = false;
+                            btn.textContent = 'Request via Crypto';
+                        }
+                    });
+                });
+
+                container.querySelectorAll('.gig-check-crypto-btn').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.dataset.draftId;
+                        const statusEl = container.querySelector(`.gig-crypto-check-status[data-draft-id="${id}"]`);
+                        btn.disabled = true;
+                        btn.textContent = 'Checking...';
+                        try {
+                            const res = await fetch(`${API_BASE}/gigs/drafts/${id}/check-crypto-payment`, { method: 'POST' });
+                            const result = await res.json();
+                            if (!result.success) throw new Error(result.message || 'Failed to check crypto payment');
+                            if (result.data?.paymentStatus === 'paid') {
+                                await loadGigDrafts();
+                                return;
+                            }
+                            if (statusEl) statusEl.textContent = result.message || 'No matching deposit yet.';
+                        } catch (error) {
+                            if (statusEl) statusEl.textContent = `Error: ${error.message}`;
+                        } finally {
+                            btn.disabled = false;
+                            btn.textContent = 'Check for Payment';
                         }
                     });
                 });

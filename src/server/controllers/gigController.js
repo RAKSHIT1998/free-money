@@ -18,6 +18,14 @@ function getGigDraftModel() {
   return GigDraft;
 }
 
+let realTradingService;
+function getRealTradingService() {
+  if (!realTradingService) {
+    realTradingService = require('../../services/realTradingService');
+  }
+  return realTradingService;
+}
+
 // In-memory fallback when persistence is disabled, mirroring opportunityService's pattern.
 const memoryDrafts = [];
 let nextMemoryId = 1;
@@ -290,5 +298,119 @@ exports.confirmPayment = async (req, res) => {
       success: false,
       message: `Failed to confirm payment (the client may not have approved it in PayPal yet): ${extractPaymentErrorMessage(error)}`
     });
+  }
+};
+
+const VALID_CRYPTO_ASSETS = ['USDT', 'BTC'];
+const DEFAULT_CRYPTO_NETWORK = { USDT: 'TRX', BTC: 'BTC' };
+
+/**
+ * Alternative to PayPal: issues a real Binance deposit address for the client to send
+ * crypto to directly. The amount is denominated in the crypto asset itself (e.g. "10
+ * USDT"), not a USD-equivalent converted at request time — this sidesteps exchange-
+ * rate/tolerance complexity entirely. No money moves here; this only reads a deposit
+ * address from the real Binance account.
+ */
+exports.requestCryptoPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, asset, network } = req.body;
+
+    const parsedAmount = parseFloat(amount);
+    if (!parsedAmount || parsedAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'amount must be a positive number' });
+    }
+
+    const resolvedAsset = (asset || 'USDT').toUpperCase();
+    if (!VALID_CRYPTO_ASSETS.includes(resolvedAsset)) {
+      return res.status(400).json({ success: false, message: `asset must be one of ${VALID_CRYPTO_ASSETS.join(', ')}` });
+    }
+
+    const draft = await findDraft(id);
+    if (!draft) {
+      return res.status(404).json({ success: false, message: 'Draft not found' });
+    }
+
+    const resolvedNetwork = network || DEFAULT_CRYPTO_NETWORK[resolvedAsset];
+    const depositInfo = await getRealTradingService().getDepositAddress(resolvedAsset, resolvedNetwork);
+
+    draft.paymentMethod = 'crypto';
+    draft.paymentStatus = 'pending';
+    draft.paymentAmount = parsedAmount;
+    draft.paymentCurrency = resolvedAsset;
+    draft.paymentCryptoAsset = resolvedAsset;
+    draft.paymentCryptoNetwork = resolvedNetwork;
+    draft.paymentCryptoAddress = depositInfo.address;
+    draft.paymentCryptoTag = depositInfo.tag || undefined;
+    draft.paymentRequestedAt = new Date();
+    draft.updatedAt = new Date();
+    // A fresh crypto request supersedes any earlier PayPal attempt's leftover fields.
+    draft.paymentOrderId = undefined;
+    draft.paymentApprovalUrl = undefined;
+
+    const saved = await saveDraft(draft);
+    res.json({ success: true, data: saved });
+  } catch (error) {
+    console.error('Error requesting crypto payment:', error);
+    res.status(500).json({ success: false, message: `Failed to create crypto payment request: ${error.message}` });
+  }
+};
+
+/**
+ * Checks whether the client has actually sent the requested crypto yet, by looking
+ * for a matching deposit in the real Binance account's deposit history. Matches on:
+ * same address, arrived after this request was created (so an old deposit to the same
+ * reused address is never misattributed), amount within 2% (covers minor network fee
+ * variance), completed status, and not already claimed by a different draft (so one
+ * real deposit can never be credited to two drafts).
+ */
+exports.checkCryptoPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const draft = await findDraft(id);
+    if (!draft) {
+      return res.status(404).json({ success: false, message: 'Draft not found' });
+    }
+    if (draft.paymentMethod !== 'crypto' || !draft.paymentCryptoAddress) {
+      return res.status(400).json({ success: false, message: 'No crypto payment has been requested for this draft yet' });
+    }
+    if (draft.paymentStatus === 'paid') {
+      return res.json({ success: true, data: draft, message: 'Already marked paid.' });
+    }
+
+    const deposits = await getRealTradingService().getRecentDeposits(draft.paymentCryptoAsset);
+    const requestedAtMs = draft.paymentRequestedAt ? new Date(draft.paymentRequestedAt).getTime() : 0;
+    const Model = getGigDraftModel();
+
+    for (const deposit of deposits) {
+      if (deposit.status !== 1) continue; // 1 = completed on Binance's side
+      if (deposit.address !== draft.paymentCryptoAddress) continue;
+      if (deposit.insertTime < requestedAtMs) continue;
+
+      const depositAmount = parseFloat(deposit.amount);
+      const tolerance = 0.02;
+      if (Math.abs(depositAmount - draft.paymentAmount) / draft.paymentAmount > tolerance) continue;
+
+      const alreadyClaimed = persistenceEnabled
+        ? await Model.findOne({ paymentCaptureId: deposit.txId, _id: { $ne: id } })
+        : memoryDrafts.find(d => d.paymentCaptureId === deposit.txId && d._id !== id);
+      if (alreadyClaimed) continue;
+
+      draft.paymentStatus = 'paid';
+      draft.paymentCaptureId = deposit.txId;
+      draft.updatedAt = new Date();
+      const saved = await saveDraft(draft);
+      return res.json({ success: true, data: saved, message: 'Payment received and matched!' });
+    }
+
+    res.json({
+      success: true,
+      data: draft,
+      message: 'No matching deposit yet — on-chain confirmation can take a few minutes after the client sends it. Check again shortly.'
+    });
+  } catch (error) {
+    console.error('Error checking crypto payment:', error);
+    res.status(500).json({ success: false, message: `Failed to check crypto payment: ${error.message}` });
   }
 };

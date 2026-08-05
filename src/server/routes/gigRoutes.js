@@ -7,5 +7,7 @@ router.get('/drafts', gigController.getDrafts);
 router.put('/drafts/:id', gigController.updateDraft);
 router.post('/drafts/:id/request-payment', gigController.requestPayment);
 router.post('/drafts/:id/confirm-payment', gigController.confirmPayment);
+router.post('/drafts/:id/request-crypto-payment', gigController.requestCryptoPayment);
+router.post('/drafts/:id/check-crypto-payment', gigController.checkCryptoPayment);
 
 module.exports = router;

@@ -50,16 +50,28 @@ const gigDraftSchema = new mongoose.Schema({
   },
   paymentStatus: {
     // 'none': no payment requested yet.
-    // 'pending': PayPal order created, link sent to client, not yet captured.
-    // 'paid': captured — funds have actually landed in the PayPal account.
-    // 'failed': capture was attempted and PayPal rejected it (declined, expired, etc).
+    // 'pending': PayPal order created / crypto address issued, not yet received.
+    // 'paid': funds have actually landed — PayPal capture or a matching on-chain deposit.
+    // 'failed': PayPal capture was attempted and rejected (declined, expired, etc).
     type: String,
     enum: ['none', 'pending', 'paid', 'failed'],
     default: 'none'
   },
+  // 'paypal' (default/legacy) or 'crypto' (2026-08-05) — which flow paymentStatus
+  // below is tracking. Determines which fields are meaningful: paymentOrderId/
+  // paymentApprovalUrl for paypal, paymentCrypto* for crypto.
+  paymentMethod: {
+    type: String,
+    enum: ['paypal', 'crypto'],
+    default: 'paypal'
+  },
   paymentAmount: {
     type: Number
   },
+  // For 'paypal': fiat code (USD/EUR/...). For 'crypto': the asset ticker (USDT/BTC),
+  // duplicated into paymentCryptoAsset for clarity — paymentAmount is denominated
+  // directly in this asset, not a USD-equivalent, so there's no exchange-rate
+  // conversion/tolerance to get wrong.
   paymentCurrency: {
     type: String
   },
@@ -69,8 +81,30 @@ const gigDraftSchema = new mongoose.Schema({
   paymentApprovalUrl: {
     type: String
   },
+  // PayPal capture ID (paymentMethod 'paypal') or the matched deposit's on-chain txId
+  // (paymentMethod 'crypto') — either way, "the specific transaction that paid this."
   paymentCaptureId: {
     type: String
+  },
+  paymentCryptoAsset: {
+    type: String
+  },
+  paymentCryptoNetwork: {
+    type: String
+  },
+  paymentCryptoAddress: {
+    type: String
+  },
+  // Memo/tag some coins require alongside the address (not needed for USDT-TRC20 or
+  // BTC, kept for completeness if a future asset needs one).
+  paymentCryptoTag: {
+    type: String
+  },
+  // When the crypto request was created — deposits are only matched to this draft if
+  // they arrived after this point, so an old, unrelated deposit to the same
+  // (Binance-assigned, reused-across-requests) address can never be misattributed.
+  paymentRequestedAt: {
+    type: Date
   },
   createdAt: {
     type: Date,

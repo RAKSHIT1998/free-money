@@ -348,6 +348,57 @@ async function recordFill(binanceOrderResponse, { symbol, side, requestedUsd, ag
   return appendTrade(tradeRecord);
 }
 
+/**
+ * Real Binance deposit address for receiving a crypto payment — used for the gig
+ * draft crypto payment option, not by any trading agent. Read-only (no signature scope
+ * beyond what deposit-address/deposit-history already require); never withdraws or
+ * moves funds.
+ * @param {string} coin e.g. 'USDT', 'BTC'
+ * @param {string} [network] e.g. 'TRX', 'BTC' — required for multi-network coins
+ * @returns {Promise<{coin: string, address: string, tag: string, url: string}>}
+ */
+async function getDepositAddress(coin, network) {
+  assertLiveTradingAllowed();
+
+  const timestamp = await getSyncedTimestamp();
+  const params = { coin, timestamp };
+  if (network) params.network = network;
+  const queryString = new URLSearchParams(params).toString();
+  const signature = crypto
+    .createHmac('sha256', process.env.BINANCE_API_SECRET)
+    .update(queryString)
+    .digest('hex');
+
+  const { data } = await axios.get(
+    `${BINANCE_BASE}/sapi/v1/capital/deposit/address?${queryString}&signature=${signature}`,
+    { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
+  );
+  return data;
+}
+
+/**
+ * Real Binance deposit history for a coin — used to detect whether a client has
+ * actually sent a crypto payment yet. Read-only.
+ * @param {string} coin e.g. 'USDT', 'BTC'
+ * @returns {Promise<Array<{coin, address, amount, status, insertTime, txId}>>} status 1 = completed
+ */
+async function getRecentDeposits(coin) {
+  assertLiveTradingAllowed();
+
+  const timestamp = await getSyncedTimestamp();
+  const queryString = new URLSearchParams({ coin, timestamp }).toString();
+  const signature = crypto
+    .createHmac('sha256', process.env.BINANCE_API_SECRET)
+    .update(queryString)
+    .digest('hex');
+
+  const { data } = await axios.get(
+    `${BINANCE_BASE}/sapi/v1/capital/deposit/hisrec?${queryString}&signature=${signature}`,
+    { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
+  );
+  return Array.isArray(data) ? data : [];
+}
+
 module.exports = {
   getCurrentPrice,
   getQuantityStepSize,
@@ -357,5 +408,7 @@ module.exports = {
   getTotalSpentUsd,
   getTotalQtyHeld,
   computeUnrealizedPnl,
-  assertLiveTradingAllowed
+  assertLiveTradingAllowed,
+  getDepositAddress,
+  getRecentDeposits
 };
