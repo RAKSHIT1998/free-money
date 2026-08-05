@@ -13,12 +13,20 @@ const path = require('path');
 const crypto = require('crypto');
 const axios = require('axios');
 const { Config, isLikelyRealBinanceKey } = require('../config/config');
+const ProactiveThrottle = require('../utils/proactiveThrottle');
 
 const config = new Config();
 const persistenceEnabled = config.get('agentManager.persistenceEnabled', true);
 const realFuturesTradesFilePath = path.join(process.cwd(), 'real_futures_trades.json');
 
 const FAPI_BASE = 'https://fapi.binance.com';
+
+// Proactive half of this module's Binance protection — see proactiveThrottle.js.
+// Binance's real futures ceiling is 2400 request-weight/minute per IP; 300 requests/
+// minute self-imposed leaves generous headroom even for the higher-weight bulk-ticker
+// and klines calls, while remaining nowhere near tight enough to slow down normal
+// single-cycle trading activity.
+const futuresThrottle = new ProactiveThrottle({ maxRequests: 300, windowMs: 60000, name: 'binanceFutures' });
 
 let RealFuturesTrade;
 function getRealFuturesTradeModel() {
@@ -606,6 +614,11 @@ async function assertNotRateLimited() {
     const waitSec = Math.ceil((rateLimitedUntil - Date.now()) / 1000);
     throw new Error(`Binance rate limit/ban in effect, retry in ${waitSec}s`);
   }
+  // Not banned — still pace ourselves proactively rather than only reacting after
+  // Binance says stop. Every caller of signedRequest/publicRequest already goes
+  // through this one function, so this protects the whole module without needing to
+  // touch each individual call site.
+  await futuresThrottle.acquire();
 }
 
 function noteRateLimitResponse(error) {

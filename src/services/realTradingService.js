@@ -9,12 +9,21 @@ const path = require('path');
 const crypto = require('crypto');
 const axios = require('axios');
 const { Config, isLikelyRealBinanceKey } = require('../config/config');
+const ProactiveThrottle = require('../utils/proactiveThrottle');
 
 const config = new Config();
 const persistenceEnabled = config.get('agentManager.persistenceEnabled', true);
 const realTradesFilePath = path.join(process.cwd(), 'real_trades.json');
 
 const BINANCE_BASE = 'https://api.binance.com';
+
+// Proactive half of this module's Binance protection — see proactiveThrottle.js.
+// Shared across every module that reuses assertSpotNotRateLimited (this file,
+// binanceEarnService.js, pumpFunTradingService.js), since they all hit the same
+// api.binance.com ban bucket. Binance's real spot ceiling is 6000 request-weight/
+// minute per IP; 300 requests/minute self-imposed leaves very generous headroom
+// across all three callers combined.
+const spotThrottle = new ProactiveThrottle({ maxRequests: 300, windowMs: 60000, name: 'binanceSpot' });
 
 // Binance rejects a signed request if its `timestamp` is ahead of Binance's own server
 // clock by more than ~1000ms (error -1021), regardless of recvWindow — this is about
@@ -96,6 +105,10 @@ async function assertSpotNotRateLimited() {
     const waitSec = Math.ceil((spotRateLimitedUntil - Date.now()) / 1000);
     throw new Error(`Binance rate limit/ban in effect, retry in ${waitSec}s`);
   }
+  // Not banned — still pace ourselves proactively rather than only reacting after
+  // Binance says stop. Every caller (this file, binanceEarnService.js,
+  // pumpFunTradingService.js) already goes through this one function.
+  await spotThrottle.acquire();
 }
 
 function noteSpotRateLimitResponse(error) {
