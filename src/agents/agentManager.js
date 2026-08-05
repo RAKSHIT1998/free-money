@@ -693,7 +693,6 @@ class AgentManager {
 
         // Restore agent state
         agent.state = dbAgent.state;
-        agent.isRunning = dbAgent.isRunning;
         agent.createdAt = dbAgent.createdAt || new Date();
         agent.lastActive = dbAgent.lastActive || new Date();
         agent.performance = dbAgent.performance || {
@@ -707,8 +706,18 @@ class AgentManager {
         // Add to our tracking map
         this.agents.set(agent.id, agent);
 
-        // Start the agent if it was running
-        if (agent.isRunning) {
+        // Start the agent if it was running. Deliberately branching on
+        // dbAgent.isRunning (the persisted intent) rather than setting
+        // agent.isRunning directly beforehand — agent.isRunning still holds the
+        // constructor default (false) here, which matters because start() itself
+        // is what's supposed to flip it true and then call run(). Setting it to
+        // true first made start()'s own "already running" guard bail out
+        // immediately, so run() — the WebSocket connect, the scan loop, all of
+        // it — never actually started. Every agent survived a restart only as a
+        // frozen DB record that still reported active/isRunning via the API while
+        // doing nothing at all. Found live 2026-08-05 while investigating why a
+        // freshly-spawned pump.fun agent went silent after its first redeploy.
+        if (dbAgent.isRunning) {
           await agent.start().catch(err => {
             console.warn(`Warning: Failed to restart agent ${agent.id} from database:`, err.message);
           });
