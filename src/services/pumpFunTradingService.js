@@ -22,6 +22,18 @@ const persistenceEnabled = config.get('agentManager.persistenceEnabled', true);
 const PUMPPORTAL_TRADE_URL = 'https://pumpportal.fun/api/trade-local';
 const PUMP_FUN_API_BASE = 'https://frontend-api-v3.pump.fun';
 
+// Lazy require of the spot service, purely to reuse its Binance rate-limit gate —
+// getSolUsdPrice() below hits the exact same Binance endpoint (api.binance.com spot
+// ticker) that realTradingService.js already protects, so both share one cooldown
+// instead of each independently discovering (or missing) the same ban.
+let realTradingService;
+function getRealTradingService() {
+  if (!realTradingService) {
+    realTradingService = require('./realTradingService');
+  }
+  return realTradingService;
+}
+
 let RealPumpFunTrade;
 function getRealPumpFunTradeModel() {
   if (!RealPumpFunTrade) {
@@ -98,8 +110,27 @@ async function getSolUsdPrice() {
     return cachedSolPrice;
   }
 
+  // Shares realTradingService's persisted Binance-spot cooldown gate — this is the
+  // exact same endpoint that agent's own hammering got IP-banned on 2026-08-05, so
+  // this call must respect (and contribute to) the same ban state, not track it
+  // independently.
+  const spotService = getRealTradingService();
+  await spotService.assertSpotNotRateLimited();
+
   const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT');
   const data = await res.json();
+
+  // fetch() doesn't throw on a non-2xx status the way axios does, so a 418/429 ban
+  // response still resolves normally here — check explicitly and feed it into the
+  // shared gate exactly like noteSpotRateLimitResponse expects (axios-shaped
+  // error.response.status/headers), reading the real status/retry-after off the
+  // actual response rather than guessing from the body.
+  if (!res.ok) {
+    spotService.noteSpotRateLimitResponse({
+      response: { status: res.status, headers: { 'retry-after': res.headers.get('retry-after') } }
+    });
+  }
+
   const price = parseFloat(data.price);
   // A failed/rate-limited call still resolves with a 200-shaped-looking body (e.g.
   // {code, msg}), so data.price is undefined and this would silently return NaN

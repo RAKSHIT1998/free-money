@@ -506,5 +506,11 @@ module.exports = {
   computeUnrealizedPnl,
   assertLiveTradingAllowed,
   getDepositAddress,
-  getRecentDeposits
+  getRecentDeposits,
+  // Exported so other modules that independently call Binance's spot API
+  // (pumpFunTradingService's SOL/USD price lookup, same endpoint, same IP, same ban
+  // bucket) share this exact cooldown state instead of each tracking their own —
+  // a ban detected by either one now protects calls made by the other.
+  assertSpotNotRateLimited,
+  noteSpotRateLimitResponse
 };
