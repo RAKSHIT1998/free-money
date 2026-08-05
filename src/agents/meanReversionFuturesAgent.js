@@ -45,8 +45,12 @@ class MeanReversionFuturesAgent extends BaseAgent {
         takeProfitPct: options.config?.takeProfitPct != null ? options.config.takeProfitPct : 0.03,
         rsiPeriod: options.config?.rsiPeriod || 14,
         rsiInterval: options.config?.rsiInterval || '1h',
-        rsiOversoldThreshold: options.config?.rsiOversoldThreshold != null ? options.config.rsiOversoldThreshold : 30,
-        rsiOverboughtThreshold: options.config?.rsiOverboughtThreshold != null ? options.config.rsiOverboughtThreshold : 70,
+        // Widened from 30/70 (2026-08-05): at 70, this agent would short a token the
+        // moment it got merely "strong," including the early stretch of a genuine
+        // sustained pump — directly fighting momentum trades elsewhere in the system.
+        // 80/20 only fades truly extreme readings.
+        rsiOversoldThreshold: options.config?.rsiOversoldThreshold != null ? options.config.rsiOversoldThreshold : 20,
+        rsiOverboughtThreshold: options.config?.rsiOverboughtThreshold != null ? options.config.rsiOverboughtThreshold : 80,
         minQuoteVolumeUsd: options.config?.minQuoteVolumeUsd || 5000000,
         // Uncapped by default (explicit user decision): RSI is checked on every
         // perpetual clearing the liquidity floor, not just the most liquid 30, and

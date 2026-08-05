@@ -48,14 +48,18 @@ class BreakoutFuturesAgent extends BaseAgent {
         marginMode: options.config?.marginMode || 'ISOLATED',
         stopLossPct: options.config?.stopLossPct != null ? options.config.stopLossPct : 0.01,
         takeProfitPct: options.config?.takeProfitPct != null ? options.config.takeProfitPct : 0.03,
+        // Widened from 0.1% (2026-08-05): that band was so tight a real pump would
+        // routinely sit 1-3% off its intraday high between 5-minute scan ticks and
+        // get skipped every cycle. 2% catches a continuing move, not just the literal
+        // instant it prints a new high.
         nearHighThresholdPct: options.config?.nearHighThresholdPct != null
-          ? options.config.nearHighThresholdPct : 0.001, // within 0.1% of 24h high
+          ? options.config.nearHighThresholdPct : 0.02, // within 2% of 24h high
         momentumThresholdPct: options.config?.momentumThresholdPct != null
           ? options.config.momentumThresholdPct : 5, // 24h priceChangePercent > 5%
         // Mirror-image breakdown signal: within nearLowThresholdPct of the 24h low AND
         // down beyond breakdownThresholdPct on the day opens a short instead of a long.
         nearLowThresholdPct: options.config?.nearLowThresholdPct != null
-          ? options.config.nearLowThresholdPct : 0.001, // within 0.1% of 24h low
+          ? options.config.nearLowThresholdPct : 0.02, // within 2% of 24h low
         breakdownThresholdPct: options.config?.breakdownThresholdPct != null
           ? options.config.breakdownThresholdPct : 5, // 24h priceChangePercent < -5%
         minQuoteVolumeUsd: options.config?.minQuoteVolumeUsd || 5000000, // liquidity floor
@@ -63,7 +67,10 @@ class BreakoutFuturesAgent extends BaseAgent {
         // this cycle gets a position, not just the top few. Still bounded in practice
         // by the $5M liquidity floor and one-open-per-symbol-per-day rule above.
         maxCandidatesPerCycle: options.config?.maxCandidatesPerCycle || Infinity,
-        scanIntervalMs: options.config?.scanIntervalMs || 300000, // 5 minutes
+        // Shortened from 5 minutes (2026-08-05) alongside the wider near-high/low
+        // band above, so a continuing move is caught sooner rather than waiting up to
+        // 5 minutes to re-check.
+        scanIntervalMs: options.config?.scanIntervalMs || 120000, // 2 minutes
         ...options.config
       }
     });

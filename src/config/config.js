@@ -137,11 +137,11 @@ class Config {
           marginMode: process.env.BREAKOUT_FUTURES_MARGIN_MODE || 'ISOLATED',
           stopLossPct: parseFloat(process.env.BREAKOUT_FUTURES_STOP_LOSS_PCT) || 0.01,
           takeProfitPct: parseFloat(process.env.BREAKOUT_FUTURES_TAKE_PROFIT_PCT) || 0.03,
-          nearHighThresholdPct: parseFloat(process.env.BREAKOUT_FUTURES_NEAR_HIGH_PCT) || 0.001,
+          nearHighThresholdPct: parseFloat(process.env.BREAKOUT_FUTURES_NEAR_HIGH_PCT) || 0.02,
           momentumThresholdPct: parseFloat(process.env.BREAKOUT_FUTURES_MOMENTUM_PCT) || 5,
           minQuoteVolumeUsd: parseFloat(process.env.BREAKOUT_FUTURES_MIN_VOLUME_USD) || 5000000,
           maxCandidatesPerCycle: parseInt(process.env.BREAKOUT_FUTURES_MAX_CANDIDATES_PER_CYCLE) || Infinity,
-          scanIntervalMs: parseInt(process.env.BREAKOUT_FUTURES_SCAN_INTERVAL_MS) || 300000
+          scanIntervalMs: parseInt(process.env.BREAKOUT_FUTURES_SCAN_INTERVAL_MS) || 120000
         },
         // Real, LEVERAGED mean-reversion (RSI oversold) scanner — distinct signal from
         // breakoutFutures (momentum). Same dual live-trading gates plus the shared
