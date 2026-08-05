@@ -77,16 +77,42 @@ async function getWalletBalanceSol() {
   return lamports / LAMPORTS_PER_SOL;
 }
 
+// pump.fun's own new-token WebSocket firehose can emit several events per second at
+// busy times, and getSolUsdPrice() used to be called fresh on every single one —
+// hammering Binance's spot ticker endpoint dozens of times a minute with zero
+// pacing. SOL/USD doesn't move meaningfully within a few seconds; a short cache
+// turns that burst into essentially one request per window, the same lesson the
+// Binance futures agents already learned the hard way this session.
+let cachedSolPrice = null;
+let cachedSolPriceAt = 0;
+const SOL_PRICE_CACHE_TTL_MS = 15000;
+
 /**
  * Current SOL/USD price via Binance's public spot ticker (unrelated to, and
  * unaffected by, any Binance futures rate-limit/ban state — different endpoint,
- * different base URL, no shared cooldown gate).
+ * different base URL, no shared cooldown gate). Cached for SOL_PRICE_CACHE_TTL_MS.
  * @returns {Promise<number>}
  */
 async function getSolUsdPrice() {
+  if (cachedSolPrice != null && Date.now() - cachedSolPriceAt < SOL_PRICE_CACHE_TTL_MS) {
+    return cachedSolPrice;
+  }
+
   const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT');
   const data = await res.json();
-  return parseFloat(data.price);
+  const price = parseFloat(data.price);
+  // A failed/rate-limited call still resolves with a 200-shaped-looking body (e.g.
+  // {code, msg}), so data.price is undefined and this would silently return NaN
+  // instead of throwing — which then poisons every downstream calculation with NaN
+  // (observed live: an agent computing "buying NaN SOL" and repeatedly attempting
+  // it on every new-launch event). Fail loudly instead.
+  if (!Number.isFinite(price) || price <= 0) {
+    throw new Error(`Invalid SOL/USD price response: ${JSON.stringify(data)}`);
+  }
+
+  cachedSolPrice = price;
+  cachedSolPriceAt = Date.now();
+  return price;
 }
 
 /**

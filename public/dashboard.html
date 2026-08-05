@@ -766,7 +766,13 @@
             opts.headers = { ...(opts.headers || {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) };
 
             let res = await window.__nativeFetch(input, opts);
-            if (res.status === 401) {
+            // 401 = no token sent; 403 = a token was sent but the server rejected it
+            // (expired/invalid — see authenticateToken in auth.js, which returns 403
+            // here specifically). Both mean "not currently authenticated" and need the
+            // same re-login recovery — missing 403 meant an expired token silently
+            // broke every dashboard request forever with no way to recover short of
+            // manually clearing localStorage.
+            if (res.status === 401 || res.status === 403) {
                 localStorage.removeItem(AUTH_TOKEN_KEY);
                 await promptLogin();
                 opts.headers.Authorization = `Bearer ${getAuthToken()}`;

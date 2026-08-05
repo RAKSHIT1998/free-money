@@ -167,7 +167,11 @@ class PumpFunSniperAgent extends BaseAgent {
     const remainingBudgetSol = (this.config.budgetCapUsd - spentUsd) / solPrice;
     const buyAmountSol = Math.min(this.config.maxSolPerSnipe, availableSol, remainingBudgetSol);
 
-    if (buyAmountSol <= 0.001) {
+    // NaN <= 0.001 is false, same as every other NaN comparison — a bare threshold
+    // check alone silently lets a broken (NaN) amount through to a real buy attempt.
+    // Caught live: solPrice/balanceSol resolving to something non-finite meant this
+    // agent kept trying to "buy NaN SOL" on every single new-launch event.
+    if (!Number.isFinite(buyAmountSol) || buyAmountSol <= 0.001) {
       this.haltedReason = `Insufficient funds to snipe (wallet ~$${(balanceSol * solPrice).toFixed(2)}, ` +
         `reserve ~$${(this.config.reserveSol * solPrice).toFixed(2)} held back for gas/fees)`;
       this.log('warn', this.haltedReason);
