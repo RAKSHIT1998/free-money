@@ -201,6 +201,24 @@ const startServer = async () => {
     console.log('Skipping opportunity sync - persistence disabled');
   }
 
+  // Auto-capture real PayPal payments the moment a client approves them — closes the
+  // gap between "payment requested" and "money actually collected" without a human
+  // needing to click "Confirm Payment Received" by hand. Never requests a payment or
+  // invents an amount on its own; only advances orders a human already requested.
+  if (persistenceEnabled && process.env.PAYPAL_ENABLED === 'true') {
+    const gigPaymentAutopilotService = require('./src/services/gigPaymentAutopilotService');
+    cron.schedule('*/10 * * * *', async () => {
+      try {
+        const result = await gigPaymentAutopilotService.pollAndCapturePendingPayments();
+        if (result.checked > 0) {
+          console.log(`[gigPaymentAutopilot] Checked ${result.checked} pending payment(s), captured ${result.captured}`);
+        }
+      } catch (error) {
+        console.error('Error during gig payment autopilot poll:', error);
+      }
+    });
+  }
+
   // Start the agent management system
   console.log('Starting agent management system...');
   const AgentManager = require('./src/agents/agentManager');
@@ -217,9 +235,19 @@ const startServer = async () => {
     // the same live AgentManager (observed in practice, root cause not fully pinned
     // down — possibly overlapping restarts), it no longer creates duplicate agents
     // that then each independently trade/poll with no relation to each other.
+    // The performance governor permanently stops (and records via CulledAgent) any
+    // real trading agent with a sustained real loss — a restart/redeploy must respect
+    // that, not silently resurrect the same losing agent every time.
+    const agentCullService = require('./src/services/agentCullService');
+
     const spawnIfMissing = async (type, options) => {
       if (agentManager.getAgentsByType(type).length > 0) {
         console.log(`Skipping auto-spawn of ${type} — one is already running`);
+        return;
+      }
+      const culled = await agentCullService.isCulled(type, null);
+      if (culled) {
+        console.log(`Skipping auto-spawn of ${type} — permanently culled by the performance governor: ${culled.reason}`);
         return;
       }
       await agentManager.spawnAgent(type, options);
@@ -233,6 +261,11 @@ const startServer = async () => {
       const existing = agentManager.getAgentsByType(type).some(a => a.config?.symbol === symbol);
       if (existing) {
         console.log(`Skipping auto-spawn of ${type} (${symbol}) — one is already running`);
+        return;
+      }
+      const culled = await agentCullService.isCulled(type, symbol);
+      if (culled) {
+        console.log(`Skipping auto-spawn of ${type} (${symbol}) — permanently culled by the performance governor: ${culled.reason}`);
         return;
       }
       await agentManager.spawnAgent(type, options);
@@ -408,6 +441,28 @@ const startServer = async () => {
             });
           } catch (error) {
             console.error('Error auto-spawning meanReversionFutures:', error.message);
+          }
+
+          // Real, HIGH-RISK pump.fun memecoin sniper. Unlike the Binance futures
+          // agents above, this has no separate global-cap backstop, so it's spawned
+          // with its own real, finite budgetCapUsd (PUMPFUN_SNIPER_BUDGET_CAP_USD,
+          // default $10 — see config.js) rather than Infinity. Requires
+          // LIVE_PUMPFUN_TRADING_CONFIRMED=true and a real SOLANA_PRIVATE_KEY,
+          // enforced in pumpFunTradingService, not here.
+          try {
+            await spawnIfMissing('pumpFunSniper', { name: 'Auto-resumed pumpFunSniper' });
+          } catch (error) {
+            console.error('Error auto-spawning pumpFunSniper:', error.message);
+          }
+
+          // "Race to survival" performance governor — reviews the real directional
+          // trading agents above on an interval and stops sustained real losers /
+          // boosts sustained real winners. Only meaningful once there are real
+          // trading agents to govern, hence gated behind the same flag.
+          try {
+            await spawnIfMissing('performanceGovernor', { name: 'Auto-resumed performanceGovernor' });
+          } catch (error) {
+            console.error('Error auto-spawning performanceGovernor:', error.message);
           }
         }
 

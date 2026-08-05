@@ -12,6 +12,7 @@ const CryptoGigHunterAgent = require('./cryptoGigHunterAgent');
 const CompanyLeadHunterAgent = require('./companyLeadHunterAgent');
 const PumpFunSniperAgent = require('./pumpFunSniperAgent');
 const RealAgentMonitorAgent = require('./realAgentMonitorAgent');
+const PerformanceGovernorAgent = require('./performanceGovernorAgent');
 const { Config } = require('../config/config');
 const Agent = require('../models/Agent');
 
@@ -313,6 +314,19 @@ class AgentManager {
           id: this.nextId++,
           config: {
             ...this.config.get('agentTypes.realAgentMonitor') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'performancegovernor':
+      case 'performance governor':
+      case 'performancegovernoragent':
+        agent = new PerformanceGovernorAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.performanceGovernor') || {},
             ...options.config
           },
           ...options
@@ -683,6 +697,14 @@ class AgentManager {
 
           case 'realAgentMonitor':
             agent = new RealAgentMonitorAgent({
+              id: numericAgentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'performanceGovernor':
+            agent = new PerformanceGovernorAgent({
               id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config

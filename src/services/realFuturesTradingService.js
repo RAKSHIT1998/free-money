@@ -194,6 +194,41 @@ async function getSymbolPerformance(symbol) {
 }
 
 /**
+ * Real closed-trade performance for ONE agent, straight from this app's own ledger's
+ * `raw.realizedPnl` (Binance's per-fill realizedPnl, summed at close time in
+ * closePosition() below) rather than Binance's account-wide income history. Unlike
+ * getSymbolPerformance, this is correctly attributed even when multiple agents trade
+ * the same symbol (e.g. a binanceFuturesDca slot and breakoutFutures both touching
+ * BTCUSDT) — getSymbolPerformance would blend their P&L together, this can't.
+ * Basis for the automated performance-governor "race to survival" culling: an agent
+ * with enough real closed trades and a real, accumulating loss gets stopped
+ * automatically, the same way meanReversionFutures/breakoutFutures were once retired
+ * manually after reviewing their own trade histories.
+ * Also reports hasOpenPosition (net opens minus closes, across every symbol this
+ * agent has touched) — the governor must never cull an agent while it's still
+ * holding a real position, so it has something to check before acting.
+ * @param {string} agentId
+ * @returns {Promise<{closedTradeCount: number, netRealizedPnlUsd: number, winCount: number, lossCount: number, hasOpenPosition: boolean}>}
+ */
+async function getAgentPerformance(agentId) {
+  const ledger = await getLedger(agentId);
+  const closeTrades = ledger.filter(t => t.action === 'close' && t.status !== 'error');
+  const pnls = closeTrades.map(t => (t.raw && typeof t.raw.realizedPnl === 'number') ? t.raw.realizedPnl : 0);
+
+  const netOpenCount = ledger
+    .filter(t => t.status !== 'error')
+    .reduce((count, t) => count + (isCloseTrade(t) ? -1 : 1), 0);
+
+  return {
+    closedTradeCount: closeTrades.length,
+    netRealizedPnlUsd: pnls.reduce((sum, pnl) => sum + pnl, 0),
+    winCount: pnls.filter(pnl => pnl > 0).length,
+    lossCount: pnls.filter(pnl => pnl <= 0).length,
+    hasOpenPosition: netOpenCount > 0
+  };
+}
+
+/**
  * Remaining real margin an agent is allowed to spend right now, respecting BOTH its
  * own per-agent budgetCapUsd AND the shared cross-agent globalFuturesBudgetCapUsd —
  * whichever is tighter wins. Every real futures agent should size its next trade off
@@ -1066,6 +1101,7 @@ module.exports = {
   getTodaysCommissionUsd,
   getTradeHistorySummary,
   getSymbolPerformance,
+  getAgentPerformance,
   openLeveragedLong,
   openLeveragedShort,
   closePosition,

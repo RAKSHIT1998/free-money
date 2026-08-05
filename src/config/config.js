@@ -216,6 +216,21 @@ class Config {
         realAgentMonitor: {
           checkIntervalMs: parseInt(process.env.REAL_AGENT_MONITOR_CHECK_INTERVAL_MS) || 120000,
           errorCyclesBeforeRestart: parseInt(process.env.REAL_AGENT_MONITOR_ERROR_CYCLES) || 2
+        },
+        // "Race to survival" performance governor: reviews every real directional
+        // trading agent's REAL realized P&L on an interval and stops ones with a
+        // sustained real loss (permanently, via CulledAgent — see agentCullService),
+        // while raising the budget cap of sustained real winners. Never acts on an
+        // agent still holding an open position, and never acts before it has enough
+        // closed trades to be a real signal rather than noise.
+        performanceGovernor: {
+          checkIntervalMs: parseInt(process.env.PERFORMANCE_GOVERNOR_CHECK_INTERVAL_MS) || 1800000,
+          minClosedTradesFutures: parseInt(process.env.PERFORMANCE_GOVERNOR_MIN_TRADES_FUTURES) || 8,
+          minClosedTradesPumpFun: parseInt(process.env.PERFORMANCE_GOVERNOR_MIN_TRADES_PUMPFUN) || 5,
+          lossThresholdPct: parseFloat(process.env.PERFORMANCE_GOVERNOR_LOSS_THRESHOLD_PCT) || 0.5,
+          eliteThresholdPct: parseFloat(process.env.PERFORMANCE_GOVERNOR_ELITE_THRESHOLD_PCT) || 0.5,
+          boostFactor: parseFloat(process.env.PERFORMANCE_GOVERNOR_BOOST_FACTOR) || 1.5,
+          maxBudgetCapUsd: parseFloat(process.env.PERFORMANCE_GOVERNOR_MAX_BUDGET_CAP_USD) || 100
         }
       },
 
