@@ -56,6 +56,10 @@ class PumpFunSniperAgent extends BaseAgent {
         stopLossPct: options.config?.stopLossPct != null ? options.config.stopLossPct : 40,
         maxHoldMs: options.config?.maxHoldMs || 300000, // 5 minutes
         priceCheckIntervalMs: options.config?.priceCheckIntervalMs || 20000,
+        // How often the SAME repeated error (e.g. an active Binance ban) is allowed
+        // to log again — the new-token firehose can fire many times a minute, and
+        // without this every single one logged its own identical line.
+        errorLogThrottleMs: options.config?.errorLogThrottleMs || 120000, // 2 minutes
         ...options.config
       }
     });
@@ -64,6 +68,8 @@ class PumpFunSniperAgent extends BaseAgent {
     this.openPosition = null;
     this.buying = false;
     this.ws = null;
+    this.lastLoggedErrorMessage = null;
+    this.lastLoggedErrorAt = 0;
   }
 
   async run() {
@@ -113,7 +119,19 @@ class PumpFunSniperAgent extends BaseAgent {
 
     this.ws.addEventListener('message', (event) => {
       this.handleMessage(event.data).catch(error => {
-        this.log('error', 'Error handling PumpPortal message:', error.message);
+        // pump.fun's new-token firehose can fire many times a minute; while a known
+        // Binance ban is active, every single one hit this same error and logged it
+        // individually — hundreds of identical lines an hour, drowning out anything
+        // actually worth noticing. Log a given message once per throttle window, not
+        // once per WebSocket event.
+        const now = Date.now();
+        const isRepeat = error.message === this.lastLoggedErrorMessage &&
+          now - this.lastLoggedErrorAt < this.config.errorLogThrottleMs;
+        if (!isRepeat) {
+          this.log('error', 'Error handling PumpPortal message:', error.message);
+          this.lastLoggedErrorMessage = error.message;
+          this.lastLoggedErrorAt = now;
+        }
       });
     });
 

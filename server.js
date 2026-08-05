@@ -52,6 +52,14 @@ function getOrCreateDeviceId() {
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Render sits in front of this app as a single reverse-proxy hop. Without this,
+// Express doesn't trust the X-Forwarded-For header Render sets, so req.ip resolves to
+// the proxy's own internal address for every request — express-rate-limit was logging
+// exactly this misconfiguration warning, and it means every distinct real client was
+// being bucketed together under one effective "IP" for rate-limiting, not counted
+// separately. `1` trusts exactly one hop (Render's own proxy), not the whole chain.
+app.set('trust proxy', 1);
+
 // Generate/set device ID early so it's available throughout the app
 const DEVICE_ID = getOrCreateDeviceId();
 process.env.DEVICE_ID = DEVICE_ID;

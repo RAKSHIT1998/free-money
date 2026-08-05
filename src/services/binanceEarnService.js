@@ -31,9 +31,26 @@ async function getSyncedTimestamp() {
       timeOffsetSyncedAt = now;
     } catch (error) {
       // Fall back to whatever offset is already known rather than blocking the caller.
+      // Still record a 429/418 here so the shared gate knows about a ban even if this
+      // was the first call to hit it.
+      getSpotTradingService().noteSpotRateLimitResponse(error);
     }
   }
   return Date.now() + timeOffsetMs;
+}
+
+// Lazy require of the spot trading service, purely to reuse its Binance rate-limit
+// gate — every call in this file hits api.binance.com, the exact same host/ban-bucket
+// realTradingService.js already protects. This file previously had zero rate-limit
+// protection of its own (found 2026-08-05 while auditing every Binance-calling module
+// after a real IP ban) — sharing one gate instead of leaving this module to
+// independently discover (or fail to discover) the same ban.
+let spotTradingService;
+function getSpotTradingService() {
+  if (!spotTradingService) {
+    spotTradingService = require('./realTradingService');
+  }
+  return spotTradingService;
 }
 
 let RealEarnAction;
@@ -129,6 +146,8 @@ function signedQuery(params) {
 }
 
 async function signedRequest(method, endpoint, params) {
+  await getSpotTradingService().assertSpotNotRateLimited();
+
   const timestamp = await getSyncedTimestamp();
   const query = signedQuery({ ...params, timestamp });
   const url = `${BINANCE_BASE}${endpoint}?${query}`;
@@ -140,6 +159,7 @@ async function signedRequest(method, endpoint, params) {
     });
     return data;
   } catch (error) {
+    getSpotTradingService().noteSpotRateLimitResponse(error);
     if (error.response?.data) {
       error.message = `${error.message}: ${JSON.stringify(error.response.data)}`;
     }
