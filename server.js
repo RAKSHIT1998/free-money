@@ -318,11 +318,11 @@ const startServer = async () => {
           // (openLeveragedLong now uses POST /fapi/v1/algoOrder) and re-verified
           // against a real live position with an independent query confirming both
           // orders exist on Binance's side before re-enabling.
-          try {
-            await spawnIfMissing('binanceDca', { name: 'Auto-resumed binanceDca' });
-          } catch (error) {
-            console.error('Error auto-spawning real trading agent binanceDca:', error.message);
-          }
+          // binanceDca (spot DCA) removed from auto-spawn 2026-08-05 — explicit user
+          // policy: no spot trading on Binance, futures/derivatives only. The agent
+          // was terminated and deleted from the database; if this block still called
+          // spawnIfMissing, the very next restart would silently recreate and resume
+          // it, undoing that policy without any further action needed to trigger it.
 
           // No leverage, no directional exposure — sweeps idle spot USDT above its
           // reserve into Binance's highest-APY flexible Earn product. Added 2026-08-04.
@@ -340,12 +340,9 @@ const startServer = async () => {
             console.error('Error auto-spawning real trading agent fundingRateArbitrage:', error.message);
           }
 
-          // Spot, no leverage — profits from range-bound price action. Added 2026-08-04.
-          try {
-            await spawnIfMissing('gridTrading', { name: 'Auto-resumed gridTrading' });
-          } catch (error) {
-            console.error('Error auto-spawning real trading agent gridTrading:', error.message);
-          }
+          // gridTrading (spot, no leverage) removed from auto-spawn 2026-08-05 — same
+          // no-spot-trading policy as binanceDca above. Terminated and deleted from
+          // the database; not re-added here so a restart can't silently resume it.
 
           // Diversified DCA slots across multiple symbols (2026-08-03): same no-signal,
           // scheduled/protected accumulation approach as the original BTCUSDT-only
