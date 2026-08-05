@@ -139,7 +139,7 @@ class Config {
           takeProfitPct: parseFloat(process.env.BREAKOUT_FUTURES_TAKE_PROFIT_PCT) || 0.03,
           nearHighThresholdPct: parseFloat(process.env.BREAKOUT_FUTURES_NEAR_HIGH_PCT) || 0.02,
           momentumThresholdPct: parseFloat(process.env.BREAKOUT_FUTURES_MOMENTUM_PCT) || 5,
-          minQuoteVolumeUsd: parseFloat(process.env.BREAKOUT_FUTURES_MIN_VOLUME_USD) || 5000000,
+          minQuoteVolumeUsd: parseFloat(process.env.BREAKOUT_FUTURES_MIN_VOLUME_USD) || 250000,
           maxCandidatesPerCycle: parseInt(process.env.BREAKOUT_FUTURES_MAX_CANDIDATES_PER_CYCLE) || Infinity,
           scanIntervalMs: parseInt(process.env.BREAKOUT_FUTURES_SCAN_INTERVAL_MS) || 120000
         },
@@ -155,8 +155,8 @@ class Config {
           takeProfitPct: parseFloat(process.env.MEAN_REVERSION_FUTURES_TAKE_PROFIT_PCT) || 0.03,
           rsiPeriod: parseInt(process.env.MEAN_REVERSION_FUTURES_RSI_PERIOD) || 14,
           rsiInterval: process.env.MEAN_REVERSION_FUTURES_RSI_INTERVAL || '1h',
-          rsiOversoldThreshold: parseFloat(process.env.MEAN_REVERSION_FUTURES_RSI_OVERSOLD) || 30,
-          minQuoteVolumeUsd: parseFloat(process.env.MEAN_REVERSION_FUTURES_MIN_VOLUME_USD) || 5000000,
+          rsiOversoldThreshold: parseFloat(process.env.MEAN_REVERSION_FUTURES_RSI_OVERSOLD) || 20,
+          minQuoteVolumeUsd: parseFloat(process.env.MEAN_REVERSION_FUTURES_MIN_VOLUME_USD) || 250000,
           watchlistSize: parseInt(process.env.MEAN_REVERSION_FUTURES_WATCHLIST_SIZE) || Infinity,
           maxCandidatesPerCycle: parseInt(process.env.MEAN_REVERSION_FUTURES_MAX_CANDIDATES_PER_CYCLE) || Infinity,
           scanIntervalMs: parseInt(process.env.MEAN_REVERSION_FUTURES_SCAN_INTERVAL_MS) || 900000

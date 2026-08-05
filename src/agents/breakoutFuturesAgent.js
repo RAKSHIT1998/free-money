@@ -62,7 +62,11 @@ class BreakoutFuturesAgent extends BaseAgent {
           ? options.config.nearLowThresholdPct : 0.02, // within 2% of 24h low
         breakdownThresholdPct: options.config?.breakdownThresholdPct != null
           ? options.config.breakdownThresholdPct : 5, // 24h priceChangePercent < -5%
-        minQuoteVolumeUsd: options.config?.minQuoteVolumeUsd || 5000000, // liquidity floor
+        // Lowered from $5M (2026-08-05, explicit request to scan every token, not just
+        // the most liquid third of the market): $250K still excludes the handful of
+        // symbols thin enough that 50x leverage risks real slippage/gap-through on a
+        // stop-loss, while covering ~99% of all USDT perpetuals rather than ~33%.
+        minQuoteVolumeUsd: options.config?.minQuoteVolumeUsd || 250000, // liquidity floor
         // Uncapped by default (explicit user decision): every symbol that qualifies
         // this cycle gets a position, not just the top few. Still bounded in practice
         // by the $5M liquidity floor and one-open-per-symbol-per-day rule above.

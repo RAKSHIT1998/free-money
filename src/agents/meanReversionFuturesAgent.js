@@ -51,7 +51,10 @@ class MeanReversionFuturesAgent extends BaseAgent {
         // 80/20 only fades truly extreme readings.
         rsiOversoldThreshold: options.config?.rsiOversoldThreshold != null ? options.config.rsiOversoldThreshold : 20,
         rsiOverboughtThreshold: options.config?.rsiOverboughtThreshold != null ? options.config.rsiOverboughtThreshold : 80,
-        minQuoteVolumeUsd: options.config?.minQuoteVolumeUsd || 5000000,
+        // Lowered from $5M (2026-08-05) — see breakoutFuturesAgent.js for the same
+        // change and reasoning; kept in sync so both directional scanners cover the
+        // same near-total slice of the market.
+        minQuoteVolumeUsd: options.config?.minQuoteVolumeUsd || 250000,
         // Uncapped by default (explicit user decision): RSI is checked on every
         // perpetual clearing the liquidity floor, not just the most liquid 30, and
         // every qualifying candidate gets a position, not just the top few.
