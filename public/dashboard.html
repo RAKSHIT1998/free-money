@@ -591,6 +591,15 @@
                 </div>
             </div>
 
+            <div class="real-money-section" style="border-left-color:var(--red);">
+                <h2 class="section-title" style="border-bottom-color:var(--red);">☠️ Real pump.fun Sniper (Solana — HIGH RISK, small capped budget)</h2>
+                <p style="color:var(--text-dim); margin-bottom:10px; font-size:0.85rem;">Permissionless memecoin speculation, not exchange trading — most tokens go to zero and this agent has no structural edge over faster sniper bots. Not spawned automatically; start it deliberately from the command deck above.</p>
+                <div class="stats-grid" id="real-pumpfun-stats">
+                    <div class="loading">Loading pump.fun sniper status...</div>
+                </div>
+                <div id="real-pumpfun-trades" style="margin-top: 15px;"></div>
+            </div>
+
             <div class="real-money-section">
                 <h2 class="section-title">🚀 Real Binance Futures DCA Agent (Leveraged)</h2>
                 <div class="stats-grid" id="real-futures-dca-stats">
@@ -654,6 +663,7 @@
                         <option value="meanReversionFutures">meanReversionFutures (leveraged)</option>
                         <option value="hackerOneBounty">hackerOneBounty (discovery)</option>
                         <option value="cryptoGigHunter">cryptoGigHunter (discovery)</option>
+                        <option value="pumpFunSniper">pumpFunSniper (HIGH RISK — Solana)</option>
                         <option value="realAgentMonitor">realAgentMonitor (monitor)</option>
                     </select>
                     <button class="cmd-btn" id="spawn-agent-btn">▶ Spawn</button>
@@ -785,6 +795,8 @@
         const realEarnStatsContainer = document.getElementById('real-earn-stats');
         const realFundingArbStatsContainer = document.getElementById('real-funding-arb-stats');
         const realGridStatsContainer = document.getElementById('real-grid-stats');
+        const realPumpFunStatsContainer = document.getElementById('real-pumpfun-stats');
+        const realPumpFunTradesContainer = document.getElementById('real-pumpfun-trades');
         const realOpportunitiesContainer = document.getElementById('real-opportunities-container');
         const realSummaryStatsContainer = document.getElementById('real-summary-stats');
         const realAgentsActivityContainer = document.getElementById('real-agents-activity');
@@ -953,6 +965,7 @@
                     realEarnResponse,
                     realFundingArbResponse,
                     realGridResponse,
+                    realPumpFunResponse,
                     realOpportunitiesResponse,
                     realSummaryResponse,
                     realFuturesDcaResponse,
@@ -967,6 +980,7 @@
                     fetch(`${API_BASE}/agents/real/binance-earn`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/funding-rate-arbitrage`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/grid-trading`).then(r => r.json()),
+                    fetch(`${API_BASE}/agents/real/pumpfun-sniper`).then(r => r.json()),
                     fetchMergedRealOpportunities(),
                     fetch(`${API_BASE}/agents/real/summary`).then(r => r.json()),
                     fetch(`${API_BASE}/agents/real/binance-futures-dca`).then(r => r.json()),
@@ -997,6 +1011,7 @@
                 const unhedgedCount = (realFundingArbResponse.data || []).reduce((sum, a) => sum + ((a.real?.unhedgedPositions || []).length), 0);
                 setTabFlag('crypto', unhedgedCount > 0);
                 updateRealGridStats(realGridResponse.data);
+                updateRealPumpFunStats(realPumpFunResponse.data);
                 updateRealOpportunitiesList(realOpportunitiesResponse.data);
                 updateRealSummary(realSummaryResponse.data);
                 updateRealFuturesDcaStats(realFuturesDcaResponse.data);
@@ -1803,6 +1818,77 @@
             });
 
             realGridStatsContainer.innerHTML = html;
+        }
+
+        function updateRealPumpFunStats(pumpFunAgents) {
+            if (!pumpFunAgents || pumpFunAgents.length === 0) {
+                realPumpFunStatsContainer.innerHTML = `
+                    <div class="loading">
+                        Not running. Spawn "pumpFunSniper" from the command deck (System tab)
+                        to start it — a deliberate action, not automatic.
+                    </div>
+                `;
+                if (realPumpFunTradesContainer) realPumpFunTradesContainer.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            let allTrades = [];
+            pumpFunAgents.forEach(agent => {
+                const real = agent.real || {};
+                const pos = real.openPosition;
+                html += `
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">👛</div>
+                        <div class="stat-value">${(real.walletBalanceSol != null ? real.walletBalanceSol.toFixed(4) : '?')} SOL</div>
+                        <div class="stat-label">Wallet Balance</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">💸</div>
+                        <div class="stat-value">${(real.totalSpentSol != null ? real.totalSpentSol.toFixed(4) : '0')} SOL</div>
+                        <div class="stat-label">Spent (of $${real.budgetCapUsd} cap)${real.halted ? ' — HALTED' : ''}</div>
+                    </div>
+                    <div class="stat-card real-stat-card">
+                        <div class="stat-icon">${pos ? '📌' : '💤'}</div>
+                        <div class="stat-value" style="font-size:1.1rem;">${pos ? escapeHtml(pos.symbol || pos.mint.slice(0, 8)) : 'No position'}</div>
+                        <div class="stat-label">${pos ? `Held ${Math.round((Date.now() - pos.boughtAt) / 1000)}s` : 'Waiting for next launch'}</div>
+                    </div>
+                `;
+                if (real.haltedReason) {
+                    html += `
+                        <div class="stat-card real-stat-card">
+                            <div class="stat-icon">⚠️</div>
+                            <div class="stat-value" style="font-size:0.85rem; color:#c7392f;">${escapeHtml(real.haltedReason)}</div>
+                            <div class="stat-label">Halted Reason</div>
+                        </div>
+                    `;
+                }
+                allTrades = allTrades.concat((real.recentTrades || []).map(t => ({ ...t, agentId: agent.id })));
+            });
+
+            realPumpFunStatsContainer.innerHTML = html;
+
+            if (realPumpFunTradesContainer) {
+                if (allTrades.length === 0) {
+                    realPumpFunTradesContainer.innerHTML = '';
+                } else {
+                    allTrades.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    let tradesHtml = '<table class="agent-table"><thead><tr><th>Time</th><th>Action</th><th>Token</th><th>SOL</th><th>P&amp;L</th><th>Status</th></tr></thead><tbody>';
+                    allTrades.slice(0, 10).forEach(t => {
+                        const pnlColor = (t.realizedPnlUsd || 0) >= 0 ? '#238040' : '#c7392f';
+                        tradesHtml += `<tr>
+                            <td>${getTimeAgo(new Date(t.timestamp))}</td>
+                            <td>${t.action === 'buy' ? 'Buy' : 'Sell'}</td>
+                            <td>${escapeHtml((t.tokenMint || '').slice(0, 10))}…</td>
+                            <td>${(t.solAmount || 0).toFixed(4)}</td>
+                            <td style="color:${t.realizedPnlUsd != null ? pnlColor : 'var(--text-dim)'};">${t.realizedPnlUsd != null ? '$' + t.realizedPnlUsd.toFixed(2) : '—'}</td>
+                            <td>${t.status === 'confirmed' ? '✅' : '❌'}</td>
+                        </tr>`;
+                    });
+                    tradesHtml += '</tbody></table>';
+                    realPumpFunTradesContainer.innerHTML = tradesHtml;
+                }
+            }
         }
 
         // Update the real HackerOne opportunities list (read-only, real public data)

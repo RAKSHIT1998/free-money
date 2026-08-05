@@ -10,6 +10,7 @@ const HackerOneBountyAgent = require('./hackerOneBountyAgent');
 const GithubBountyHunterAgent = require('./githubBountyHunterAgent');
 const CryptoGigHunterAgent = require('./cryptoGigHunterAgent');
 const CompanyLeadHunterAgent = require('./companyLeadHunterAgent');
+const PumpFunSniperAgent = require('./pumpFunSniperAgent');
 const RealAgentMonitorAgent = require('./realAgentMonitorAgent');
 const { Config } = require('../config/config');
 const Agent = require('../models/Agent');
@@ -286,6 +287,19 @@ class AgentManager {
           id: this.nextId++,
           config: {
             ...this.config.get('agentTypes.companyLeadHunter') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'pumpfunsniper':
+      case 'pump fun sniper':
+      case 'pumpfunsniperagent':
+        agent = new PumpFunSniperAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.pumpFunSniper') || {},
             ...options.config
           },
           ...options
@@ -641,6 +655,14 @@ class AgentManager {
 
           case 'companyLeadHunter':
             agent = new CompanyLeadHunterAgent({
+              id: dbAgent.agentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'pumpFunSniper':
+            agent = new PumpFunSniperAgent({
               id: dbAgent.agentId,
               name: dbAgent.name,
               config: dbAgent.config

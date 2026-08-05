@@ -192,6 +192,24 @@ class Config {
           maxResultsPerPoll: parseInt(process.env.COMPANY_LEAD_HUNTER_MAX_RESULTS) || 10,
           maxAutoDraftsPerPoll: parseInt(process.env.COMPANY_LEAD_HUNTER_MAX_AUTO_DRAFTS) || 3
         },
+        // Real, HIGH-RISK pump.fun sniper (requires BOTH LIVE_TRADING_CONFIRMED=true
+        // AND LIVE_PUMPFUN_TRADING_CONFIRMED=true, plus a real SOLANA_PRIVATE_KEY).
+        // Deliberately NOT auto-spawned in server.js — unlike the Binance agents,
+        // this is a conscious small-budget bet the user starts explicitly via the
+        // dashboard, not an always-on strategy. See pumpFunSniperAgent.js for the
+        // real risk profile (most tokens go to zero; this is not comparable to the
+        // exchange-traded Binance strategies).
+        pumpFunSniper: {
+          budgetCapUsd: parseFloat(process.env.PUMPFUN_SNIPER_BUDGET_CAP_USD) || 10,
+          reserveSol: parseFloat(process.env.PUMPFUN_SNIPER_RESERVE_SOL) || 0.003,
+          maxSolPerSnipe: parseFloat(process.env.PUMPFUN_SNIPER_MAX_SOL_PER_SNIPE) || 0.05,
+          slippagePct: parseFloat(process.env.PUMPFUN_SNIPER_SLIPPAGE_PCT) || 15,
+          priorityFeeSol: parseFloat(process.env.PUMPFUN_SNIPER_PRIORITY_FEE_SOL) || 0.00005,
+          profitTargetPct: parseFloat(process.env.PUMPFUN_SNIPER_PROFIT_TARGET_PCT) || 50,
+          stopLossPct: parseFloat(process.env.PUMPFUN_SNIPER_STOP_LOSS_PCT) || 40,
+          maxHoldMs: parseInt(process.env.PUMPFUN_SNIPER_MAX_HOLD_MS) || 300000,
+          priceCheckIntervalMs: parseInt(process.env.PUMPFUN_SNIPER_PRICE_CHECK_INTERVAL_MS) || 20000
+        },
         // Health monitor: restarts (in place, same agent ID) any agent stuck in
         // 'error' state for errorCyclesBeforeRestart consecutive checks. Never
         // touches real trading agents' budget-cap tracking since the ID is preserved.
