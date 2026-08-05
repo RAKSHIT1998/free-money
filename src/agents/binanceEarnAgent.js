@@ -20,6 +20,7 @@
 //   service, not something this agent's cycle does automatically.
 const BaseAgent = require('./baseAgent');
 const binanceEarnService = require('../services/binanceEarnService');
+const realTradingService = require('../services/realTradingService');
 
 class BinanceEarnAgent extends BaseAgent {
   constructor(options = {}) {
@@ -75,6 +76,16 @@ class BinanceEarnAgent extends BaseAgent {
    */
   async maybeSubscribeIdleBalance() {
     if (this.haltedReason) {
+      this.state = 'resting';
+      return null;
+    }
+
+    // Checked up front, quietly, rather than attempting a call and logging the same
+    // "spot disabled" error every 6-hour cycle — the spot wallet holds $0 right now,
+    // so there's nothing this agent could act on even if the call went through.
+    try {
+      realTradingService.assertSpotCallsAllowed();
+    } catch (error) {
       this.state = 'resting';
       return null;
     }

@@ -22,18 +22,6 @@ const persistenceEnabled = config.get('agentManager.persistenceEnabled', true);
 const PUMPPORTAL_TRADE_URL = 'https://pumpportal.fun/api/trade-local';
 const PUMP_FUN_API_BASE = 'https://frontend-api-v3.pump.fun';
 
-// Lazy require of the spot service, purely to reuse its Binance rate-limit gate —
-// getSolUsdPrice() below hits the exact same Binance endpoint (api.binance.com spot
-// ticker) that realTradingService.js already protects, so both share one cooldown
-// instead of each independently discovering (or missing) the same ban.
-let realTradingService;
-function getRealTradingService() {
-  if (!realTradingService) {
-    realTradingService = require('./realTradingService');
-  }
-  return realTradingService;
-}
-
 let RealPumpFunTrade;
 function getRealPumpFunTradeModel() {
   if (!RealPumpFunTrade) {
@@ -100,9 +88,13 @@ let cachedSolPriceAt = 0;
 const SOL_PRICE_CACHE_TTL_MS = 15000;
 
 /**
- * Current SOL/USD price via Binance's public spot ticker (unrelated to, and
- * unaffected by, any Binance futures rate-limit/ban state — different endpoint,
- * different base URL, no shared cooldown gate). Cached for SOL_PRICE_CACHE_TTL_MS.
+ * Current SOL/USD price via CoinGecko's public API — deliberately NOT Binance.
+ * Binance spot calls are hard-disabled account-wide (BINANCE_SPOT_DISABLED, see
+ * realTradingService.js) since there's no spot balance to act on; this price lookup
+ * doesn't touch our account at all (it's a public market-data read), but it used to
+ * share Binance's spot ticker endpoint and therefore the same disabled gate, which
+ * would have silently broken pump.fun's pricing entirely. CoinGecko has no such
+ * dependency. Cached for SOL_PRICE_CACHE_TTL_MS.
  * @returns {Promise<number>}
  */
 async function getSolUsdPrice() {
@@ -110,33 +102,13 @@ async function getSolUsdPrice() {
     return cachedSolPrice;
   }
 
-  // Shares realTradingService's persisted Binance-spot cooldown gate — this is the
-  // exact same endpoint that agent's own hammering got IP-banned on 2026-08-05, so
-  // this call must respect (and contribute to) the same ban state, not track it
-  // independently.
-  const spotService = getRealTradingService();
-  await spotService.assertSpotNotRateLimited();
-
-  const res = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT');
-  const data = await res.json();
-
-  // fetch() doesn't throw on a non-2xx status the way axios does, so a 418/429 ban
-  // response still resolves normally here — check explicitly and feed it into the
-  // shared gate exactly like noteSpotRateLimitResponse expects (axios-shaped
-  // error.response.status/headers), reading the real status/retry-after off the
-  // actual response rather than guessing from the body.
+  const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd');
   if (!res.ok) {
-    spotService.noteSpotRateLimitResponse({
-      response: { status: res.status, headers: { 'retry-after': res.headers.get('retry-after') } }
-    });
+    throw new Error(`CoinGecko SOL/USD price request failed: ${res.status}`);
   }
+  const data = await res.json();
+  const price = parseFloat(data?.solana?.usd);
 
-  const price = parseFloat(data.price);
-  // A failed/rate-limited call still resolves with a 200-shaped-looking body (e.g.
-  // {code, msg}), so data.price is undefined and this would silently return NaN
-  // instead of throwing — which then poisons every downstream calculation with NaN
-  // (observed live: an agent computing "buying NaN SOL" and repeatedly attempting
-  // it on every new-launch event). Fail loudly instead.
   if (!Number.isFinite(price) || price <= 0) {
     throw new Error(`Invalid SOL/USD price response: ${JSON.stringify(data)}`);
   }

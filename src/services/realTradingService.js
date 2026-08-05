@@ -99,15 +99,38 @@ function persistSpotRateLimitState(until) {
   }
 }
 
+/**
+ * Hard, explicit kill switch — the spot wallet holds $0, so there is nothing for any
+ * spot call to usefully act on, and every spot call is pure downside risk (rate-limit/
+ * ban exposure) for zero possible upside right now. Checked first and cheaply, before
+ * even touching the ban-state DB read or the throttle, so a disabled call fails
+ * immediately with a clear, specific reason rather than a generic rate-limit message.
+ * Sibling to assertLiveTradingAllowed (that one gates real orders specifically; this
+ * one gates the whole spot surface, including read-only account/balance calls).
+ */
+function assertSpotCallsAllowed() {
+  if (process.env.BINANCE_SPOT_DISABLED === 'true') {
+    throw new Error(
+      'Binance spot calls are disabled (BINANCE_SPOT_DISABLED=true) — no spot balance ' +
+      'to act on, so no spot call is useful right now. Set BINANCE_SPOT_DISABLED=false ' +
+      'to re-enable once the spot wallet is actually funded again.'
+    );
+  }
+}
+
 async function assertSpotNotRateLimited() {
+  assertSpotCallsAllowed();
+
   await loadPersistedSpotRateLimitState();
   if (Date.now() < spotRateLimitedUntil) {
     const waitSec = Math.ceil((spotRateLimitedUntil - Date.now()) / 1000);
     throw new Error(`Binance rate limit/ban in effect, retry in ${waitSec}s`);
   }
   // Not banned — still pace ourselves proactively rather than only reacting after
-  // Binance says stop. Every caller (this file, binanceEarnService.js,
-  // pumpFunTradingService.js) already goes through this one function.
+  // Binance says stop. Every caller (this file, binanceEarnService.js) already goes
+  // through this one function. pumpFunTradingService.js's price lookup deliberately
+  // does NOT — it uses CoinGecko instead, since it's a public price read with no
+  // dependency on our spot balance and shouldn't be taken down by this switch.
   await spotThrottle.acquire();
 }
 
@@ -521,9 +544,12 @@ module.exports = {
   getDepositAddress,
   getRecentDeposits,
   // Exported so other modules that independently call Binance's spot API
-  // (pumpFunTradingService's SOL/USD price lookup, same endpoint, same IP, same ban
-  // bucket) share this exact cooldown state instead of each tracking their own —
-  // a ban detected by either one now protects calls made by the other.
+  // (binanceEarnService.js) share this exact cooldown/throttle/kill-switch state
+  // instead of each tracking their own.
   assertSpotNotRateLimited,
-  noteSpotRateLimitResponse
+  noteSpotRateLimitResponse,
+  // Exported separately (not just folded into assertSpotNotRateLimited) so a caller
+  // can check "is spot even allowed right now" up front and skip its whole cycle
+  // quietly, instead of attempting a call just to catch the same error every time.
+  assertSpotCallsAllowed
 };
