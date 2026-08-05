@@ -35,10 +35,77 @@ async function getSyncedTimestamp() {
       timeOffsetSyncedAt = now;
     } catch (error) {
       // If the sync call itself fails, fall back to whatever offset (possibly 0) is
-      // already known rather than blocking the caller on a clock-sync failure.
+      // already known rather than blocking the caller on a clock-sync failure. Still
+      // record a 429/418 here so the shared gate knows about a ban even if it was
+      // first detected via this endpoint rather than a trading call.
+      noteSpotRateLimitResponse(error);
     }
   }
   return Date.now() + timeOffsetMs;
+}
+
+// Shared rate-limit cooldown gate, mirroring realFuturesTradingService.js's — added
+// 2026-08-05 after this exact module had zero protection and a burst of unthrottled
+// calls (from the pump.fun agent's price-fetch bug, ironically hitting Binance's spot
+// endpoint rather than this file directly, but the lesson generalizes) triggered a
+// real IP ban on api.binance.com. Persisted to Mongo so a restart during an active
+// ban doesn't forget it and immediately retry into a longer one — the same mistake
+// already made and fixed once on the futures side.
+let spotRateLimitedUntil = 0;
+let spotRateLimitStateLoadedFromDb = false;
+
+let RateLimitState;
+function getRateLimitStateModel() {
+  if (!RateLimitState) {
+    RateLimitState = require('../models/RateLimitState');
+  }
+  return RateLimitState;
+}
+
+async function loadPersistedSpotRateLimitState() {
+  if (spotRateLimitStateLoadedFromDb || !persistenceEnabled) return;
+  spotRateLimitStateLoadedFromDb = true;
+  try {
+    const Model = getRateLimitStateModel();
+    const doc = await Model.findOne({ key: 'binanceSpot' }).lean();
+    if (doc && doc.rateLimitedUntil > spotRateLimitedUntil) {
+      spotRateLimitedUntil = doc.rateLimitedUntil;
+    }
+  } catch (error) {
+    // Mongo not reachable yet — proceed in-memory only.
+  }
+}
+
+function persistSpotRateLimitState(until) {
+  if (!persistenceEnabled) return;
+  try {
+    const Model = getRateLimitStateModel();
+    Model.findOneAndUpdate(
+      { key: 'binanceSpot' },
+      { rateLimitedUntil: until, updatedAt: new Date() },
+      { upsert: true }
+    ).catch(() => {});
+  } catch (error) {
+    // Best-effort.
+  }
+}
+
+async function assertSpotNotRateLimited() {
+  await loadPersistedSpotRateLimitState();
+  if (Date.now() < spotRateLimitedUntil) {
+    const waitSec = Math.ceil((spotRateLimitedUntil - Date.now()) / 1000);
+    throw new Error(`Binance rate limit/ban in effect, retry in ${waitSec}s`);
+  }
+}
+
+function noteSpotRateLimitResponse(error) {
+  const status = error.response?.status;
+  if (status === 429 || status === 418) {
+    const retryAfterSec = parseInt(error.response.headers['retry-after'], 10);
+    const cooldownMs = Number.isFinite(retryAfterSec) ? retryAfterSec * 1000 : 60000;
+    spotRateLimitedUntil = Date.now() + cooldownMs;
+    persistSpotRateLimitState(spotRateLimitedUntil);
+  }
 }
 
 let RealTrade;
@@ -115,10 +182,16 @@ async function getLedger(agentId) {
  * @returns {Promise<number>}
  */
 async function getCurrentPrice(symbol) {
-  const { data } = await axios.get(`${BINANCE_BASE}/api/v3/ticker/price`, {
-    params: { symbol }
-  });
-  return parseFloat(data.price);
+  await assertSpotNotRateLimited();
+  try {
+    const { data } = await axios.get(`${BINANCE_BASE}/api/v3/ticker/price`, {
+      params: { symbol }
+    });
+    return parseFloat(data.price);
+  } catch (error) {
+    noteSpotRateLimitResponse(error);
+    throw error;
+  }
 }
 
 let exchangeInfoCache = null;
@@ -130,10 +203,16 @@ async function getExchangeInfo() {
   if (exchangeInfoCache && (now - exchangeInfoCacheAt) < EXCHANGE_INFO_TTL_MS) {
     return exchangeInfoCache;
   }
-  const { data } = await axios.get(`${BINANCE_BASE}/api/v3/exchangeInfo`);
-  exchangeInfoCache = data;
-  exchangeInfoCacheAt = now;
-  return data;
+  await assertSpotNotRateLimited();
+  try {
+    const { data } = await axios.get(`${BINANCE_BASE}/api/v3/exchangeInfo`);
+    exchangeInfoCache = data;
+    exchangeInfoCacheAt = now;
+    return data;
+  } catch (error) {
+    noteSpotRateLimitResponse(error);
+    throw error;
+  }
 }
 
 /**
@@ -240,6 +319,7 @@ function assertLiveTradingAllowed() {
  */
 async function placeMarketBuyOrder({ symbol, quoteOrderQtyUsd, agentId }) {
   assertLiveTradingAllowed();
+  await assertSpotNotRateLimited();
 
   const timestamp = await getSyncedTimestamp();
   const queryString = `symbol=${symbol}&side=BUY&type=MARKET&quoteOrderQty=${quoteOrderQtyUsd}&timestamp=${timestamp}`;
@@ -256,6 +336,7 @@ async function placeMarketBuyOrder({ symbol, quoteOrderQtyUsd, agentId }) {
       { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
     );
   } catch (error) {
+    noteSpotRateLimitResponse(error);
     // Binance's actual reason (e.g. -2010 insufficient balance, -1013 NOTIONAL filter
     // failure) lives in error.response.data, not error.message — axios only gives the
     // generic "Request failed with status code 400" there. Without this, every caller
@@ -283,6 +364,7 @@ async function placeMarketBuyOrder({ symbol, quoteOrderQtyUsd, agentId }) {
  */
 async function placeMarketSellOrder({ symbol, quantity, agentId }) {
   assertLiveTradingAllowed();
+  await assertSpotNotRateLimited();
 
   const stepSize = await getQuantityStepSize(symbol);
   const roundedQuantity = roundDownToStep(quantity, stepSize);
@@ -305,6 +387,7 @@ async function placeMarketSellOrder({ symbol, quantity, agentId }) {
       { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
     );
   } catch (error) {
+    noteSpotRateLimitResponse(error);
     if (error.response?.data) {
       error.message = `${error.message}: ${JSON.stringify(error.response.data)}`;
     }
@@ -359,6 +442,7 @@ async function recordFill(binanceOrderResponse, { symbol, side, requestedUsd, ag
  */
 async function getDepositAddress(coin, network) {
   assertLiveTradingAllowed();
+  await assertSpotNotRateLimited();
 
   const timestamp = await getSyncedTimestamp();
   const params = { coin, timestamp };
@@ -369,11 +453,16 @@ async function getDepositAddress(coin, network) {
     .update(queryString)
     .digest('hex');
 
-  const { data } = await axios.get(
-    `${BINANCE_BASE}/sapi/v1/capital/deposit/address?${queryString}&signature=${signature}`,
-    { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
-  );
-  return data;
+  try {
+    const { data } = await axios.get(
+      `${BINANCE_BASE}/sapi/v1/capital/deposit/address?${queryString}&signature=${signature}`,
+      { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
+    );
+    return data;
+  } catch (error) {
+    noteSpotRateLimitResponse(error);
+    throw error;
+  }
 }
 
 /**
@@ -384,6 +473,7 @@ async function getDepositAddress(coin, network) {
  */
 async function getRecentDeposits(coin) {
   assertLiveTradingAllowed();
+  await assertSpotNotRateLimited();
 
   const timestamp = await getSyncedTimestamp();
   const queryString = new URLSearchParams({ coin, timestamp }).toString();
@@ -392,10 +482,16 @@ async function getRecentDeposits(coin) {
     .update(queryString)
     .digest('hex');
 
-  const { data } = await axios.get(
-    `${BINANCE_BASE}/sapi/v1/capital/deposit/hisrec?${queryString}&signature=${signature}`,
-    { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
-  );
+  let data;
+  try {
+    ({ data } = await axios.get(
+      `${BINANCE_BASE}/sapi/v1/capital/deposit/hisrec?${queryString}&signature=${signature}`,
+      { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
+    ));
+  } catch (error) {
+    noteSpotRateLimitResponse(error);
+    throw error;
+  }
   return Array.isArray(data) ? data : [];
 }
 
