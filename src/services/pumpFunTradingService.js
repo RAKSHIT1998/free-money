@@ -135,6 +135,24 @@ async function getTokenInfo(mint) {
   return res.json();
 }
 
+// @solana/web3.js's SendTransactionError.message is only ever the first line of a
+// multi-line template ("Simulation failed. \nMessage: ...\nLogs: \n[...]\n..."); the
+// actual on-chain revert reason lives in the separate .transactionLogs array, which
+// error.message never includes. Losing that meant every failed trade's stored/logged
+// reason was just the useless literal string "Simulation failed." — found live
+// 2026-08-05 reconstructing Render's line-by-line log output by hand to see why every
+// single pump.fun buy attempt was failing (an IncorrectProgramId / Token-2022 mismatch,
+// invisible without this).
+function formatTradeError(error) {
+  const firstLine = String(error?.message || 'unknown error').split('\n')[0].trim();
+  const logs = Array.isArray(error?.transactionLogs) ? error.transactionLogs : null;
+  if (!logs || logs.length === 0) return firstLine;
+
+  const relevant = logs.filter(line => /failed|error/i.test(line));
+  const tail = relevant.length > 0 ? relevant : logs.slice(-4);
+  return `${firstLine} | ${tail.join(' // ')}`;
+}
+
 async function buildSignAndSend({ publicKey, action, mint, amount, denominatedInSol, slippage, priorityFee, pool }) {
   const response = await fetch(PUMPPORTAL_TRADE_URL, {
     method: 'POST',
@@ -193,12 +211,16 @@ async function buyToken({ mint, solAmount, agentId, slippagePct = 15, priorityFe
       amount: solAmount,
       denominatedInSol: true,
       slippage: slippagePct,
-      priorityFee: priorityFeeSol,
-      pool: 'pump'
+      priorityFee: priorityFeeSol
+      // pool intentionally omitted — buildSignAndSend defaults to 'auto', letting
+      // PumpPortal route to whichever venue the token actually needs. Hardcoding
+      // 'pump' here was implicated in real, live buy failures (2026-08-05):
+      // "IncorrectProgramId" building the associated token account for tokens whose
+      // mint requires the Token-2022 program, which 'auto' may route around.
     });
   } catch (error) {
     status = 'failed';
-    errorMessage = error.message;
+    errorMessage = formatTradeError(error);
   }
 
   const solPrice = await getSolUsdPrice().catch(() => null);
@@ -249,12 +271,16 @@ async function sellToken({ mint, agentId, percent = 100, slippagePct = 20, prior
       amount: `${percent}%`,
       denominatedInSol: false,
       slippage: slippagePct,
-      priorityFee: priorityFeeSol,
-      pool: 'pump'
+      priorityFee: priorityFeeSol
+      // pool intentionally omitted — buildSignAndSend defaults to 'auto', letting
+      // PumpPortal route to whichever venue the token actually needs. Hardcoding
+      // 'pump' here was implicated in real, live buy failures (2026-08-05):
+      // "IncorrectProgramId" building the associated token account for tokens whose
+      // mint requires the Token-2022 program, which 'auto' may route around.
     });
   } catch (error) {
     status = 'failed';
-    errorMessage = error.message;
+    errorMessage = formatTradeError(error);
   }
 
   const solPrice = await getSolUsdPrice().catch(() => null);
