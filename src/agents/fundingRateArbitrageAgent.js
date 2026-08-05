@@ -132,9 +132,10 @@ class FundingRateArbitrageAgent extends BaseAgent {
 
     const candidates = [];
     for (const ticker of eligible) {
-      // Paced, same reasoning as meanReversionFuturesAgent's klines loop — this can
-      // cover hundreds of symbols and a tight sequential burst risks an IP ban.
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Widened from 150ms (2026-08-05) — see meanReversionFuturesAgent.js for the
+      // real ban this pacing gap caused. This agent's own scan runs independently but
+      // shares the same per-IP Binance limit as every other real agent.
+      await new Promise(resolve => setTimeout(resolve, 400));
       try {
         const funding = await realFuturesTradingService.getFundingRate(ticker.symbol);
         if (funding.lastFundingRate >= this.config.minFundingRateToEnter) {

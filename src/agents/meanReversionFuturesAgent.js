@@ -133,12 +133,14 @@ class MeanReversionFuturesAgent extends BaseAgent {
     const candidates = [];
     for (const ticker of watchlist) {
       // With no volume floor, this loop covers essentially every perpetual (~680).
-      // Firing that many klines requests back-to-back with no pacing is exactly the
-      // kind of burst that gets a fresh IP 418-banned within seconds of startup
-      // (observed in practice on first deploy) — a small delay between requests turns
-      // a spike into a trickle. 150ms * 680 symbols ~= 100s per scan cycle, negligible
-      // against a 15-minute scanIntervalMs.
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Widened from 150ms (2026-08-05): 150ms was enough to avoid a burst-ban at
+      // startup, but NOT enough headroom for steady-state operation once this agent's
+      // scan surface grew from ~630 (at the old $5M floor) to ~680 — this agent plus
+      // fundingRateArbitrageAgent's own per-symbol loop, running independently on
+      // their own schedules, share the same per-IP Binance limit, and a real 15-hour
+      // ban resulted. 400ms * 680 symbols ~= 270s (4.5min) per scan cycle, still
+      // comfortable against a 15-minute scanIntervalMs, with real safety margin.
+      await new Promise(resolve => setTimeout(resolve, 400));
       try {
         const klines = await realFuturesTradingService.getKlines(ticker.symbol, this.config.rsiInterval, this.config.rsiPeriod + 20);
         const closes = klines.map(k => k.close);
