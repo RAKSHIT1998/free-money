@@ -33,6 +33,7 @@
 //   position — openPosition is only cleared on a confirmed sell.
 const BaseAgent = require('./baseAgent');
 const pumpFunTradingService = require('../services/pumpFunTradingService');
+const Agent = require('../models/Agent');
 
 const PUMPPORTAL_WS_URL = 'wss://pumpportal.fun/api/data';
 
@@ -65,11 +66,29 @@ class PumpFunSniperAgent extends BaseAgent {
     });
 
     this.haltedReason = null;
-    this.openPosition = null;
+    // Restored from the DB on a restart (see agentManager.js's loadAgentsFromDatabase)
+    // so a still-open real position isn't forgotten just because the process
+    // restarted — every deploy does this, so without it a held position would go
+    // permanently untracked and unmanaged. See persistOpenPosition() below.
+    this.openPosition = options.openPosition || null;
     this.buying = false;
     this.ws = null;
     this.lastLoggedErrorMessage = null;
     this.lastLoggedErrorAt = 0;
+  }
+
+  /**
+   * Persists this.openPosition to the Agent document — called right after every buy
+   * (sets it) and every confirmed sell (clears it), so an in-flight position survives
+   * a restart instead of being silently forgotten. A targeted single-field update,
+   * independent of agentManager's broader (spawn/stop/shutdown-only) save cycle.
+   */
+  async persistOpenPosition() {
+    try {
+      await Agent.findOneAndUpdate({ agentId: String(this.id) }, { openPosition: this.openPosition });
+    } catch (error) {
+      this.log('error', 'Failed to persist openPosition:', error.message);
+    }
   }
 
   async run() {
@@ -226,6 +245,7 @@ class PumpFunSniperAgent extends BaseAgent {
       entryMarketCapUsd: info?.usd_market_cap || null,
       boughtAt: Date.now()
     };
+    await this.persistOpenPosition();
     this.updatePerformance({ opportunitiesFound: this.performance.opportunitiesFound + 1 });
     this.log('info', `Bought ${tokenMsg.symbol || tokenMsg.mint}: ${buyAmountSol} SOL, tx ${trade.txSignature}`);
   }
@@ -277,6 +297,7 @@ class PumpFunSniperAgent extends BaseAgent {
     );
     this.updatePerformance({ earnings: this.performance.earnings + (trade.realizedPnlUsd || 0) });
     this.openPosition = null;
+    await this.persistOpenPosition();
   }
 
   /**

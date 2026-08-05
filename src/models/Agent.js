@@ -65,6 +65,13 @@ const agentSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  // Pump.fun sniper only: the currently-held position (mint, entry price, etc.), or
+  // null. Kept in sync on every buy/sell so a restart doesn't forget a real, still-open
+  // position — see pumpFunSniperAgent.js. Unused by every other agent type.
+  openPosition: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
   performance: {
     type: agentPerformanceSchema,
     default: () => ({})

@@ -674,7 +674,10 @@ class AgentManager {
             agent = new PumpFunSniperAgent({
               id: numericAgentId,
               name: dbAgent.name,
-              config: dbAgent.config
+              config: dbAgent.config,
+              // Without this, a restart forgets any real, still-open position — see
+              // persistOpenPosition() in pumpFunSniperAgent.js.
+              openPosition: dbAgent.openPosition || null
             });
             break;
 
