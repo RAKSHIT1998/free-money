@@ -62,14 +62,22 @@ class BreakoutFuturesAgent extends BaseAgent {
           ? options.config.nearLowThresholdPct : 0.02, // within 2% of 24h low
         breakdownThresholdPct: options.config?.breakdownThresholdPct != null
           ? options.config.breakdownThresholdPct : 5, // 24h priceChangePercent < -5%
-        // Lowered from $5M (2026-08-05, explicit request to scan every token, not just
-        // the most liquid third of the market): $250K still excludes the handful of
-        // symbols thin enough that 50x leverage risks real slippage/gap-through on a
-        // stop-loss, while covering ~99% of all USDT perpetuals rather than ~33%.
-        minQuoteVolumeUsd: options.config?.minQuoteVolumeUsd || 250000, // liquidity floor
+        // Hard volume floor removed (2026-08-05, explicit request): every symbol with
+        // any real trading activity is now eligible, not just symbols above a fixed
+        // cutoff. In its place, maxNotionalPctOfVolume below scales the POSITION SIZE
+        // to the symbol's own liquidity instead of blocking thin symbols outright —
+        // proper systematic risk control rather than an on/off gate.
+        // Fraction of a symbol's own 24h quote volume this agent will ever risk as
+        // notional (position size × leverage) on a single entry. A thin symbol
+        // automatically gets a smaller position; a deep one gets the normal full
+        // size (capped by desiredMargin/budget as before). 0.5% keeps any single
+        // entry from being large enough to meaningfully move a thin market or make
+        // the stop-loss hard to fill cleanly.
+        maxNotionalPctOfVolume: options.config?.maxNotionalPctOfVolume != null
+          ? options.config.maxNotionalPctOfVolume : 0.005,
         // Uncapped by default (explicit user decision): every symbol that qualifies
         // this cycle gets a position, not just the top few. Still bounded in practice
-        // by the $5M liquidity floor and one-open-per-symbol-per-day rule above.
+        // by the per-symbol liquidity cap and one-open-per-symbol-per-day rule above.
         maxCandidatesPerCycle: options.config?.maxCandidatesPerCycle || Infinity,
         // Shortened from 5 minutes (2026-08-05) alongside the wider near-high/low
         // band above, so a continuing move is caught sooner rather than waiting up to
@@ -141,7 +149,10 @@ class BreakoutFuturesAgent extends BaseAgent {
     ]);
 
     const perpetualSet = new Set(perpetualSymbols);
-    const eligible = t => perpetualSet.has(t.symbol) && !symbolsTradedToday.has(t.symbol) && t.quoteVolume >= this.config.minQuoteVolumeUsd;
+    // No volume floor — any symbol with real (non-zero) trading activity is eligible.
+    // Thin symbols aren't blocked; they get a smaller position instead (see
+    // maxNotionalPctOfVolume in the sizing step below).
+    const eligible = t => perpetualSet.has(t.symbol) && !symbolsTradedToday.has(t.symbol) && t.quoteVolume > 0;
 
     const longCandidates = tickers
       .filter(t =>
@@ -198,11 +209,18 @@ class BreakoutFuturesAgent extends BaseAgent {
       const desiredMargin = this.config.sizingMode === 'percentOfBalance'
         ? (await realFuturesTradingService.getAvailableFuturesBalanceUsd()) * this.config.riskPct
         : this.config.perTradeMarginUsd;
-      // budgetCapUsd (per-agent) and the global cross-agent cap are both hard
-      // backstops, regardless of sizing mode — a growing balance can never push a
-      // single trade's margin past either.
-      const marginUsd = Math.min(desiredMargin, budget.remaining);
+      // Liquidity-aware cap: notional (margin × leverage) never exceeds
+      // maxNotionalPctOfVolume of the symbol's own 24h volume, so a thin symbol
+      // automatically gets a smaller position instead of being blocked outright.
+      const liquidityCapMarginUsd = (candidate.quoteVolume * this.config.maxNotionalPctOfVolume) / this.config.leverage;
+      // budgetCapUsd (per-agent), the global cross-agent cap, and the liquidity cap
+      // are all hard backstops, regardless of sizing mode — a growing balance can
+      // never push a single trade's margin past any of them.
+      const marginUsd = Math.min(desiredMargin, budget.remaining, liquidityCapMarginUsd);
       if (marginUsd <= 0) continue;
+      if (liquidityCapMarginUsd < desiredMargin && liquidityCapMarginUsd <= budget.remaining) {
+        this.log('info', `${candidate.symbol}: sizing down to $${marginUsd.toFixed(2)} margin (thin 24h volume $${Math.round(candidate.quoteVolume).toLocaleString()})`);
+      }
 
       try {
         const openFn = candidate.direction === 'long'

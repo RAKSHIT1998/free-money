@@ -1,15 +1,16 @@
 // REAL MONEY, LEVERAGED agent: mean-reversion strategy, distinct signal source from
-// breakoutFuturesAgent (momentum) — trades liquid USDT perpetuals whose 14-period RSI
-// on the 1h chart indicates an overextended move, betting on a bounce back toward the
-// mean rather than continued momentum in either direction. Oversold opens a long,
+// breakoutFuturesAgent (momentum) — trades USDT perpetuals whose 14-period RSI on the
+// 1h chart indicates an overextended move, betting on a bounce back toward the mean
+// rather than continued momentum in either direction. Oversold opens a long,
 // overbought opens a short.
 //
 // Signal (deliberately simple, NOT backtested, NOT a proven-profitable strategy):
-//   among the most liquid perpetuals (by 24h quote volume), a symbol qualifies for a
-//   LONG when its 1h RSI(14) is below rsiOversoldThreshold, and for a SHORT when it's
-//   above rsiOverboughtThreshold. RSI is a well-known, publicly documented indicator —
-//   using it here is not a claim that this particular application of it is reliably
-//   profitable.
+//   across every perpetual with real trading activity, a symbol qualifies for a LONG
+//   when its 1h RSI(14) is below rsiOversoldThreshold, and for a SHORT when it's above
+//   rsiOverboughtThreshold. RSI is a well-known, publicly documented indicator — using
+//   it here is not a claim that this particular application of it is reliably
+//   profitable. Position size scales down on thin symbols (maxNotionalPctOfVolume)
+//   rather than excluding them.
 //
 // Safety properties (do not remove without updating the plan/tests):
 // - Never calls walletService.addEarnings — zero interaction with the fabricated
@@ -51,12 +52,14 @@ class MeanReversionFuturesAgent extends BaseAgent {
         // 80/20 only fades truly extreme readings.
         rsiOversoldThreshold: options.config?.rsiOversoldThreshold != null ? options.config.rsiOversoldThreshold : 20,
         rsiOverboughtThreshold: options.config?.rsiOverboughtThreshold != null ? options.config.rsiOverboughtThreshold : 80,
-        // Lowered from $5M (2026-08-05) — see breakoutFuturesAgent.js for the same
-        // change and reasoning; kept in sync so both directional scanners cover the
-        // same near-total slice of the market.
-        minQuoteVolumeUsd: options.config?.minQuoteVolumeUsd || 250000,
+        // Hard volume floor removed (2026-08-05, explicit request) — see
+        // breakoutFuturesAgent.js for the same change and reasoning.
+        // maxNotionalPctOfVolume replaces it as a per-symbol position-size cap
+        // instead of an eligibility gate.
+        maxNotionalPctOfVolume: options.config?.maxNotionalPctOfVolume != null
+          ? options.config.maxNotionalPctOfVolume : 0.005,
         // Uncapped by default (explicit user decision): RSI is checked on every
-        // perpetual clearing the liquidity floor, not just the most liquid 30, and
+        // perpetual with real trading activity, not just the most liquid 30, and
         // every qualifying candidate gets a position, not just the top few.
         watchlistSize: options.config?.watchlistSize || Infinity,
         maxCandidatesPerCycle: options.config?.maxCandidatesPerCycle || Infinity,
@@ -72,8 +75,8 @@ class MeanReversionFuturesAgent extends BaseAgent {
   async run() {
     this.log(
       'info',
-      `Starting mean-reversion futures scanner (top ${this.config.watchlistSize} liquid perpetuals): ` +
-      `$${this.config.perTradeMarginUsd} margin/trade @ ${this.config.leverage}x ${this.config.marginMode}, ` +
+      `Starting mean-reversion futures scanner (every perpetual with real volume, capped at ${this.config.watchlistSize}): ` +
+      `$${this.config.perTradeMarginUsd} margin/trade (sized down on thin symbols) @ ${this.config.leverage}x ${this.config.marginMode}, ` +
       `per-agent budget cap $${this.config.budgetCapUsd} (also bound by the global cross-agent cap), ` +
       `stop-loss ${(this.config.stopLossPct * 100).toFixed(2)}%, take-profit ${(this.config.takeProfitPct * 100).toFixed(2)}%, ` +
       `long signal = RSI(${this.config.rsiPeriod}) on ${this.config.rsiInterval} < ${this.config.rsiOversoldThreshold}, ` +
@@ -117,21 +120,24 @@ class MeanReversionFuturesAgent extends BaseAgent {
     ]);
 
     const perpetualSet = new Set(perpetualSymbols);
+    // No volume floor — any symbol with real (non-zero) trading activity is watched.
+    // Thin symbols aren't excluded; they get a smaller position instead (see
+    // maxNotionalPctOfVolume in the sizing step below).
     const watchlist = tickers
-      .filter(t => perpetualSet.has(t.symbol) && t.quoteVolume >= this.config.minQuoteVolumeUsd && !symbolsTradedToday.has(t.symbol))
+      .filter(t => perpetualSet.has(t.symbol) && t.quoteVolume > 0 && !symbolsTradedToday.has(t.symbol))
       .sort((a, b) => b.quoteVolume - a.quoteVolume)
       .slice(0, this.config.watchlistSize);
 
-    this.log('info', `Checking RSI on top ${watchlist.length} liquid perpetuals (of ${tickers.length} scanned)`);
+    this.log('info', `Checking RSI on ${watchlist.length} perpetuals (of ${tickers.length} scanned)`);
 
     const candidates = [];
     for (const ticker of watchlist) {
-      // With watchlistSize uncapped, this loop can cover 300+ perpetuals. Firing that
-      // many klines requests back-to-back with no pacing is exactly the kind of burst
-      // that gets a fresh IP 418-banned within seconds of startup (observed in
-      // practice on first deploy) — a small delay between requests turns a spike into
-      // a trickle. 150ms * 300 symbols ~= 45s per scan cycle, negligible against a
-      // 15-minute scanIntervalMs.
+      // With no volume floor, this loop covers essentially every perpetual (~680).
+      // Firing that many klines requests back-to-back with no pacing is exactly the
+      // kind of burst that gets a fresh IP 418-banned within seconds of startup
+      // (observed in practice on first deploy) — a small delay between requests turns
+      // a spike into a trickle. 150ms * 680 symbols ~= 100s per scan cycle, negligible
+      // against a 15-minute scanIntervalMs.
       await new Promise(resolve => setTimeout(resolve, 150));
       try {
         const klines = await realFuturesTradingService.getKlines(ticker.symbol, this.config.rsiInterval, this.config.rsiPeriod + 20);
@@ -139,9 +145,9 @@ class MeanReversionFuturesAgent extends BaseAgent {
         const rsi = calculateRsi(closes, this.config.rsiPeriod);
         if (rsi === null) continue;
         if (rsi < this.config.rsiOversoldThreshold) {
-          candidates.push({ symbol: ticker.symbol, rsi, lastPrice: ticker.lastPrice, direction: 'long' });
+          candidates.push({ symbol: ticker.symbol, rsi, lastPrice: ticker.lastPrice, quoteVolume: ticker.quoteVolume, direction: 'long' });
         } else if (rsi > this.config.rsiOverboughtThreshold) {
-          candidates.push({ symbol: ticker.symbol, rsi, lastPrice: ticker.lastPrice, direction: 'short' });
+          candidates.push({ symbol: ticker.symbol, rsi, lastPrice: ticker.lastPrice, quoteVolume: ticker.quoteVolume, direction: 'short' });
         }
       } catch (error) {
         this.log('warn', `Failed to compute RSI for ${ticker.symbol}:`, error.message);
@@ -169,8 +175,15 @@ class MeanReversionFuturesAgent extends BaseAgent {
         break;
       }
 
-      const marginUsd = Math.min(this.config.perTradeMarginUsd, budget.remaining);
+      // Liquidity-aware cap: notional (margin × leverage) never exceeds
+      // maxNotionalPctOfVolume of the symbol's own 24h volume, so a thin symbol
+      // automatically gets a smaller position instead of being blocked outright.
+      const liquidityCapMarginUsd = (candidate.quoteVolume * this.config.maxNotionalPctOfVolume) / this.config.leverage;
+      const marginUsd = Math.min(this.config.perTradeMarginUsd, budget.remaining, liquidityCapMarginUsd);
       if (marginUsd <= 0) continue;
+      if (liquidityCapMarginUsd < this.config.perTradeMarginUsd && liquidityCapMarginUsd <= budget.remaining) {
+        this.log('info', `${candidate.symbol}: sizing down to $${marginUsd.toFixed(2)} margin (thin 24h volume $${Math.round(candidate.quoteVolume).toLocaleString()})`);
+      }
 
       try {
         const openFn = candidate.direction === 'long'
