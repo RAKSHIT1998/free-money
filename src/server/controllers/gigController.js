@@ -148,6 +148,25 @@ async function saveDraft(draft) {
 }
 
 /**
+ * PayPal returns a specific, actionable reason (e.g. PAYEE_ACCOUNT_RESTRICTED) in
+ * error.response.data.details — this used to be dropped entirely in production
+ * (only error.message, itself just "Request failed with status code 422", showed up,
+ * and only in development). The specific reason isn't a sensitive internal detail; a
+ * human can act on it (verify their PayPal account, fix a bad currency, etc.), so it's
+ * always included now, in every environment.
+ */
+function extractPaymentErrorMessage(error) {
+  const detail = error.response?.data?.details?.[0];
+  if (detail) {
+    return `PayPal rejected this: ${detail.issue}${detail.description ? ' — ' + detail.description : ''}`;
+  }
+  if (error.response?.data?.message) {
+    return `PayPal error: ${error.response.data.message}`;
+  }
+  return error.message;
+}
+
+/**
  * Creates a real PayPal payment order — a payment LINK sent to the client, not a
  * charge. No money moves until confirmPayment (below) is explicitly called after the
  * client has actually approved it.
@@ -189,8 +208,7 @@ exports.requestPayment = async (req, res) => {
     console.error('Error requesting payment:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to create payment request',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: `Failed to create payment request: ${extractPaymentErrorMessage(error)}`
     });
   }
 };
@@ -232,8 +250,7 @@ exports.confirmPayment = async (req, res) => {
     console.error('Error confirming payment:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to confirm payment — the client may not have approved it in PayPal yet',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: `Failed to confirm payment (the client may not have approved it in PayPal yet): ${extractPaymentErrorMessage(error)}`
     });
   }
 };
