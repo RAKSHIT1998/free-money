@@ -554,9 +554,54 @@ function signedQuery(params) {
 // signedRequest respected this, so getCurrentPrice/getAll24hrTickers/getKlines/
 // getExchangeInfo (all unsigned) kept hitting Binance during an active ban and
 // could each independently trigger Binance to extend it further.
+//
+// Persisted to Mongo (2026-08-05), not just in-memory: this variable used to reset to
+// 0 on every process restart, so a deploy during an active ban made the app forget it
+// and immediately retry — which just earns a fresh, often longer, ban from Binance's
+// own escalating-repeat-offender behavior. Every redeploy was silently making an
+// active ban worse. Best-effort — if Mongo is briefly unavailable this falls back to
+// in-memory-only behavior exactly like before, never blocks a request on its own.
 let rateLimitedUntil = 0;
+let rateLimitStateLoadedFromDb = false;
 
-function assertNotRateLimited() {
+let RateLimitState;
+function getRateLimitStateModel() {
+  if (!RateLimitState) {
+    RateLimitState = require('../models/RateLimitState');
+  }
+  return RateLimitState;
+}
+
+async function loadPersistedRateLimitState() {
+  if (rateLimitStateLoadedFromDb || !persistenceEnabled) return;
+  rateLimitStateLoadedFromDb = true;
+  try {
+    const Model = getRateLimitStateModel();
+    const doc = await Model.findOne({ key: 'binanceFutures' }).lean();
+    if (doc && doc.rateLimitedUntil > rateLimitedUntil) {
+      rateLimitedUntil = doc.rateLimitedUntil;
+    }
+  } catch (error) {
+    // Mongo not reachable yet (e.g. very early in boot) — proceed in-memory only.
+  }
+}
+
+function persistRateLimitState(until) {
+  if (!persistenceEnabled) return;
+  try {
+    const Model = getRateLimitStateModel();
+    Model.findOneAndUpdate(
+      { key: 'binanceFutures' },
+      { rateLimitedUntil: until, updatedAt: new Date() },
+      { upsert: true }
+    ).catch(() => {});
+  } catch (error) {
+    // Best-effort — an in-memory-only cooldown still applies for this process's lifetime.
+  }
+}
+
+async function assertNotRateLimited() {
+  await loadPersistedRateLimitState();
   if (Date.now() < rateLimitedUntil) {
     const waitSec = Math.ceil((rateLimitedUntil - Date.now()) / 1000);
     throw new Error(`Binance rate limit/ban in effect, retry in ${waitSec}s`);
@@ -569,6 +614,7 @@ function noteRateLimitResponse(error) {
     const retryAfterSec = parseInt(error.response.headers['retry-after'], 10);
     const cooldownMs = Number.isFinite(retryAfterSec) ? retryAfterSec * 1000 : 60000;
     rateLimitedUntil = Date.now() + cooldownMs;
+    persistRateLimitState(rateLimitedUntil);
   }
 }
 
@@ -596,7 +642,7 @@ async function getSyncedTimestamp() {
 }
 
 async function signedRequest(method, endpoint, params) {
-  assertNotRateLimited();
+  await assertNotRateLimited();
 
   const query = signedQuery({ ...params, timestamp: await getSyncedTimestamp() });
   const url = `${FAPI_BASE}${endpoint}?${query}`;
@@ -621,7 +667,7 @@ async function signedRequest(method, endpoint, params) {
  * @returns {Promise<*>}
  */
 async function publicRequest(endpoint, params = {}) {
-  assertNotRateLimited();
+  await assertNotRateLimited();
 
   try {
     const { data } = await axios.get(`${FAPI_BASE}${endpoint}`, { params });
