@@ -2079,11 +2079,34 @@
                 container.querySelectorAll('.gig-status-btn').forEach(btn => {
                     btn.addEventListener('click', async () => {
                         const id = btn.dataset.draftId;
-                        await fetch(`${API_BASE}/gigs/drafts/${id}`, {
+                        const status = btn.dataset.status;
+                        const body = { status };
+
+                        // Marking delivered can also create the real PayPal payment
+                        // request in the same step — one click instead of two. The
+                        // amount is still always a human decision (prompted here, never
+                        // invented); cancelling or leaving it blank just marks delivered
+                        // with no payment request, same as before.
+                        if (status === 'delivered') {
+                            const amountStr = window.prompt('Amount to request from the client for this delivery? (Leave blank to skip payment for now — you can request it later.)', '');
+                            if (amountStr && amountStr.trim()) {
+                                const amount = parseFloat(amountStr);
+                                if (!amount || amount <= 0) {
+                                    alert('That\'s not a valid amount — marking delivered without requesting payment. You can request it later below.');
+                                } else {
+                                    body.requestPaymentAmount = amount;
+                                    body.requestPaymentCurrency = 'usd';
+                                }
+                            }
+                        }
+
+                        const res = await fetch(`${API_BASE}/gigs/drafts/${id}`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ status: btn.dataset.status })
+                            body: JSON.stringify(body)
                         });
+                        const result = await res.json();
+                        if (result.warning) alert(result.warning);
                         loadGigDrafts();
                     });
                 });

@@ -93,7 +93,7 @@ exports.getDrafts = async (req, res) => {
 exports.updateDraft = async (req, res) => {
   try {
     const { id } = req.params;
-    const { editedContent, status } = req.body;
+    const { editedContent, status, requestPaymentAmount, requestPaymentCurrency, requestPaymentDescription } = req.body;
 
     const validStatuses = ['draft', 'delivered', 'discarded'];
     if (status && !validStatuses.includes(status)) {
@@ -103,6 +103,44 @@ exports.updateDraft = async (req, res) => {
     const updates = { updatedAt: new Date() };
     if (editedContent != null) updates.editedContent = editedContent;
     if (status) updates.status = status;
+
+    // Marking a draft delivered can also create the real PayPal payment request in
+    // the same call — one action instead of two. Still a real, human-chosen amount
+    // (never invented by the app); this only skips the separate "Request Payment"
+    // click, not the human's judgment on what to charge. A payment failure here
+    // (e.g. a restricted PayPal account) never blocks the delivered status itself —
+    // that's real, independent progress even if invoicing fails.
+    let paymentWarning;
+    if (status === 'delivered' && requestPaymentAmount != null) {
+      const parsedAmount = parseFloat(requestPaymentAmount);
+      if (!parsedAmount || parsedAmount <= 0) {
+        return res.status(400).json({ success: false, message: 'requestPaymentAmount must be a positive number' });
+      }
+
+      const draftForDescription = await findDraft(id);
+      if (!draftForDescription) {
+        return res.status(404).json({ success: false, message: 'Draft not found' });
+      }
+
+      try {
+        const order = await paymentService.createPaymentIntent(
+          parsedAmount,
+          requestPaymentCurrency || 'usd',
+          requestPaymentDescription || `Payment for: ${draftForDescription.taskDescription.slice(0, 100)}`,
+          { draftId: id }
+        );
+        const approvalUrl = (order.links || []).find(l => l.rel === 'approve')?.href || null;
+
+        updates.paymentStatus = 'pending';
+        updates.paymentAmount = parsedAmount;
+        updates.paymentCurrency = (requestPaymentCurrency || 'usd').toUpperCase();
+        updates.paymentOrderId = order.id;
+        updates.paymentApprovalUrl = approvalUrl;
+      } catch (paymentError) {
+        console.error('Error auto-creating payment request on delivery:', paymentError);
+        paymentWarning = `Marked delivered, but the payment request failed: ${extractPaymentErrorMessage(paymentError)}`;
+      }
+    }
 
     let updated;
     if (persistenceEnabled) {
@@ -120,7 +158,7 @@ exports.updateDraft = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Draft not found' });
     }
 
-    res.json({ success: true, data: updated });
+    res.json({ success: true, data: updated, warning: paymentWarning });
   } catch (error) {
     console.error('Error updating gig draft:', error);
     res.status(500).json({
