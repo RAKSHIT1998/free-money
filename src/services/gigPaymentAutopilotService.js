@@ -61,7 +61,20 @@ async function pollAndCapturePendingPayments() {
         console.warn(`[gigPaymentAutopilot] Capture attempted but not completed for draft ${draft._id}: capture_status=${capture.capture_status}`);
       }
     } catch (error) {
-      console.error(`[gigPaymentAutopilot] Failed to check/capture payment for draft ${draft._id}:`, error.message);
+      // PayPal permanently expires an unapproved CREATE-intent order (RESOURCE_NOT_FOUND /
+      // INVALID_RESOURCE_ID on GET) — the client simply never paid in time. That's a real,
+      // final outcome, not a transient failure: without this, the same expired order gets
+      // re-fetched and re-logged as an error every 10 minutes forever. Anything else (network
+      // blip, PayPal outage, auth failure) stays 'pending' and is retried next cycle as before.
+      const paypalErrorName = error.response?.data?.name;
+      if (error.response?.status === 404 && paypalErrorName === 'RESOURCE_NOT_FOUND') {
+        draft.paymentStatus = 'failed';
+        draft.updatedAt = new Date();
+        await draft.save();
+        console.warn(`[gigPaymentAutopilot] Draft ${draft._id}'s PayPal order expired unapproved — marked failed so it stops being retried.`);
+      } else {
+        console.error(`[gigPaymentAutopilot] Failed to check/capture payment for draft ${draft._id}:`, error.message);
+      }
     }
   }
 
