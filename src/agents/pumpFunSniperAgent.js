@@ -324,9 +324,18 @@ class PumpFunSniperAgent extends BaseAgent {
     // Caught live: solPrice/balanceSol resolving to something non-finite meant this
     // agent kept trying to "buy NaN SOL" on every single new-launch event.
     if (!Number.isFinite(buyAmountSol) || buyAmountSol <= 0.001) {
-      this.haltedReason = `Insufficient funds to snipe (wallet ~$${(balanceSol * solPrice).toFixed(2)}, ` +
-        `reserve ~$${(this.config.reserveSol * solPrice).toFixed(2)} held back for gas/fees)`;
-      this.log('warn', this.haltedReason);
+      // Deliberately NOT this.haltedReason — that's reserved for the permanent
+      // budget-cap stop above. An empty/thin wallet is a temporary, fixable state:
+      // fund it and the very next candidate that clears the interest filter should
+      // just work, with no restart needed. Setting haltedReason here would
+      // permanently wedge the agent the moment it's started with an unfunded wallet
+      // (its actual starting state right now) even after real SOL arrives.
+      this.log(
+        'warn',
+        `Skipping buy — insufficient funds (wallet ~$${(balanceSol * solPrice).toFixed(2)}, ` +
+        `reserve ~$${(this.config.reserveSol * solPrice).toFixed(2)} held back for gas/fees). ` +
+        `Will retry automatically once funded.`
+      );
       return;
     }
 
@@ -451,7 +460,13 @@ class PumpFunSniperAgent extends BaseAgent {
         halted: !!this.haltedReason,
         haltedReason: this.haltedReason,
         openPosition: this.openPosition,
-        recentTrades: ledger.slice(-10)
+        recentTrades: ledger.slice(-10),
+        filtering: {
+          observationWindowMs: this.config.observationWindowMs,
+          minRealSolReservesForEntry: this.config.minRealSolReservesForEntry,
+          pendingCandidates: this.pendingCandidates.length,
+          creatorReputation: creatorReputationService.getStats()
+        }
       }
     };
   }

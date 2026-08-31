@@ -269,7 +269,12 @@ class Config {
           profitTargetPct: parseFloat(process.env.PUMPFUN_SNIPER_PROFIT_TARGET_PCT) || 50,
           stopLossPct: parseFloat(process.env.PUMPFUN_SNIPER_STOP_LOSS_PCT) || 40,
           maxHoldMs: parseInt(process.env.PUMPFUN_SNIPER_MAX_HOLD_MS) || 300000,
-          priceCheckIntervalMs: parseInt(process.env.PUMPFUN_SNIPER_PRICE_CHECK_INTERVAL_MS) || 20000
+          priceCheckIntervalMs: parseInt(process.env.PUMPFUN_SNIPER_PRICE_CHECK_INTERVAL_MS) || 20000,
+          // Entry filtering (2026-09-01) — see pumpFunSniperAgent.js's file header
+          // for the real live pump.fun data behind these defaults.
+          observationWindowMs: parseInt(process.env.PUMPFUN_SNIPER_OBSERVATION_WINDOW_MS) || 10000,
+          minRealSolReservesForEntry: parseFloat(process.env.PUMPFUN_SNIPER_MIN_REAL_SOL_RESERVES) || 0.3,
+          maxCandidateAgeMs: parseInt(process.env.PUMPFUN_SNIPER_MAX_CANDIDATE_AGE_MS) || 120000
         },
         // Health monitor: restarts (in place, same agent ID) any agent stuck in
         // 'error' state for errorCyclesBeforeRestart consecutive checks. Never

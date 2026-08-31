@@ -12,12 +12,15 @@
 // signed locally with our own key and broadcast via our own RPC connection. PumpPortal
 // charges 0.5% per trade on top of pump.fun's own ~1% bonding-curve fee and Solana
 // network gas.
+const fs = require('fs');
+const path = require('path');
 const { Connection, Keypair, VersionedTransaction, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 const bs58 = require('bs58').default;
 const { Config, isLikelyRealBinanceKey } = require('../config/config');
 
 const config = new Config();
 const persistenceEnabled = config.get('agentManager.persistenceEnabled', true);
+const realPumpFunTradesFilePath = path.join(process.cwd(), 'real_pumpfun_trades.json');
 
 const PUMPPORTAL_TRADE_URL = 'https://pumpportal.fun/api/trade-local';
 const PUMP_FUN_API_BASE = 'https://frontend-api-v3.pump.fun';
@@ -308,13 +311,43 @@ async function sellToken({ mint, agentId, percent = 100, slippagePct = 20, prior
   return appendTrade(record);
 }
 
+// File-based fallback ledger, mirroring realTradingService.js's real_trades.json
+// pattern exactly — added 2026-09-01 after a real, live bug: with persistence
+// disabled, appendTrade() silently discarded every trade record instead of saving
+// it anywhere, and getLedger() unconditionally returned []. Real buys/sells still
+// executed on-chain (that path never depended on Mongo), but getTotalSpentSol()
+// always read back 0 — meaning the $10 budget cap could never trigger, no matter
+// how much was actually spent. Confirmed live: 3 real buy/sell rounds executed
+// with the cap silently inert throughout. Same bug class as
+// crossExchangeTransferArbitrageAgent's had; that one was already fixed, this one
+// wasn't checked until it actually caused an uncapped run.
+function loadTradesFromFile() {
+  try {
+    if (fs.existsSync(realPumpFunTradesFilePath)) {
+      const parsed = JSON.parse(fs.readFileSync(realPumpFunTradesFilePath, 'utf8'));
+      return Array.isArray(parsed.trades) ? parsed.trades : [];
+    }
+  } catch (error) {
+    console.warn('real_pumpfun_trades.json contains invalid JSON, starting with empty ledger:', error.message);
+  }
+  return [];
+}
+
+function saveTradesToFile(trades) {
+  fs.writeFileSync(realPumpFunTradesFilePath, JSON.stringify({ trades }, null, 2), 'utf8');
+}
+
 async function appendTrade(tradeRecord) {
   if (persistenceEnabled) {
     const Model = getRealPumpFunTradeModel();
     const doc = await Model.create(tradeRecord);
     return doc.toObject();
   }
-  return tradeRecord;
+  const trades = loadTradesFromFile();
+  const record = { ...tradeRecord, timestamp: tradeRecord.timestamp || new Date() };
+  trades.push(record);
+  saveTradesToFile(trades);
+  return record;
 }
 
 /**
@@ -323,9 +356,13 @@ async function appendTrade(tradeRecord) {
  * @returns {Promise<Array>}
  */
 async function getLedger(agentId) {
-  if (!persistenceEnabled) return [];
-  const Model = getRealPumpFunTradeModel();
-  return Model.find({ agentId: String(agentId) }).sort({ timestamp: 1 }).lean();
+  if (persistenceEnabled) {
+    const Model = getRealPumpFunTradeModel();
+    return Model.find({ agentId: String(agentId) }).sort({ timestamp: 1 }).lean();
+  }
+  return loadTradesFromFile()
+    .filter(t => String(t.agentId) === String(agentId))
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 }
 
 /**

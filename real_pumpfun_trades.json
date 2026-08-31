@@ -1,0 +1,73 @@
+{
+  "trades": [
+    {
+      "agentId": "19",
+      "timestamp": "2026-08-31T19:53:05.000Z",
+      "action": "buy",
+      "tokenMint": "DMxg7gBkMgiaUW4swCAMdtrXvy4mgZcoGSA3vtYvpump",
+      "solAmount": 0.011622151,
+      "usdAmount": 1.2057,
+      "txSignature": "r78vqZqyDXX6biqaptdyHqD2VqQKVRrjs2NZMJcCWsyAjNipHHYUeyfuPKykNNH7LZ9qqrbZt8Jd1yZaw8MNQym",
+      "status": "confirmed",
+      "note": "Backfilled 2026-09-01 after discovering appendTrade() silently discarded records when PERSISTENCE_ENABLED=false — see pumpFunTradingService.js comment above appendTrade(). Real, confirmed on-chain trade reconstructed from Solana transaction history."
+    },
+    {
+      "agentId": "19",
+      "timestamp": "2026-08-31T19:53:14.000Z",
+      "action": "sell",
+      "tokenMint": "DMxg7gBkMgiaUW4swCAMdtrXvy4mgZcoGSA3vtYvpump",
+      "solAmount": 0.035435679,
+      "usdAmount": 3.6759,
+      "txSignature": "5HfecGBwUb5gsMcWgMBH7zHSGfDDvacC1HJR9LmAHRPRY4GEkMyQhDG4rE1HKy7wHhZaUNtRaEZxndt8QHCTfqZV",
+      "status": "confirmed",
+      "realizedPnlUsd": 2.4702,
+      "note": "Backfilled — see first entry."
+    },
+    {
+      "agentId": "19",
+      "timestamp": "2026-08-31T19:53:48.000Z",
+      "action": "buy",
+      "tokenMint": "Gr68pzhjkoLuYsoUXa6uBxdFsFgHMm8bHuGFcCUDpump",
+      "solAmount": 0.053201731,
+      "usdAmount": 5.5178,
+      "txSignature": "4BR1amdxcZVta4NuDgsSJJFoqcKpcUDhFh9UsinHAcYHfQwtCNCM4Xe1ZtopxQCDHFoXp73Qq3kwg9AT76TurTXh",
+      "status": "confirmed",
+      "note": "Backfilled — see first entry."
+    },
+    {
+      "agentId": "19",
+      "timestamp": "2026-08-31T19:54:06.000Z",
+      "action": "sell",
+      "tokenMint": "Gr68pzhjkoLuYsoUXa6uBxdFsFgHMm8bHuGFcCUDpump",
+      "solAmount": 0.023968842,
+      "usdAmount": 2.4863,
+      "txSignature": "51XwU7dd8Ygd3HrN3NAqiztjUjsBXdeAq9m5f2i2NeJzFi2GQhoZnPxMFrGaMNFZwukxtvWXwpMGBhJcBopXqrDn",
+      "status": "confirmed",
+      "realizedPnlUsd": -3.0307,
+      "note": "Backfilled — see first entry."
+    },
+    {
+      "agentId": "19",
+      "timestamp": "2026-08-31T19:54:39.000Z",
+      "action": "buy",
+      "tokenMint": "JDbRykEo2RRnRfurX23tXiDyUF2HSM5qQUTU7arSpump",
+      "solAmount": 0.011854625,
+      "usdAmount": 1.2298,
+      "txSignature": "3BLMZZ9UMKEP7FoHHyaoFJbz7PVds1R5QQDbqz7Ri9P324jBU32YBK1AnjznNQY3hSWi5cFbkYBMn5wMZMqj3ydG",
+      "status": "confirmed",
+      "note": "Backfilled — see first entry. Symbol: FERGRE (Feral Gremlin)."
+    },
+    {
+      "agentId": "19",
+      "timestamp": "2026-08-31T19:59:42.925Z",
+      "action": "sell",
+      "tokenMint": "JDbRykEo2RRnRfurX23tXiDyUF2HSM5qQUTU7arSpump",
+      "solAmount": 0.020681740000000004,
+      "usdAmount": 2.1430418988000004,
+      "txSignature": "QQLpFLE3zNcL1ruGZtqk5woRazMA9CNT7Pa8Gih81gCzJGiXe6mR97Rm26cFB534Djf67Zfvx6mLQesmqsao9wm",
+      "status": "confirmed",
+      "realizedPnlUsd": 0.9146656563000004,
+      "note": "Manual cleanup sell, closing out the orphaned open position after the agent was terminated. Symbol: FERGRE (Feral Gremlin). This one WAS meant to go through appendTrade() but ran before the fix landed, so it's backfilled here too for an accurate record."
+    }
+  ]
+}
