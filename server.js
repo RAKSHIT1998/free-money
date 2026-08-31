@@ -322,6 +322,23 @@ const startServer = async () => {
           }
         });
 
+        // Real, read-only cross-exchange (Binance/Coinbase/Kraken) spot spread
+        // scanner — zero financial risk (no orders on any exchange), safe to
+        // auto-spawn by default. See crossExchangeArbitrageAgent.js for why it only
+        // surfaces candidates rather than executing them.
+        await spawnIfMissing('crossExchangeArbitrage', {
+          name: 'Initial Cross-Exchange Arbitrage Scanner',
+          config: {
+            minNetSpreadPct: configInstance.get('agentTypes.crossExchangeArbitrage.minNetSpreadPct') || 0.003,
+            maxCandidatesTracked: configInstance.get('agentTypes.crossExchangeArbitrage.maxCandidatesTracked') || 10,
+            scanIntervalMs: configInstance.get('agentTypes.crossExchangeArbitrage.scanIntervalMs') || 60000,
+            numberAssets: configInstance.get('agentTypes.crossExchangeArbitrage.numberAssets') || 15,
+            minQuoteVolumeUsd: configInstance.get('agentTypes.crossExchangeArbitrage.minQuoteVolumeUsd') || 2000000,
+            maxSpreadRatio: configInstance.get('agentTypes.crossExchangeArbitrage.maxSpreadRatio') || 0.005,
+            pairlistRefreshMs: configInstance.get('agentTypes.crossExchangeArbitrage.pairlistRefreshMs') || 1800000
+          }
+        });
+
         // Health monitor for all other agents — restarts anything stuck in 'error'
         // state. Zero financial risk itself (no orders, no withdrawals), safe to
         // auto-spawn by default.

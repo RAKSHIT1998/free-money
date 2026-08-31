@@ -26,7 +26,12 @@ exports.getAllAgents = async (req, res) => {
       performance: agent.performance,
       // Discovery agents (cryptoGigHunter, hackerOneBounty) track genuinely-new-vs-
       // already-seen listings per poll; surface it here when present.
-      ...(agent.discoveryStats ? { discovery: agent.discoveryStats } : {})
+      ...(agent.discoveryStats ? { discovery: agent.discoveryStats } : {}),
+      // crossExchangeArbitrage tracks its latest scan's candidate spreads; surface
+      // it here so the top opportunities are visible without a dedicated route.
+      ...(agent.lastScanCandidates ? {
+        arbitrage: { lastScanAt: agent.lastScanAt, candidates: agent.lastScanCandidates }
+      } : {})
     }));
 
     const stats = getAgentManager().getStatistics();

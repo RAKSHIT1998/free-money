@@ -13,6 +13,7 @@ const CompanyLeadHunterAgent = require('./companyLeadHunterAgent');
 const PumpFunSniperAgent = require('./pumpFunSniperAgent');
 const RealAgentMonitorAgent = require('./realAgentMonitorAgent');
 const PerformanceGovernorAgent = require('./performanceGovernorAgent');
+const CrossExchangeArbitrageAgent = require('./crossExchangeArbitrageAgent');
 const { Config } = require('../config/config');
 const Agent = require('../models/Agent');
 
@@ -327,6 +328,21 @@ class AgentManager {
           id: this.nextId++,
           config: {
             ...this.config.get('agentTypes.performanceGovernor') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'crossexchangearbitrage':
+      case 'cross exchange arbitrage':
+      case 'crossexchangearbitrageagent':
+        // Read-only scanner (no live-trading gate needed — see crossExchangeArbitrageAgent.js
+        // for why cross-exchange execution isn't automated in this codebase).
+        agent = new CrossExchangeArbitrageAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.crossExchangeArbitrage') || {},
             ...options.config
           },
           ...options
@@ -705,6 +721,14 @@ class AgentManager {
 
           case 'performanceGovernor':
             agent = new PerformanceGovernorAgent({
+              id: numericAgentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'crossExchangeArbitrage':
+            agent = new CrossExchangeArbitrageAgent({
               id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config

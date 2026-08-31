@@ -192,6 +192,23 @@ class Config {
           maxResultsPerPoll: parseInt(process.env.COMPANY_LEAD_HUNTER_MAX_RESULTS) || 10,
           maxAutoDraftsPerPoll: parseInt(process.env.COMPANY_LEAD_HUNTER_MAX_AUTO_DRAFTS) || 3
         },
+        // Read-only real cross-exchange (Binance/Coinbase/Kraken) spot spread scanner.
+        // No auth, no orders — surfaces real, fee-adjusted price gaps for the user to
+        // review manually. See crossExchangeArbitrageAgent.js for why this never
+        // executes automatically.
+        crossExchangeArbitrage: {
+          minNetSpreadPct: parseFloat(process.env.CROSS_EXCHANGE_ARB_MIN_NET_SPREAD_PCT) || 0.003,
+          maxCandidatesTracked: parseInt(process.env.CROSS_EXCHANGE_ARB_MAX_CANDIDATES) || 10,
+          scanIntervalMs: parseInt(process.env.CROSS_EXCHANGE_ARB_SCAN_INTERVAL_MS) || 60000,
+          // Dynamic pairlist (freqtrade VolumePairList/SpreadFilter equivalents — see
+          // crossExchangeMarketDataService.js). numberAssets/minQuoteVolumeUsd control
+          // breadth vs. liquidity floor; maxSpreadRatio rejects thin same-exchange
+          // quotes; pairlistRefreshMs is how often the ranked asset list is recomputed.
+          numberAssets: parseInt(process.env.CROSS_EXCHANGE_ARB_NUMBER_ASSETS) || 15,
+          minQuoteVolumeUsd: parseFloat(process.env.CROSS_EXCHANGE_ARB_MIN_VOLUME_USD) || 2000000,
+          maxSpreadRatio: parseFloat(process.env.CROSS_EXCHANGE_ARB_MAX_SPREAD_RATIO) || 0.005,
+          pairlistRefreshMs: parseInt(process.env.CROSS_EXCHANGE_ARB_PAIRLIST_REFRESH_MS) || 1800000
+        },
         // Real, HIGH-RISK pump.fun sniper (requires BOTH LIVE_TRADING_CONFIRMED=true
         // AND LIVE_PUMPFUN_TRADING_CONFIRMED=true, plus a real SOLANA_PRIVATE_KEY).
         // Deliberately NOT auto-spawned in server.js — unlike the Binance agents,
