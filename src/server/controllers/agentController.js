@@ -3,6 +3,9 @@ const AgentManager = require('../../agents/agentManager');
 const OpportunityService = require('../../services/opportunityService');
 const realTradingService = require('../../services/realTradingService');
 const realFuturesTradingService = require('../../services/realFuturesTradingService');
+const pumpFunTradingService = require('../../services/pumpFunTradingService');
+const agentCullService = require('../../services/agentCullService');
+const transferArbPositionStore = require('../../services/transferArbPositionStore');
 
 // Get agent manager instance (lazy initialization)
 let agentManager = null;
@@ -410,6 +413,16 @@ exports.getRealMoneySummary = async (req, res) => {
     // already persistent, this just summarizes them.
     futuresHistory: null,
     futuresHistoryError: null,
+    pumpFun: null,
+    pumpFunError: null,
+    transferArbitrage: null,
+    transferArbitrageError: null,
+    culledAgents: [],
+    // Single headline number: every real-money source that reports a genuinely
+    // REALIZED (closed-trade) P&L, summed. Binance spot DCA isn't included — its
+    // P&L there is unrealized (still-held inventory), not a closed number, and
+    // mixing realized + unrealized into one figure would misrepresent both.
+    totalRealizedPnlUsd: 0,
     agents: []
   };
 
@@ -454,6 +467,29 @@ exports.getRealMoneySummary = async (req, res) => {
   } catch (error) {
     summary.futuresHistoryError = error.message;
   }
+
+  try {
+    summary.pumpFun = await pumpFunTradingService.getAllTimeSummary();
+  } catch (error) {
+    summary.pumpFunError = error.message;
+  }
+
+  try {
+    summary.transferArbitrage = await transferArbPositionStore.getAllTimeSummary();
+  } catch (error) {
+    summary.transferArbitrageError = error.message;
+  }
+
+  try {
+    summary.culledAgents = await agentCullService.getAllCulled();
+  } catch (error) {
+    // Non-fatal — the rest of the summary is still useful without it.
+  }
+
+  summary.totalRealizedPnlUsd =
+    (summary.futuresHistory?.totalRealizedPnlUsd || 0) +
+    (summary.pumpFun?.totalRealizedPnlUsd || 0) +
+    (summary.transferArbitrage?.totalRealizedPnlUsd || 0);
 
   res.json({ success: true, data: summary });
 };

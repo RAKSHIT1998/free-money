@@ -380,6 +380,44 @@ async function getTotalSpentSol(agentId) {
     .reduce((sum, t) => sum + t.solAmount, 0);
 }
 
+/**
+ * Real P&L across EVERY pump.fun trade ever recorded, regardless of which agent
+ * instance/restart made it — a fresh agent spawn gets a new incrementing ID, so a
+ * per-agentId summary alone would silently drop history from before the most recent
+ * restart. Same summary shape as realFuturesTradingService.getTradeHistorySummary()
+ * for consistency when both are shown together.
+ * @returns {Promise<Object>}
+ */
+async function getAllTimeSummary() {
+  let allTrades;
+  if (persistenceEnabled) {
+    const Model = getRealPumpFunTradeModel();
+    allTrades = await Model.find({}).sort({ timestamp: 1 }).lean();
+  } else {
+    allTrades = loadTradesFromFile().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  }
+
+  const sells = allTrades.filter(t => t.action === 'sell' && t.status === 'confirmed' && t.realizedPnlUsd != null);
+  const totalRealizedPnlUsd = sells.reduce((sum, t) => sum + t.realizedPnlUsd, 0);
+  const wins = sells.filter(t => t.realizedPnlUsd > 0);
+  const losses = sells.filter(t => t.realizedPnlUsd <= 0);
+  const lastTrade = sells[sells.length - 1] || null;
+  const bestTrade = sells.length > 0 ? sells.reduce((a, b) => (b.realizedPnlUsd > a.realizedPnlUsd ? b : a)) : null;
+  const worstTrade = sells.length > 0 ? sells.reduce((a, b) => (b.realizedPnlUsd < a.realizedPnlUsd ? b : a)) : null;
+
+  return {
+    totalRealizedPnlUsd,
+    closedTradeCount: sells.length,
+    winCount: wins.length,
+    lossCount: losses.length,
+    winRatePct: sells.length > 0 ? (wins.length / sells.length) * 100 : null,
+    lastTrade: lastTrade ? { symbol: lastTrade.tokenMint, pnlUsd: lastTrade.realizedPnlUsd, time: lastTrade.timestamp } : null,
+    bestTrade: bestTrade ? { symbol: bestTrade.tokenMint, pnlUsd: bestTrade.realizedPnlUsd, time: bestTrade.timestamp } : null,
+    worstTrade: worstTrade ? { symbol: worstTrade.tokenMint, pnlUsd: worstTrade.realizedPnlUsd, time: worstTrade.timestamp } : null,
+    openPositionCount: allTrades.filter(t => t.action === 'buy' && t.status === 'confirmed').length - allTrades.filter(t => t.action === 'sell' && t.status === 'confirmed').length
+  };
+}
+
 module.exports = {
   getKeypair,
   getConnection,
@@ -390,5 +428,6 @@ module.exports = {
   sellToken,
   getLedger,
   getTotalSpentSol,
+  getAllTimeSummary,
   assertLivePumpFunTradingAllowed
 };

@@ -68,6 +68,52 @@
       "status": "confirmed",
       "realizedPnlUsd": 0.9146656563000004,
       "note": "Manual cleanup sell, closing out the orphaned open position after the agent was terminated. Symbol: FERGRE (Feral Gremlin). This one WAS meant to go through appendTrade() but ran before the fix landed, so it's backfilled here too for an accurate record."
+    },
+    {
+      "agentId": 19,
+      "timestamp": "2026-08-31T20:06:49.672Z",
+      "action": "buy",
+      "tokenMint": "CNcyXGTuzd6qVtsrJGoGyYgeLkhgAf6z43UZxJBwpump",
+      "solAmount": 0.01972561909659692,
+      "usdAmount": 2.046138468889999,
+      "status": "failed",
+      "raw": {
+        "error": "Simulation failed. | Program log: AnchorError thrown in programs/pump/src/lib.rs:444. Error Code: TooMuchSolRequired. Error Number: 6002. Error Message: slippage: Too much SOL required to buy the given amount of tokens.. // Program 6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P failed: custom program error: 0x1772 // Program FAdo9NCw1ssek6Z6yeWzWjhLVsr8uiCwcWNUnKgzTnHe failed: custom program error: 0x1772"
+      }
+    },
+    {
+      "agentId": 19,
+      "timestamp": "2026-08-31T20:07:06.540Z",
+      "action": "buy",
+      "tokenMint": "GbFnnUFuN4hDVsaKQBfjUFpN8hFLpnKwvDbiCJRpump",
+      "solAmount": 0.01972561909659692,
+      "usdAmount": 2.046138468889999,
+      "status": "failed",
+      "raw": {
+        "error": "fetch failed"
+      }
+    },
+    {
+      "agentId": 19,
+      "timestamp": "2026-08-31T20:07:18.095Z",
+      "action": "buy",
+      "tokenMint": "H6NQMdZTneQ7mbGirN9rYAvVuG9d61ydWTdiDafJpump",
+      "solAmount": 0.01972561909659692,
+      "usdAmount": 2.046138468889999,
+      "status": "failed",
+      "raw": {
+        "error": "fetch failed"
+      }
+    },
+    {
+      "agentId": 19,
+      "timestamp": "2026-08-31T20:07:26.209Z",
+      "action": "buy",
+      "tokenMint": "TkdqxW8zfwdZrX33SKXutkoMUs2wweWUBv9mL5zpump",
+      "solAmount": 0.01972561909659692,
+      "usdAmount": 2.046138468889999,
+      "txSignature": "4HZmPtXjCBipPrwt2fLhz2MMuLexu1eY9k1NywNqnLcxYLrsWdxvAZFGvfSU3xqBCPr2U6RJ4Su9KETGtm6yY3u6",
+      "status": "confirmed"
     }
   ]
 }

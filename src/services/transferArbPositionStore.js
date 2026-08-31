@@ -138,9 +138,40 @@ async function getStatusSummary(agentId) {
   };
 }
 
+/**
+ * Real P&L across every transfer-arbitrage position ever recorded, any agentId —
+ * same purpose as pumpFunTradingService.getAllTimeSummary(): a fresh agent spawn
+ * gets a new incrementing ID, so this can't be scoped to "the current instance"
+ * without silently dropping history from before the most recent restart.
+ * @returns {Promise<Object>}
+ */
+async function getAllTimeSummary() {
+  let allPositions;
+  if (persistenceEnabled) {
+    const Model = getModel();
+    allPositions = await Model.find({}).lean();
+  } else {
+    allPositions = loadFile();
+  }
+
+  const closed = allPositions.filter(p => p.status === 'closed' && p.realizedPnlUsd != null);
+  const totalRealizedPnlUsd = closed.reduce((sum, p) => sum + p.realizedPnlUsd, 0);
+
+  return {
+    totalRealizedPnlUsd,
+    closedTradeCount: closed.length,
+    winCount: closed.filter(p => p.realizedPnlUsd > 0).length,
+    lossCount: closed.filter(p => p.realizedPnlUsd <= 0).length,
+    pendingCount: allPositions.filter(p => OPEN_STATUSES.includes(p.status)).length,
+    needsReviewCount: allPositions.filter(p => p.status === 'needs_manual_review').length,
+    strandedCount: allPositions.filter(p => STRANDED_STATUSES.includes(p.status)).length
+  };
+}
+
 module.exports = {
   createPosition,
   getPendingDepositPositions,
   countOpenPositions,
+  getAllTimeSummary,
   getStatusSummary
 };
