@@ -388,13 +388,17 @@ async function getTotalSpentSol(agentId) {
  * for consistency when both are shown together.
  * @returns {Promise<Object>}
  */
-async function getAllTimeSummary() {
-  let allTrades;
+async function getAllTrades() {
   if (persistenceEnabled) {
     const Model = getRealPumpFunTradeModel();
-    allTrades = await Model.find({}).sort({ timestamp: 1 }).lean();
-  } else {
-    allTrades = loadTradesFromFile().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    return Model.find({}).sort({ timestamp: 1 }).lean();
+  }
+  return loadTradesFromFile().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+}
+
+async function getAllTimeSummary() {
+  const allTrades = await getAllTrades();
+  {
   }
 
   const sells = allTrades.filter(t => t.action === 'sell' && t.status === 'confirmed' && t.realizedPnlUsd != null);

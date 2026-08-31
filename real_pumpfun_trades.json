@@ -114,6 +114,17 @@
       "usdAmount": 2.046138468889999,
       "txSignature": "4HZmPtXjCBipPrwt2fLhz2MMuLexu1eY9k1NywNqnLcxYLrsWdxvAZFGvfSU3xqBCPr2U6RJ4Su9KETGtm6yY3u6",
       "status": "confirmed"
+    },
+    {
+      "agentId": 19,
+      "timestamp": "2026-08-31T20:12:39.597Z",
+      "action": "sell",
+      "tokenMint": "TkdqxW8zfwdZrX33SKXutkoMUs2wweWUBv9mL5zpump",
+      "solAmount": 0.016358358,
+      "usdAmount": 1.6965253081799998,
+      "txSignature": "3N5iTjfb5Q1wax2mVDuusnsDFzPePHigktj2ZS91SToC2kPneNSCZrmVzijuiovUiYYFyR5YGnHD7caDLM4mp8Gg",
+      "status": "confirmed",
+      "realizedPnlUsd": -0.3492186483280667
     }
   ]
 }
