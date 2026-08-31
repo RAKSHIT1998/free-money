@@ -1,4 +1,4 @@
-import { FiActivity, FiCreditCard, FiBriefcase, FiTruck, FiSettings, FiLogOut, FiChevronRight } from 'react-icons/fi';
+import { FiActivity, FiCreditCard, FiBriefcase, FiTruck, FiSettings, FiLogOut, FiChevronRight, FiDollarSign } from 'react-icons/fi';
 import { NavLink } from 'react-router-dom';
 
 const Sidebar = () => {
@@ -44,6 +44,18 @@ const Sidebar = () => {
         >
           <FiBriefcase size={20} className="mr-3" />
           Agents
+        </NavLink>
+
+        <NavLink
+          to="/real-money"
+          className={({ isActive }) => `
+            flex items-center px-3 py-2 rounded-md text-sm font-medium
+            ${isActive ? 'bg-gray-700' : 'hover:bg-gray-800'}
+            transition-colors
+          `}
+        >
+          <FiDollarSign size={20} className="mr-3" />
+          Real Money
         </NavLink>
 
         <NavLink

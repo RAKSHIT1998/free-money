@@ -6,6 +6,7 @@ import Dashboard from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import WalletPage from './pages/WalletPage';
 import AgentsPage from './pages/AgentsPage';
+import RealMoneyPage from './pages/RealMoneyPage';
 import OpportunitiesPage from './pages/OpportunitiesPage';
 import SystemHealthPage from './pages/SystemHealthPage';
 import PrivateRoute from './components/shared/PrivateRoute';
@@ -43,6 +44,7 @@ function App() {
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/wallet" element={<WalletPage />} />
                   <Route path="/agents" element={<AgentsPage />} />
+                  <Route path="/real-money" element={<RealMoneyPage />} />
                   <Route path="/opportunities" element={<OpportunitiesPage />} />
                   <Route path="/system-health" element={<SystemHealthPage />} />
                 </Route>
