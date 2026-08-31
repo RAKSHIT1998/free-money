@@ -294,6 +294,25 @@ exports.getPumpFunSniperStatus = async (req, res) => {
   }
 };
 
+exports.getCrossExchangeTransferArbitrageStatus = async (req, res) => {
+  try {
+    const agents = getAgentManager().getAllAgents().filter(agent => agent.type === 'crossExchangeTransferArbitrage');
+    const statuses = await Promise.all(agents.map(agent => agent.getStatusExtended()));
+
+    res.json({
+      success: true,
+      data: statuses
+    });
+  } catch (error) {
+    console.error('Error getting cross-exchange transfer arbitrage status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get cross-exchange transfer arbitrage status',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 exports.getBinanceFuturesDcaStatus = async (req, res) => {
   try {
     const agents = getAgentManager().getAllAgents().filter(agent => agent.type === 'binanceFuturesDca');

@@ -14,6 +14,7 @@ const PumpFunSniperAgent = require('./pumpFunSniperAgent');
 const RealAgentMonitorAgent = require('./realAgentMonitorAgent');
 const PerformanceGovernorAgent = require('./performanceGovernorAgent');
 const CrossExchangeArbitrageAgent = require('./crossExchangeArbitrageAgent');
+const CrossExchangeTransferArbitrageAgent = require('./crossExchangeTransferArbitrageAgent');
 const { Config } = require('../config/config');
 const Agent = require('../models/Agent');
 
@@ -343,6 +344,25 @@ class AgentManager {
           id: this.nextId++,
           config: {
             ...this.config.get('agentTypes.crossExchangeArbitrage') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'crossexchangetransferarbitrage':
+      case 'cross exchange transfer arbitrage':
+      case 'crossexchangetransferarbitrageagent':
+        // REAL MONEY, HIGH-RISK: buys on Binance, withdraws to Coinbase, sells there.
+        // Only ever places live orders/withdrawals if LIVE_TRADING_CONFIRMED=true AND
+        // LIVE_WITHDRAWAL_CONFIRMED=true AND LIVE_TRANSFER_ARBITRAGE_CONFIRMED=true
+        // and real Binance + Coinbase credentials are configured (enforced in
+        // realTradingService.js / coinbaseTradingService.js, not here). See
+        // crossExchangeTransferArbitrageAgent.js for the acknowledged transfer-timing risk.
+        agent = new CrossExchangeTransferArbitrageAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.crossExchangeTransferArbitrage') || {},
             ...options.config
           },
           ...options
@@ -729,6 +749,14 @@ class AgentManager {
 
           case 'crossExchangeArbitrage':
             agent = new CrossExchangeArbitrageAgent({
+              id: numericAgentId,
+              name: dbAgent.name,
+              config: dbAgent.config
+            });
+            break;
+
+          case 'crossExchangeTransferArbitrage':
+            agent = new CrossExchangeTransferArbitrageAgent({
               id: numericAgentId,
               name: dbAgent.name,
               config: dbAgent.config

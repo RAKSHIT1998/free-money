@@ -10,6 +10,17 @@ function isLikelyRealBinanceKey(value) {
   return /^[A-Za-z0-9]{60,70}$/.test(value.trim());
 }
 
+// Coinbase's key/secret format isn't one fixed shape the way Binance's is — it
+// varies by API generation (classic Exchange API keys vs. newer CDP
+// organization-scoped keys with PEM-format EC secrets), so this can't assert a
+// single regex. It only rules out being unset or an obvious placeholder; Coinbase's
+// own API is still the real authority on whether a key actually works.
+function isLikelyRealCoinbaseKey(value) {
+  if (!value || typeof value !== 'string') return false;
+  if (/your_|_here|placeholder|change_in_production|example/i.test(value)) return false;
+  return value.trim().length >= 20;
+}
+
 // Configuration utility class
 class Config {
   constructor(customConfig = {}) {
@@ -199,7 +210,11 @@ class Config {
         crossExchangeArbitrage: {
           minNetSpreadPct: parseFloat(process.env.CROSS_EXCHANGE_ARB_MIN_NET_SPREAD_PCT) || 0.003,
           maxCandidatesTracked: parseInt(process.env.CROSS_EXCHANGE_ARB_MAX_CANDIDATES) || 10,
-          scanIntervalMs: parseInt(process.env.CROSS_EXCHANGE_ARB_SCAN_INTERVAL_MS) || 60000,
+          // Quotes are WebSocket-streamed (see crossExchangeMarketDataService.js), so
+          // this is just "how often to re-check the live cache", not a network-fetch
+          // interval — safe to run much faster than the old REST-poll default.
+          scanIntervalMs: parseInt(process.env.CROSS_EXCHANGE_ARB_SCAN_INTERVAL_MS) || 2000,
+          staleQuoteMs: parseInt(process.env.CROSS_EXCHANGE_ARB_STALE_QUOTE_MS) || 15000,
           // Dynamic pairlist (freqtrade VolumePairList/SpreadFilter equivalents — see
           // crossExchangeMarketDataService.js). numberAssets/minQuoteVolumeUsd control
           // breadth vs. liquidity floor; maxSpreadRatio rejects thin same-exchange
@@ -208,6 +223,35 @@ class Config {
           minQuoteVolumeUsd: parseFloat(process.env.CROSS_EXCHANGE_ARB_MIN_VOLUME_USD) || 2000000,
           maxSpreadRatio: parseFloat(process.env.CROSS_EXCHANGE_ARB_MAX_SPREAD_RATIO) || 0.005,
           pairlistRefreshMs: parseInt(process.env.CROSS_EXCHANGE_ARB_PAIRLIST_REFRESH_MS) || 1800000
+        },
+        // REAL MONEY, HIGH-RISK: transfer-based cross-exchange arbitrage. Buys on
+        // Binance, WITHDRAWS the real crypto to Coinbase, and sells there once it
+        // lands — unlike crossExchangeArbitrage (read-only) and unlike
+        // fundingRateArbitrage (market-neutral, no transfer), this has REAL,
+        // acknowledged timing risk: the spread can close or reverse during the
+        // transfer, and withdrawal fees eat into the margin. Requires
+        // LIVE_TRADING_CONFIRMED=true AND LIVE_WITHDRAWAL_CONFIRMED=true AND
+        // LIVE_TRANSFER_ARBITRAGE_CONFIRMED=true AND real (non-placeholder)
+        // BINANCE_API_KEY/SECRET AND COINBASE_API_KEY/SECRET (enforced in
+        // realTradingService.js / coinbaseTradingService.js, not here). Deliberately
+        // NOT auto-spawned in server.js — same conscious-opt-in posture as
+        // pumpFunSniper, not an always-on strategy.
+        crossExchangeTransferArbitrage: {
+          perTradeUsd: parseFloat(process.env.TRANSFER_ARB_PER_TRADE_USD) || 25,
+          // Deliberately much higher than crossExchangeArbitrage's scanner threshold
+          // (0.3%) — this has to also cover the Binance withdrawal fee and a price-
+          // decay buffer for the transfer wait, not just both legs' taker fees.
+          minNetSpreadPct: parseFloat(process.env.TRANSFER_ARB_MIN_NET_SPREAD_PCT) || 0.02,
+          decayBufferPct: parseFloat(process.env.TRANSFER_ARB_DECAY_BUFFER_PCT) || 0.005,
+          // If the deposit arrives and the spread has moved against the position by
+          // more than this, the agent does NOT auto-sell into the loss — it marks the
+          // position 'needs_manual_review' instead (same philosophy as
+          // fundingRateArbitrageAgent's 'unhedged' state: surface a bad outcome for a
+          // human to decide, don't have the bot try to cleverly auto-correct it).
+          maxAcceptableLossPct: parseFloat(process.env.TRANSFER_ARB_MAX_ACCEPTABLE_LOSS_PCT) || 0.03,
+          maxConcurrentPositions: parseInt(process.env.TRANSFER_ARB_MAX_CONCURRENT_POSITIONS) || 1,
+          depositTimeoutMs: parseInt(process.env.TRANSFER_ARB_DEPOSIT_TIMEOUT_MS) || 7200000,
+          scanIntervalMs: parseInt(process.env.TRANSFER_ARB_SCAN_INTERVAL_MS) || 10000
         },
         // Real, HIGH-RISK pump.fun sniper (requires BOTH LIVE_TRADING_CONFIRMED=true
         // AND LIVE_PUMPFUN_TRADING_CONFIRMED=true, plus a real SOLANA_PRIVATE_KEY).
@@ -412,3 +456,4 @@ function isObject(item) {
 
 module.exports.Config = Config;
 module.exports.isLikelyRealBinanceKey = isLikelyRealBinanceKey;
+module.exports.isLikelyRealCoinbaseKey = isLikelyRealCoinbaseKey;

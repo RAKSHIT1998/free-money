@@ -1,7 +1,15 @@
-// Real, read-only cross-exchange spot arbitrage SCANNER: polls real public ticker
-// data from Binance, Coinbase, and Kraken (see crossExchangeMarketDataService.js —
-// no API keys, no orders) and surfaces genuine bid/ask spreads between exchanges,
-// net of estimated taker fees on both legs, for a human to review and act on.
+// Real, read-only, HIGH-FREQUENCY cross-exchange spot arbitrage SCANNER: streams
+// live bid/ask ticks over WebSocket from Binance, Coinbase, and Kraken (see
+// crossExchangeMarketDataService.js — no API keys, no orders) and surfaces genuine
+// spreads between exchanges, net of estimated taker fees on both legs, for a human
+// to review and act on.
+//
+// "High-frequency" here means the DATA layer: a persistent WebSocket subscription
+// per exchange pushes a fresh quote every 60-100ms on a liquid pair (measured
+// against live Binance data), not the old 60-second REST poll this replaced. A scan
+// cycle just reads that already-fresh in-memory cache, so scanIntervalMs can be
+// turned down to a couple of seconds (or lower) without adding any network load —
+// see crossExchangeMarketDataService.js's header for exactly how that's built.
 //
 // The tradeable asset list isn't hardcoded — it's a dynamic, volume-ranked,
 // spread-filtered pairlist rebuilt periodically (freqtrade's VolumePairList +
@@ -48,14 +56,22 @@ class CrossExchangeArbitrageAgent extends BaseAgent {
         // more likely to be fee/latency noise than a real, actionable spread.
         minNetSpreadPct: options.config?.minNetSpreadPct != null ? options.config.minNetSpreadPct : 0.003, // 0.30%
         maxCandidatesTracked: options.config?.maxCandidatesTracked || 10,
-        scanIntervalMs: options.config?.scanIntervalMs || 60000,
+        // Quotes come from an always-current WebSocket cache (see run()), so this is
+        // purely "how often to re-check for a crossed spread" — not a network-fetch
+        // interval. 2s by default; safe to turn down further (e.g. a few hundred ms)
+        // since a scan is just reading memory, not making a request.
+        scanIntervalMs: options.config?.scanIntervalMs || 2000,
+        // A quote older than this is treated as missing rather than trusted — guards
+        // against a silently-dropped WebSocket still reporting a last-known price
+        // that's no longer real.
+        staleQuoteMs: options.config?.staleQuoteMs || 15000,
         takerFees: { ...marketDataService.DEFAULT_TAKER_FEES, ...(options.config?.takerFees || {}) },
         // Pairlist generation (freqtrade VolumePairList/SpreadFilter equivalents —
         // see crossExchangeMarketDataService.js). numberAssets/minQuoteVolumeUsd
         // control breadth vs. liquidity floor; maxSpreadRatio rejects thin quotes
         // before they're ever compared across exchanges; pairlistRefreshMs is how
-        // often the ranked asset list itself is recomputed (quotes still refresh
-        // every scanIntervalMs regardless).
+        // often the ranked asset list itself is recomputed via REST (live quotes for
+        // whatever's currently on the list still stream continuously regardless).
         numberAssets: options.config?.numberAssets || 15,
         minQuoteVolumeUsd: options.config?.minQuoteVolumeUsd || 2000000,
         maxSpreadRatio: options.config?.maxSpreadRatio != null ? options.config.maxSpreadRatio : 0.005,
@@ -72,11 +88,18 @@ class CrossExchangeArbitrageAgent extends BaseAgent {
   async run() {
     this.log(
       'info',
-      `Starting cross-exchange arbitrage scanner (read-only): top ${this.config.numberAssets} by volume ` +
-      `across Binance/Coinbase/Kraken (min $${this.config.minQuoteVolumeUsd.toLocaleString()} combined 24h ` +
-      `volume, max ${(this.config.maxSpreadRatio * 100).toFixed(2)}% same-exchange spread), min net spread ` +
-      `${(this.config.minNetSpreadPct * 100).toFixed(2)}% after estimated fees`
+      `Starting cross-exchange arbitrage scanner (read-only, WebSocket-streamed): top ${this.config.numberAssets} ` +
+      `by volume across Binance/Coinbase/Kraken (min $${this.config.minQuoteVolumeUsd.toLocaleString()} combined ` +
+      `24h volume, max ${(this.config.maxSpreadRatio * 100).toFixed(2)}% same-exchange spread), checking every ` +
+      `${this.config.scanIntervalMs}ms for a net spread above ${(this.config.minNetSpreadPct * 100).toFixed(2)}% ` +
+      `after estimated fees`
     );
+
+    // Starts (if not already running) the three background WebSocket loops that
+    // keep crossExchangeMarketDataService's live quote cache current. Passing a
+    // live getter (not a snapshot) means the streams automatically follow the
+    // pairlist as it's refreshed below, with no explicit restart needed.
+    marketDataService.startStreaming(() => marketDataService.getCachedPairlistAssets());
 
     while (this.isRunning) {
       try {
@@ -95,11 +118,22 @@ class CrossExchangeArbitrageAgent extends BaseAgent {
   async scanCycle() {
     this.state = 'active';
 
-    const perAssetResults = await marketDataService.getAllQuotes({
-      numberAssets: this.config.numberAssets,
-      minQuoteVolumeUsd: this.config.minQuoteVolumeUsd,
+    // Cheap no-op most cycles — only does real REST work once every
+    // pairlistRefreshMs (default 30 min). The WebSocket streams (started in run())
+    // pick up whatever this returns via the live getter passed to startStreaming.
+    await marketDataService.getPairlist(
+      {
+        numberAssets: this.config.numberAssets,
+        minQuoteVolumeUsd: this.config.minQuoteVolumeUsd,
+        maxSpreadRatio: this.config.maxSpreadRatio
+      },
+      this.config.pairlistRefreshMs
+    );
+
+    const watchedAssets = marketDataService.getCachedPairlistAssets();
+    const perAssetResults = marketDataService.getLiveQuotes(watchedAssets, {
       maxSpreadRatio: this.config.maxSpreadRatio,
-      pairlistRefreshMs: this.config.pairlistRefreshMs
+      staleMs: this.config.staleQuoteMs
     });
 
     const candidates = [];
@@ -182,17 +216,21 @@ class CrossExchangeArbitrageAgent extends BaseAgent {
       scan: {
         lastScanAt: this.lastScanAt,
         pairlist: marketDataService.getCachedPairlistAssets(),
+        streamHealth: marketDataService.getStreamHealth(),
+        scanIntervalMs: this.config.scanIntervalMs,
+        staleQuoteMs: this.config.staleQuoteMs,
         minNetSpreadPct: this.config.minNetSpreadPct,
         takerFees: this.config.takerFees,
         candidates: this.lastScanCandidates,
         errors: this.lastScanErrors,
-        note: 'Read-only scanner — no orders are placed. See class header for why cross-exchange execution isn\'t automated.'
+        note: 'Read-only scanner, WebSocket-streamed quotes — no orders are placed. See class header for why cross-exchange execution isn\'t automated.'
       }
     };
   }
 
   async cleanup() {
-    this.log('info', 'Cleaning up cross-exchange arbitrage scanner (no positions to close — read-only agent)');
+    this.log('info', 'Cleaning up cross-exchange arbitrage scanner (no positions to close — read-only agent), closing WebSocket streams');
+    await marketDataService.stopStreaming();
   }
 }
 

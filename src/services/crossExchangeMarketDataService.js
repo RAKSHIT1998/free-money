@@ -19,10 +19,28 @@
 //    and a "cross-exchange opportunity" built on it is measuring noise, not a real
 //    price gap.
 //
-// The pairlist (WHICH assets to watch) is refreshed on its own slow TTL (freqtrade's
-// pairlist `refresh_period`, default 30 min) since ranking by volume doesn't need to
-// happen every scan; the actual bid/ask quotes used for spread detection are fetched
-// fresh every call to getAllQuotes(), since that's the whole point of a live scan.
+// A third idea is NOT from freqtrade (freqtrade itself is REST/candle-based, not a
+// streaming HFT system) but from what genuine high-frequency price data requires:
+// 3. WebSocket streaming instead of REST polling for the live bid/ask quotes used in
+//    spread detection, via ccxt.pro (bundled free in the same `ccxt` package since
+//    v2 — no separate license). REST polling tops out at how often it's reasonable
+//    to hammer a public REST endpoint; a WebSocket top-of-book subscription instead
+//    pushes an update the instant the exchange's own order book changes — Binance's
+//    bookTicker stream ticked every 60-100ms in testing, not once every 60 seconds.
+//    One persistent multi-symbol subscription per exchange is kept open (not one
+//    per asset): ccxt.pro's watchBidsAsks(symbols) call blocks until ANY of the
+//    subscribed symbols updates and returns just that symbol's fresh quote, so a
+//    single background loop per exchange keeps an in-memory cache current. Reading
+//    that cache (getLiveQuotes) is then a pure in-memory operation with no network
+//    round-trip — a "scan" can run as often as the agent wants, in milliseconds.
+//    Honest limits: this is real-time retail market data, not co-located
+//    microsecond execution infrastructure — see crossExchangeArbitrageAgent.js for
+//    why this scanner still doesn't place orders.
+//
+// The pairlist (WHICH assets to watch) is still refreshed on its own slow TTL
+// (freqtrade's pairlist `refresh_period`, default 30 min) via REST, since ranking by
+// volume across a whole exchange doesn't have a meaningful streaming equivalent and
+// doesn't need to happen every scan.
 const ccxt = require('ccxt');
 
 const RETRY_COUNT = 4; // matches freqtrade's exchange/common.py API_RETRY_COUNT default
@@ -138,85 +156,172 @@ function getCachedPairlistAssets() {
   return (pairlistCache.pairs || []).map(p => p.asset);
 }
 
+// === WebSocket streaming layer (real-time quotes, no REST round-trip per scan) ===
+
+// Separate long-lived ccxt.pro instances from the plain REST ones above — WS
+// subscriptions are stateful (open sockets, subscription lists) and need their own
+// exchange objects. Constructing these doesn't open a connection; that happens
+// lazily on the first watch*() call inside streamLoop.
+const wsExchanges = {
+  binance: new ccxt.pro.binance({ enableRateLimit: true }),
+  coinbase: new ccxt.pro.coinbase({ enableRateLimit: true }),
+  kraken: new ccxt.pro.kraken({ enableRateLimit: true })
+};
+
+// quoteCache[exchangeId][asset] = { bid, ask, updatedAt } — filled entirely by the
+// background streamLoop()s below, read entirely by getLiveQuotes(). Never touched
+// by REST code, so a slow/stuck REST pairlist refresh can never block live quotes.
+const quoteCache = { binance: {}, coinbase: {}, kraken: {} };
+
+// A failed watch* call is caught and retried silently by design (a single dropped
+// connection shouldn't spam logs on every backoff tick) — but silent forever makes a
+// real, ongoing connection problem indistinguishable from "briefly reconnecting".
+// This tracks per-exchange connection health so it's actually observable (surfaced
+// through getStreamHealth() → the agent's getStatusExtended()) instead of a black box.
+const streamHealth = {
+  binance: { status: 'connecting', lastTickAt: null, lastError: null, consecutiveErrors: 0 },
+  coinbase: { status: 'connecting', lastTickAt: null, lastError: null, consecutiveErrors: 0 },
+  kraken: { status: 'connecting', lastTickAt: null, lastError: null, consecutiveErrors: 0 }
+};
+
+const streamState = {
+  running: false,
+  stopRequested: false,
+  getWatchedAssets: () => []
+};
+
+function symbolForExchange(exchangeId, asset) {
+  // Binance quotes this scanner's pairlist in USDT (see buildPairlist); Coinbase and
+  // Kraken in USD. ccxt normalizes both exchanges' own symbol/asset-code quirks
+  // (e.g. Kraken's legacy XBT/XDG) to the same "BASE/QUOTE" form either way.
+  return exchangeId === 'binance' ? `${asset}/USDT` : `${asset}/USD`;
+}
+
 /**
- * Fast phase: for the current pairlist, fetches fresh bid/ask from all three
- * exchanges and applies the spread filter per-quote (a quote that was tight when
- * the pairlist was built can still go stale/wide moment to moment). Binance's bulk
- * fetchTickers() already carries bid/ask; Coinbase's bulk tickers don't (confirmed
- * against the live API), so its shortlist is fetched per-symbol; Kraken is fetched
- * as a single batched fetchTickers(symbols) call for the shortlist.
- * @param {Object} config Same shape as buildPairlist's options, plus pairlistRefreshMs
- * @returns {Promise<Array<{asset: string, quotes: Array<{exchange: string, bid: number, ask: number}>, errors: Array<string>}>>}
+ * Persistent per-exchange WebSocket loop: repeatedly awaits the next tick for any
+ * currently-watched symbol and writes it into quoteCache. Runs until stopStreaming()
+ * is called. A dropped connection surfaces as a thrown error from the watch* call;
+ * that's caught, backed off (capped exponential, reset after any healthy tick), and
+ * retried indefinitely — ccxt.pro reconnects transparently on the next watch call.
+ * @param {string} exchangeId
  */
-async function getAllQuotes(config = {}) {
-  const {
-    numberAssets = 15,
-    minQuoteVolumeUsd = 2000000,
-    maxSpreadRatio = 0.005,
-    pairlistRefreshMs = 1800000
-  } = config;
-
-  const pairs = await getPairlist({ numberAssets, minQuoteVolumeUsd, maxSpreadRatio }, pairlistRefreshMs);
-
-  let binanceTickers = {};
-  const globalErrors = [];
-  try {
-    binanceTickers = await withRetry(() => binance.fetchTickers(pairs.map(p => p.binanceSymbol)));
-  } catch (error) {
-    globalErrors.push(`binance: ${error.message}`);
-  }
-
-  let krakenTickers = {};
-  try {
-    krakenTickers = await withRetry(() => kraken.fetchTickers(pairs.map(p => `${p.asset}/USD`)));
-  } catch (error) {
-    globalErrors.push(`kraken: ${error.message}`);
-  }
-
-  const out = [];
-  for (const pair of pairs) {
-    const quotes = [];
-    const errors = [...globalErrors];
-
-    const bTicker = binanceTickers[pair.binanceSymbol];
-    if (passesSpreadFilter(bTicker, maxSpreadRatio)) {
-      quotes.push({ exchange: 'binance', bid: bTicker.bid, ask: bTicker.ask });
-    } else if (!globalErrors.some(e => e.startsWith('binance:'))) {
-      errors.push(`binance: no valid tight-spread quote for ${pair.binanceSymbol}`);
+async function streamLoop(exchangeId) {
+  const exchange = wsExchanges[exchangeId];
+  let backoffMs = 1000;
+  while (!streamState.stopRequested) {
+    const assets = streamState.getWatchedAssets();
+    if (assets.length === 0) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      continue;
     }
-
+    const symbols = assets.map(asset => symbolForExchange(exchangeId, asset));
     try {
-      const cTicker = await withRetry(() => coinbase.fetchTicker(pair.coinbaseSymbol));
-      if (passesSpreadFilter(cTicker, maxSpreadRatio)) {
-        quotes.push({ exchange: 'coinbase', bid: cTicker.bid, ask: cTicker.ask });
-      } else {
-        errors.push(`coinbase: quote for ${pair.coinbaseSymbol} failed spread filter`);
+      // watchBidsAsks (Binance, Kraken) is the lightest channel — top-of-book only.
+      // Coinbase doesn't expose it in ccxt; its ticker channel carries bid/ask too.
+      const update = exchange.has.watchBidsAsks
+        ? await exchange.watchBidsAsks(symbols)
+        : await exchange.watchTickers(symbols);
+
+      const now = Date.now();
+      for (const [symbol, ticker] of Object.entries(update)) {
+        const asset = symbol.split('/')[0];
+        if (ticker && ticker.bid > 0 && ticker.ask > 0) {
+          quoteCache[exchangeId][asset] = { bid: ticker.bid, ask: ticker.ask, updatedAt: now };
+        }
       }
+      backoffMs = 1000;
+      streamHealth[exchangeId] = { status: 'connected', lastTickAt: now, lastError: null, consecutiveErrors: 0 };
     } catch (error) {
-      errors.push(`coinbase: ${error.message}`);
-    }
-
-    const kTicker = krakenTickers[`${pair.asset}/USD`];
-    if (passesSpreadFilter(kTicker, maxSpreadRatio)) {
-      quotes.push({ exchange: 'kraken', bid: kTicker.bid, ask: kTicker.ask });
-    } else if (!globalErrors.some(e => e.startsWith('kraken:'))) {
-      errors.push(`kraken: no valid tight-spread quote for ${pair.asset}/USD`);
-    }
-
-    out.push({ asset: pair.asset, quotes, errors });
-
-    // Courtesy delay between Coinbase per-symbol calls (the only per-asset loop
-    // left, now that Binance/Kraken are single batched calls per scan).
-    if (pairs.indexOf(pair) < pairs.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 150));
+      if (streamState.stopRequested) break;
+      streamHealth[exchangeId] = {
+        ...streamHealth[exchangeId],
+        status: 'reconnecting',
+        lastError: error.message,
+        consecutiveErrors: streamHealth[exchangeId].consecutiveErrors + 1
+      };
+      await new Promise(resolve => setTimeout(resolve, backoffMs));
+      backoffMs = Math.min(backoffMs * 2, 30000);
     }
   }
-  return out;
+}
+
+function getStreamHealth() {
+  return JSON.parse(JSON.stringify(streamHealth));
+}
+
+/**
+ * Starts the three background WebSocket loops if not already running. Idempotent —
+ * safe to call every scan cycle. getWatchedAssets is a live getter (not a snapshot)
+ * so the streams automatically pick up new symbols as the REST pairlist refresh
+ * changes it, with no explicit restart needed.
+ * @param {() => string[]} getWatchedAssets
+ */
+function startStreaming(getWatchedAssets) {
+  streamState.getWatchedAssets = getWatchedAssets;
+  if (streamState.running) return;
+  streamState.running = true;
+  streamState.stopRequested = false;
+  for (const exchangeId of Object.keys(wsExchanges)) {
+    streamLoop(exchangeId);
+  }
+}
+
+/**
+ * Stops all background streaming loops and closes their WebSocket connections.
+ * @returns {Promise<void>}
+ */
+async function stopStreaming() {
+  streamState.stopRequested = true;
+  streamState.running = false;
+  await Promise.all(Object.values(wsExchanges).map(exchange => exchange.close().catch(() => {})));
+}
+
+const DEFAULT_STALE_QUOTE_MS = 15000;
+
+/**
+ * Pure in-memory read of the live quote cache — no network I/O, so this can be
+ * called as often as the caller wants. A quote is dropped (and surfaced as an
+ * error, same shape as before) if it's never arrived yet, has gone stale (the
+ * stream stopped ticking — e.g. a silent disconnect), or fails the spread filter.
+ * @param {string[]} assets
+ * @param {Object} options
+ * @param {number} options.maxSpreadRatio
+ * @param {number} options.staleMs
+ * @returns {Array<{asset: string, quotes: Array<{exchange: string, bid: number, ask: number}>, errors: Array<string>}>}
+ */
+function getLiveQuotes(assets, { maxSpreadRatio = 0.005, staleMs = DEFAULT_STALE_QUOTE_MS } = {}) {
+  const now = Date.now();
+  return assets.map(asset => {
+    const quotes = [];
+    const errors = [];
+    for (const exchangeId of Object.keys(wsExchanges)) {
+      const cached = quoteCache[exchangeId][asset];
+      if (!cached) {
+        errors.push(`${exchangeId}: no live quote received yet for ${asset}`);
+        continue;
+      }
+      const ageMs = now - cached.updatedAt;
+      if (ageMs > staleMs) {
+        errors.push(`${exchangeId}: stale quote for ${asset} (${Math.round(ageMs / 1000)}s old — stream may be disconnected)`);
+        continue;
+      }
+      if (!passesSpreadFilter(cached, maxSpreadRatio)) {
+        errors.push(`${exchangeId}: quote for ${asset} failed spread filter`);
+        continue;
+      }
+      quotes.push({ exchange: exchangeId, bid: cached.bid, ask: cached.ask });
+    }
+    return { asset, quotes, errors };
+  });
 }
 
 module.exports = {
   DEFAULT_TAKER_FEES,
   buildPairlist,
-  getAllQuotes,
-  getCachedPairlistAssets
+  getPairlist,
+  getCachedPairlistAssets,
+  startStreaming,
+  stopStreaming,
+  getLiveQuotes,
+  getStreamHealth
 };

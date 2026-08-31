@@ -531,6 +531,110 @@ async function getRecentDeposits(coin) {
   return Array.isArray(data) ? data : [];
 }
 
+/**
+ * Real Binance spot free balance for one asset.
+ * @param {string} asset e.g. 'BTC'
+ * @returns {Promise<number>}
+ */
+async function getAssetBalance(asset) {
+  assertLiveTradingAllowed();
+  await assertSpotNotRateLimited();
+
+  const timestamp = await getSyncedTimestamp();
+  const queryString = `timestamp=${timestamp}`;
+  const signature = crypto
+    .createHmac('sha256', process.env.BINANCE_API_SECRET)
+    .update(queryString)
+    .digest('hex');
+
+  let data;
+  try {
+    ({ data } = await axios.get(
+      `${BINANCE_BASE}/api/v3/account?${queryString}&signature=${signature}`,
+      { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
+    ));
+  } catch (error) {
+    noteSpotRateLimitResponse(error);
+    throw error;
+  }
+  const balance = (data.balances || []).find(b => b.asset === asset);
+  return balance ? parseFloat(balance.free) : 0;
+}
+
+/**
+ * Defense-in-depth guard for the withdraw() function specifically — deliberately
+ * stricter than assertLiveTradingAllowed(). Every other function in this file moves
+ * money between assets INSIDE the same Binance account (reversible by trading back);
+ * withdraw() sends real crypto to an external address/network and is NOT reversible
+ * if that address or network is wrong. Requires its own explicit opt-in
+ * (LIVE_WITHDRAWAL_CONFIRMED=true) on top of ordinary live trading being confirmed —
+ * the same "extra-dangerous capability needs an extra explicit flag" pattern as
+ * LIVE_FUTURES_TRADING_CONFIRMED for leverage.
+ */
+function assertLiveWithdrawalAllowed() {
+  assertLiveTradingAllowed();
+  if (process.env.LIVE_WITHDRAWAL_CONFIRMED !== 'true') {
+    throw new Error(
+      'Real withdrawal blocked: requires LIVE_WITHDRAWAL_CONFIRMED=true in addition to ' +
+      'LIVE_TRADING_CONFIRMED=true. A withdrawal sends real funds to an external address/network ' +
+      'and cannot be reversed if either is wrong — this is a deliberately separate, stricter opt-in.'
+    );
+  }
+}
+
+/**
+ * Real Binance withdrawal — sends `amount` of `asset` to `address` on `network`.
+ * IRREVERSIBLE if the address or network is wrong. Only ever reachable through
+ * assertLiveWithdrawalAllowed()'s extra gate (see its comment); callers (e.g.
+ * crossExchangeTransferArbitrageAgent) are still responsible for picking a network
+ * that's actually valid for both the sending and receiving exchange.
+ * @param {Object} params
+ * @param {string} params.asset e.g. 'BTC'
+ * @param {number} params.amount
+ * @param {string} params.address destination address
+ * @param {string} [params.network] e.g. 'BTC', 'ETH', 'SOL' — required for multi-network assets
+ * @param {string} [params.agentId]
+ * @returns {Promise<{binanceWithdrawId: string, raw: Object}>}
+ */
+async function withdraw({ asset, amount, address, network, agentId }) {
+  assertLiveWithdrawalAllowed();
+  await assertSpotNotRateLimited();
+
+  const timestamp = await getSyncedTimestamp();
+  const params = { coin: asset, amount, address, timestamp };
+  if (network) params.network = network;
+  const queryString = new URLSearchParams(params).toString();
+  const signature = crypto
+    .createHmac('sha256', process.env.BINANCE_API_SECRET)
+    .update(queryString)
+    .digest('hex');
+
+  let response;
+  try {
+    response = await axios.post(
+      `${BINANCE_BASE}/sapi/v1/capital/withdraw/apply?${queryString}&signature=${signature}`,
+      null,
+      { headers: { 'X-MBX-APIKEY': process.env.BINANCE_API_KEY } }
+    );
+  } catch (error) {
+    noteSpotRateLimitResponse(error);
+    if (error.response?.data) {
+      error.message = `${error.message}: ${JSON.stringify(error.response.data)}`;
+    }
+    throw error;
+  }
+
+  return {
+    agentId,
+    asset,
+    amount,
+    address,
+    network,
+    binanceWithdrawId: response.data?.id,
+    raw: response.data
+  };
+}
+
 module.exports = {
   getCurrentPrice,
   getQuantityStepSize,
@@ -543,6 +647,9 @@ module.exports = {
   assertLiveTradingAllowed,
   getDepositAddress,
   getRecentDeposits,
+  getAssetBalance,
+  assertLiveWithdrawalAllowed,
+  withdraw,
   // Exported so other modules that independently call Binance's spot API
   // (binanceEarnService.js) share this exact cooldown/throttle/kill-switch state
   // instead of each tracking their own.

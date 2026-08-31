@@ -331,7 +331,8 @@ const startServer = async () => {
           config: {
             minNetSpreadPct: configInstance.get('agentTypes.crossExchangeArbitrage.minNetSpreadPct') || 0.003,
             maxCandidatesTracked: configInstance.get('agentTypes.crossExchangeArbitrage.maxCandidatesTracked') || 10,
-            scanIntervalMs: configInstance.get('agentTypes.crossExchangeArbitrage.scanIntervalMs') || 60000,
+            scanIntervalMs: configInstance.get('agentTypes.crossExchangeArbitrage.scanIntervalMs') || 2000,
+            staleQuoteMs: configInstance.get('agentTypes.crossExchangeArbitrage.staleQuoteMs') || 15000,
             numberAssets: configInstance.get('agentTypes.crossExchangeArbitrage.numberAssets') || 15,
             minQuoteVolumeUsd: configInstance.get('agentTypes.crossExchangeArbitrage.minQuoteVolumeUsd') || 2000000,
             maxSpreadRatio: configInstance.get('agentTypes.crossExchangeArbitrage.maxSpreadRatio') || 0.005,
