@@ -43,8 +43,50 @@
 // - Never calls walletService.addEarnings — zero interaction with the fabricated
 //   in-app "earnings" currency, and zero claim to real earnings since nothing here
 //   is actually traded.
+const fs = require('fs');
+const path = require('path');
 const BaseAgent = require('./baseAgent');
 const marketDataService = require('../services/crossExchangeMarketDataService');
+
+// Persistent, append-only record of every real candidate this scanner has ever
+// found — the console log line disappears once the terminal scrolls past it, which
+// makes it impossible to later answer "how often does this actually happen, and for
+// how long." This file is that answer: queryable, real evidence instead of a claim.
+// Capped rather than unbounded — a stuck asset repeatedly crossing the threshold
+// every scan cycle for hours shouldn't grow this file forever.
+const OPPORTUNITIES_LOG_PATH = path.join(process.cwd(), 'cross_exchange_opportunities.json');
+const MAX_LOGGED_OPPORTUNITIES = 5000;
+
+function logOpportunities(candidates) {
+  if (candidates.length === 0) return;
+  try {
+    let existing = [];
+    if (fs.existsSync(OPPORTUNITIES_LOG_PATH)) {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(OPPORTUNITIES_LOG_PATH, 'utf8'));
+        existing = Array.isArray(parsed.opportunities) ? parsed.opportunities : [];
+      } catch {
+        existing = [];
+      }
+    }
+    const newRecords = candidates.map(c => ({
+      observedAt: c.observedAt,
+      asset: c.asset,
+      buyExchange: c.buyExchange,
+      buyAsk: c.buyAsk,
+      sellExchange: c.sellExchange,
+      sellBid: c.sellBid,
+      grossSpreadPct: c.grossSpreadPct,
+      netSpreadPct: c.netSpreadPct
+    }));
+    const combined = [...existing, ...newRecords].slice(-MAX_LOGGED_OPPORTUNITIES);
+    fs.writeFileSync(OPPORTUNITIES_LOG_PATH, JSON.stringify({ opportunities: combined }, null, 2), 'utf8');
+  } catch (error) {
+    // Logging is observational, not load-bearing — never let a write failure here
+    // break the actual scan.
+    console.error('Failed to log arbitrage opportunities:', error.message);
+  }
+}
 
 class CrossExchangeArbitrageAgent extends BaseAgent {
   constructor(options = {}) {
@@ -144,6 +186,7 @@ class CrossExchangeArbitrageAgent extends BaseAgent {
     }
 
     candidates.sort((a, b) => b.netSpreadPct - a.netSpreadPct);
+    logOpportunities(candidates);
 
     this.lastScanAt = new Date();
     this.lastScanCandidates = candidates.slice(0, this.config.maxCandidatesTracked);

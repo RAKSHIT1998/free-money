@@ -42,14 +42,7 @@ const BaseAgent = require('./baseAgent');
 const realTradingService = require('../services/realTradingService');
 const coinbaseTradingService = require('../services/coinbaseTradingService');
 const marketDataService = require('../services/crossExchangeMarketDataService');
-
-let RealTransferArbPosition;
-function getPositionModel() {
-  if (!RealTransferArbPosition) {
-    RealTransferArbPosition = require('../models/RealTransferArbPosition');
-  }
-  return RealTransferArbPosition;
-}
+const positionStore = require('../services/transferArbPositionStore');
 
 // Binance's withdrawal `network` code for each asset's single native chain. Deliberately
 // small and conservative — every entry here is a well-established single-network asset
@@ -151,11 +144,7 @@ class CrossExchangeTransferArbitrageAgent extends BaseAgent {
 
     await this.processPendingPositions();
 
-    const Model = getPositionModel();
-    const openCount = await Model.countDocuments({
-      agentId: this.id,
-      status: { $in: ['buying', 'withdrawing', 'awaiting_deposit', 'selling'] }
-    });
+    const openCount = await positionStore.countOpenPositions(this.id);
 
     if (openCount < this.config.maxConcurrentPositions) {
       await this.tryOpenNewPosition();
@@ -172,8 +161,7 @@ class CrossExchangeTransferArbitrageAgent extends BaseAgent {
    * scanCycle, so a multi-hour wait never freezes the agent.
    */
   async processPendingPositions() {
-    const Model = getPositionModel();
-    const pending = await Model.find({ agentId: this.id, status: 'awaiting_deposit' });
+    const pending = await positionStore.getPendingDepositPositions(this.id);
 
     for (const position of pending) {
       let arrived, currentBalance;
@@ -189,7 +177,10 @@ class CrossExchangeTransferArbitrageAgent extends BaseAgent {
       }
 
       if (!arrived) {
-        const elapsedMs = Date.now() - position.withdrawnAt.getTime();
+        // new Date(x) rather than position.withdrawnAt.getTime() directly — the
+        // file-backed store (no MongoDB) round-trips dates through JSON as plain
+        // strings, not Date objects; new Date() handles both a Date and a string.
+        const elapsedMs = Date.now() - new Date(position.withdrawnAt).getTime();
         if (elapsedMs > this.config.depositTimeoutMs) {
           position.status = 'stranded_after_withdrawal';
           position.note = `Deposit never confirmed on Coinbase within ${Math.round(this.config.depositTimeoutMs / 60000)} ` +
@@ -318,10 +309,9 @@ class CrossExchangeTransferArbitrageAgent extends BaseAgent {
    * enum comment in RealTransferArbPosition.js.
    */
   async openPosition(asset, spreadAtDecisionPct) {
-    const Model = getPositionModel();
     const network = ASSET_NETWORKS[asset];
 
-    const position = await Model.create({
+    const position = await positionStore.createPosition({
       agentId: this.id,
       asset,
       status: 'buying',
@@ -412,13 +402,7 @@ class CrossExchangeTransferArbitrageAgent extends BaseAgent {
    * @returns {Promise<Object>}
    */
   async getStatusExtended() {
-    const Model = getPositionModel();
-    const [pending, needsReview, stranded, recentClosed] = await Promise.all([
-      Model.find({ agentId: this.id, status: { $in: ['buying', 'withdrawing', 'awaiting_deposit', 'selling'] } }).lean(),
-      Model.find({ agentId: this.id, status: 'needs_manual_review' }).lean(),
-      Model.find({ agentId: this.id, status: { $in: ['stranded_after_buy', 'stranded_after_withdrawal'] } }).lean(),
-      Model.find({ agentId: this.id, status: 'closed' }).sort({ closedAt: -1 }).limit(10).lean()
-    ]);
+    const { pending, needsReview, stranded, recentClosed } = await positionStore.getStatusSummary(this.id);
 
     const totalRealizedPnlUsd = recentClosed.reduce((sum, p) => sum + (p.realizedPnlUsd || 0), 0);
 

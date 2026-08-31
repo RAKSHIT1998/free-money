@@ -22,10 +22,19 @@ export const useWallet = () => {
   const fetchWallet = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get<ApiResponse<WalletData>>('/wallet');
+      const response = await apiClient.get<ApiResponse<any>>('/wallet');
       if (response.data.success) {
-        setBalance(response.data.data.balance);
-        setTransactions(response.data.data.transactions);
+        // Backend returns { balances: {perCurrency}, totalBalanceInUSD, transactions },
+        // not the { balance: {...} } shape WalletBalance expects — map it here rather
+        // than changing the backend's wallet contract (used elsewhere for the
+        // in-app "earnings" economy, separate from the real-money trading agents).
+        const raw = response.data.data;
+        setBalance({
+          balance: raw.totalBalanceInUSD ?? 0,
+          currency: 'USD',
+          lastUpdated: new Date().toISOString()
+        });
+        setTransactions(raw.transactions || []);
         setError(null);
       } else {
         setError(response.data.message || 'Failed to fetch wallet data');

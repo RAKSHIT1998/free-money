@@ -1,7 +1,16 @@
-// REAL MONEY agent: buys newly-launched pump.fun tokens the instant they're detected
-// and exits on a simple, honest rule (profit target / stop-loss / max hold time,
-// whichever comes first). Built only after the user explicitly acknowledged the real
-// risk profile and chose a small, capped "play money" budget.
+// REAL MONEY agent: watches newly-launched pump.fun tokens and buys the ones that
+// show real, organic early interest — not literally every token the instant it's
+// detected. Built only after the user explicitly acknowledged the real risk profile
+// and chose a small, capped "play money" budget; later reworked (2026-09-01, see
+// pumpFunCreatorReputationService.js) after being asked to filter on real signals
+// instead of buying blind, using real live pump.fun data pulled during that change:
+// of 3 real random launches sampled, only ONE picked up genuine organic buying
+// (~6.85 real SOL, market cap +50%) within minutes; the other two sat at
+// near-zero real reserves and flat-to-falling market cap. That's the concrete
+// evidence behind the filtering logic below — most launches really are dead on
+// arrival, and real_sol_reserves (actual SOL committed by real buyers, distinct
+// from the token's synthetic bootstrap liquidity) is a genuine, free signal for
+// telling which is which.
 //
 // This is NOT comparable to the Binance breakout/mean-reversion strategies. Those
 // trade liquid, exchange-listed assets with real order books and a defined stop-loss
@@ -10,13 +19,18 @@
 // dominated by professional sniper bots with structural latency/positioning
 // advantages this agent cannot match; and a token going to zero (rug pull or just
 // dying) before an exit can execute is the NORMAL outcome, not a tail risk. A
-// stop-loss here is a best-effort exit attempt, not a guarantee.
+// stop-loss here is a best-effort exit attempt, not a guarantee. The filtering below
+// makes this a somewhat different bet than pure-speed sniping — trading away the
+// (unwinnable anyway) race to be first for a short observation window and a real
+// interest signal — but does NOT change that fundamental risk profile.
 //
 // Trading goes through PumpPortal's Local Transaction API — a third-party service
 // that never receives custody of the wallet (see pumpFunTradingService.js). Price
 // monitoring uses pump.fun's own free public REST endpoint, not the metered
 // WebSocket trade-subscription tier, which alone would cost more SOL than this
-// wallet's deliberately tiny budget.
+// wallet's deliberately tiny budget — this is also why per-buyer-level trade data
+// (e.g. detecting a creator's own wallet buying most of the initial supply) isn't
+// used here: that level of detail is only in the metered per-mint trade feed.
 //
 // Safety properties (do not remove without updating the plan/tests):
 // - Never calls walletService.addEarnings — zero interaction with the fabricated
@@ -26,13 +40,17 @@
 //   SOLANA_PRIVATE_KEY.
 // - budgetCapUsd is a hard, permanent stop — once total confirmed buy spend reaches
 //   it, this agent halts and never buys again (no auto-reset).
-// - Only ever holds ONE position at a time (new-token messages are ignored while a
-//   position is open or a buy is in flight) — spending the whole tiny budget on one
+// - Only ever holds ONE position at a time (candidates are ignored while a position
+//   is open or a buy is in flight) — spending the whole tiny budget on one
 //   uncoordinated burst of buys is exactly the failure mode this guards against.
 // - A failed sell never causes the agent to "forget" it's still holding the
 //   position — openPosition is only cleared on a confirmed sell.
+// - A creator whose past token this agent held and watched close at a severe loss
+//   is never bought from again (pumpFunCreatorReputationService) — permanent, no
+//   auto-reset, same philosophy as the budget cap.
 const BaseAgent = require('./baseAgent');
 const pumpFunTradingService = require('../services/pumpFunTradingService');
+const creatorReputationService = require('../services/pumpFunCreatorReputationService');
 const Agent = require('../models/Agent');
 
 const PUMPPORTAL_WS_URL = 'wss://pumpportal.fun/api/data';
@@ -61,6 +79,23 @@ class PumpFunSniperAgent extends BaseAgent {
         // to log again — the new-token firehose can fire many times a minute, and
         // without this every single one logged its own identical line.
         errorLogThrottleMs: options.config?.errorLogThrottleMs || 120000, // 2 minutes
+        // === Entry filtering (see file header for the real data behind these) ===
+        // How long a candidate sits in the queue before its real_sol_reserves is
+        // actually checked. Deliberately short — long enough to separate "dead on
+        // arrival" from "someone's actually buying," short enough that it's still a
+        // genuinely early entry if it passes, not "buy after everyone else already has."
+        observationWindowMs: options.config?.observationWindowMs != null ? options.config.observationWindowMs : 10000,
+        // Real SOL (not the token's synthetic bootstrap liquidity) that must have
+        // been committed by real buyers by the end of the observation window. 0.3
+        // SOL sits between the two "dead" tokens sampled live while building this
+        // (~0 real SOL) and the one that showed genuine traction (~6.85 real SOL) —
+        // a low bar, but a real one; see the file header.
+        minRealSolReservesForEntry: options.config?.minRealSolReservesForEntry != null ? options.config.minRealSolReservesForEntry : 0.3,
+        // A candidate older than this without having been evaluated (e.g. this
+        // agent was busy holding another position) is dropped rather than bought
+        // late and stale — "early" is the entire point of any edge here.
+        maxCandidateAgeMs: options.config?.maxCandidateAgeMs != null ? options.config.maxCandidateAgeMs : 120000,
+        maxPendingCandidates: options.config?.maxPendingCandidates || 200,
         ...options.config
       }
     });
@@ -75,6 +110,11 @@ class PumpFunSniperAgent extends BaseAgent {
     this.ws = null;
     this.lastLoggedErrorMessage = null;
     this.lastLoggedErrorAt = 0;
+    // Tokens seen via the WS firehose, passed the cheap synchronous pre-filters
+    // (not banned/nsfw, has a name, creator isn't a known rugger), and now waiting
+    // out observationWindowMs before their real_sol_reserves is actually checked.
+    // { mint, symbol, name, creator, tokenMsg, firstSeenAt }
+    this.pendingCandidates = [];
   }
 
   /**
@@ -96,7 +136,9 @@ class PumpFunSniperAgent extends BaseAgent {
       'info',
       `Starting pump.fun sniper (REAL MONEY, high risk — see file header): budget cap $${this.config.budgetCapUsd}, ` +
       `max ${this.config.maxSolPerSnipe} SOL/snipe, profit target +${this.config.profitTargetPct}%, ` +
-      `stop-loss -${this.config.stopLossPct}%, max hold ${Math.round(this.config.maxHoldMs / 1000)}s`
+      `stop-loss -${this.config.stopLossPct}%, max hold ${Math.round(this.config.maxHoldMs / 1000)}s. ` +
+      `Filtering: ${this.config.observationWindowMs / 1000}s observation window, requires >= ` +
+      `${this.config.minRealSolReservesForEntry} real SOL committed before buying (not literally the first launch seen).`
     );
 
     if (this.isRunning) {
@@ -176,17 +218,90 @@ class PumpFunSniperAgent extends BaseAgent {
 
     // The subscription-confirmation message and any non-token event has no `mint`.
     if (!msg.mint) return;
-    if (this.openPosition || this.haltedReason || this.buying) return;
 
-    this.buying = true;
-    try {
-      await this.attemptBuy(msg);
-    } finally {
-      this.buying = false;
+    if (!this.openPosition && !this.haltedReason) {
+      this.queueCandidate(msg);
+    }
+
+    // Piggyback candidate evaluation on the WS message stream itself rather than
+    // waiting for the next priceCheckIntervalMs tick — new-token messages fire
+    // frequently enough (many times a minute) to act as a near-continuous clock,
+    // which matters here since the entire point of observationWindowMs is staying
+    // close to "early."
+    if (!this.openPosition && !this.haltedReason && !this.buying) {
+      await this.evaluateCandidates();
     }
   }
 
-  async attemptBuy(tokenMsg) {
+  /**
+   * Cheap, synchronous-only pre-filters — no network calls, so every message can be
+   * checked instantly regardless of firehose volume. Anything that passes goes into
+   * pendingCandidates to have its real_sol_reserves checked once observationWindowMs
+   * has passed (see evaluateCandidates).
+   * @param {Object} tokenMsg
+   */
+  queueCandidate(tokenMsg) {
+    if (tokenMsg.nsfw || tokenMsg.is_banned) return;
+    if (!tokenMsg.name && !tokenMsg.symbol) return;
+    if (creatorReputationService.isKnownRugger(tokenMsg.creator)) return;
+
+    creatorReputationService.recordLaunchSeen(tokenMsg.creator);
+
+    if (this.pendingCandidates.length >= this.config.maxPendingCandidates) {
+      this.pendingCandidates.shift(); // drop the oldest rather than grow unbounded
+    }
+    this.pendingCandidates.push({
+      mint: tokenMsg.mint,
+      symbol: tokenMsg.symbol,
+      name: tokenMsg.name,
+      creator: tokenMsg.creator,
+      tokenMsg,
+      firstSeenAt: Date.now()
+    });
+  }
+
+  /**
+   * Checks every candidate whose observation window has elapsed: drops stale ones
+   * (maxCandidateAgeMs), and for the rest, fetches fresh token info and buys the
+   * first one whose real_sol_reserves clears minRealSolReservesForEntry — the
+   * "someone's actually buying this" filter (see file header for the real data
+   * behind the threshold). Stops at the first buy, since only one position is ever
+   * held at a time.
+   */
+  async evaluateCandidates() {
+    const now = Date.now();
+    const ready = this.pendingCandidates.filter(c => now - c.firstSeenAt >= this.config.observationWindowMs);
+    if (ready.length === 0) return;
+
+    this.pendingCandidates = this.pendingCandidates.filter(c => now - c.firstSeenAt < this.config.observationWindowMs);
+
+    for (const candidate of ready) {
+      if (now - candidate.firstSeenAt > this.config.maxCandidateAgeMs) continue; // too stale — never bought
+
+      const info = await pumpFunTradingService.getTokenInfo(candidate.mint).catch(() => null);
+      if (!info) continue;
+
+      const realSol = (info.real_sol_reserves || 0) / 1e9; // lamports -> SOL
+      if (realSol < this.config.minRealSolReservesForEntry) continue;
+
+      this.log(
+        'info',
+        `${candidate.symbol || candidate.mint} cleared the interest filter: ${realSol.toFixed(3)} real SOL ` +
+        `committed within ${Math.round((now - candidate.firstSeenAt) / 1000)}s of launch (reply_count=${info.reply_count || 0})`
+      );
+
+      if (this.openPosition || this.haltedReason || this.buying) return; // state changed mid-loop
+      this.buying = true;
+      try {
+        await this.attemptBuy(candidate.tokenMsg, info);
+      } finally {
+        this.buying = false;
+      }
+      return; // only ever one buy per evaluation pass
+    }
+  }
+
+  async attemptBuy(tokenMsg, preFetchedInfo) {
     const [spentSol, solPrice, balanceSol] = await Promise.all([
       pumpFunTradingService.getTotalSpentSol(this.id),
       pumpFunTradingService.getSolUsdPrice(),
@@ -235,12 +350,16 @@ class PumpFunSniperAgent extends BaseAgent {
       return;
     }
 
-    const info = await pumpFunTradingService.getTokenInfo(tokenMsg.mint).catch(() => null);
+    // Reuse the info evaluateCandidates already fetched to pass the interest filter
+    // (avoids a redundant call) when it exists; only re-fetch here if this was
+    // called some other way (there isn't one currently, but no reason to require it).
+    const info = preFetchedInfo || await pumpFunTradingService.getTokenInfo(tokenMsg.mint).catch(() => null);
 
     this.openPosition = {
       mint: tokenMsg.mint,
       symbol: tokenMsg.symbol,
       name: tokenMsg.name,
+      creator: tokenMsg.creator,
       entrySolAmount: buyAmountSol,
       entryMarketCapUsd: info?.usd_market_cap || null,
       boughtAt: Date.now()
@@ -296,6 +415,18 @@ class PumpFunSniperAgent extends BaseAgent {
       `, tx ${trade.txSignature}`
     );
     this.updatePerformance({ earnings: this.performance.earnings + (trade.realizedPnlUsd || 0) });
+
+    // Feed the real outcome back into creator reputation — a stop-loss exit means
+    // this specific token dropped by at least stopLossPct from entry, a real,
+    // observed bad outcome. This creator is never bought from again. Not every
+    // stop-loss is necessarily a deliberate rug (could just be a normal memecoin
+    // dying), but the distinction doesn't matter here — either way, real money was
+    // lost on this creator's token, which is exactly what this exists to avoid repeating.
+    if (reason.startsWith('stop-loss') && pos.creator) {
+      creatorReputationService.recordRugOutcome(pos.creator, pos.mint, trade.realizedPnlUsd);
+      this.log('warn', `Creator ${pos.creator} marked — will not buy from this wallet again`);
+    }
+
     this.openPosition = null;
     await this.persistOpenPosition();
   }
