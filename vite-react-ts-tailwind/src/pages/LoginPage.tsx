@@ -6,6 +6,7 @@ import { Card } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
 import { FiUser, FiLock, FiActivity } from 'react-icons/fi';
 import { Toaster } from 'react-hot-toast';
+import api from '../services/api';
 
 const LoginPage = () => {
   const { login } = useAuth();
@@ -21,31 +22,16 @@ const LoginPage = () => {
     setError(null);
 
     try {
-      // In a real app, this would call the actual login API
-      // For now, we'll simulate a successful login with the demo credentials from the backend
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username: email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
+      const { data } = await api.post('/auth/login', { username: email, password });
 
       if (data.success && data.data && data.data.token) {
         login(data.data.token, data.data.user);
-        // Redirect to dashboard after successful login
         navigate('/dashboard', { replace: true });
       } else {
         throw new Error('Invalid response format');
       }
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+      setError(err.response?.data?.message || err.message || 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -144,7 +130,7 @@ const LoginPage = () => {
             </span>
           </p>
           <p className="mt-2">
-            Demo credentials: email: demo@example.com, password: demo123
+            Use the admin username/password configured on the backend (ADMIN_USERNAME / ADMIN_PASSWORD_HASH in .env).
           </p>
         </div>
       </div>
