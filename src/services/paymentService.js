@@ -5,8 +5,29 @@ const Stripe = require('stripe');
 const axios = require('axios');
 
 class PaymentService {
+  // Was previously eager/fatal: this constructor threw straight out of module load
+  // if STRIPE_SECRET_KEY (or PAYPAL_CLIENT_ID/SECRET) wasn't set, and since this
+  // module is required transitively by gigRoutes/walletRoutes at server startup,
+  // that took the ENTIRE app down before app.listen() ever ran — real crash-loop
+  // seen on a fresh deploy with no payment provider configured. Fiat payments are
+  // an optional feature (same "idle, not an error, if unconfigured" posture as
+  // telegramNotifier elsewhere in this app) — a missing key here should only ever
+  // fail the specific payment call that needed it, not the whole server.
   constructor() {
-    this.provider = this.initializePaymentProvider();
+    try {
+      this.provider = this.initializePaymentProvider();
+      this.initError = null;
+    } catch (error) {
+      this.provider = null;
+      this.initError = error.message;
+      console.warn(`PaymentService not configured (${error.message}) — fiat payment features disabled, everything else unaffected.`);
+    }
+  }
+
+  assertConfigured() {
+    if (!this.provider) {
+      throw new Error(`Payment provider not configured: ${this.initError}`);
+    }
   }
 
   /**
@@ -70,6 +91,7 @@ class PaymentService {
    * @returns {Promise<Object>} Payment details
    */
   async createPaymentIntent(amount, currency = 'usd', description = '', metadata = {}) {
+    this.assertConfigured();
     try {
       // Convert amount to cents for Stripe (assuming amount is in USD)
       const amountInCents = Math.round(amount * 100);
@@ -153,6 +175,7 @@ class PaymentService {
    * @returns {Promise<Object>} Payment verification result
    */
   async verifyPayment(paymentId, paymentData = {}) {
+    this.assertConfigured();
     try {
       if (this.provider instanceof Stripe) {
         // Stripe implementation
@@ -229,6 +252,7 @@ class PaymentService {
    * @returns {Promise<Object>} capture result
    */
   async capturePayment(orderId) {
+    this.assertConfigured();
     if (!(this.provider instanceof Stripe)) {
       const accessToken = await this.getPayPalAccessToken();
       const response = await axios.post(
@@ -268,6 +292,7 @@ class PaymentService {
    * @returns {Promise<Object>} Payout result
    */
   async processPayout(amount, currency, destination, description = '') {
+    this.assertConfigured();
     try {
       if (this.provider instanceof Stripe) {
         // Stripe payout to bank account or debit card
