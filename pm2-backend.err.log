@@ -5269,3 +5269,12 @@
 2026-09-02T00:10:21: (Use `node --trace-deprecation ...` to show where the warning was created)
 2026-09-02T00:10:21: (node:11440) [MONGOOSE] Warning: Duplicate schema index on {"userId":1} found. This is often due to declaring an index using both "index: true" and "schema.index()". Please remove the duplicate index definition.
 2026-09-02T00:10:59: [23] [2026-09-01T18:40:59.298Z] Skipping buy — insufficient funds (wallet ~$0.67, reserve ~$0.59 held back for gas/fees). Will retry automatically once funded.
+2026-09-02T00:11:06: [23] [2026-09-01T18:41:06.913Z] Skipping buy — insufficient funds (wallet ~$0.67, reserve ~$0.59 held back for gas/fees). Will retry automatically once funded.
+2026-09-02T00:11:09: [23] [2026-09-01T18:41:09.934Z] Skipping buy — insufficient funds (wallet ~$0.67, reserve ~$0.59 held back for gas/fees). Will retry automatically once funded.
+2026-09-02T00:11:21: [23] [2026-09-01T18:41:21.533Z] Skipping buy — insufficient funds (wallet ~$0.67, reserve ~$0.59 held back for gas/fees). Will retry automatically once funded.
+2026-09-02T00:11:25: [23] [2026-09-01T18:41:25.637Z] Skipping buy — insufficient funds (wallet ~$0.67, reserve ~$0.59 held back for gas/fees). Will retry automatically once funded.
+2026-09-02T00:11:26: [23] [2026-09-01T18:41:26.436Z] Skipping buy — insufficient funds (wallet ~$0.67, reserve ~$0.59 held back for gas/fees). Will retry automatically once funded.
+2026-09-02T00:11:30: [23] [2026-09-01T18:41:30.008Z] Skipping buy — insufficient funds (wallet ~$0.67, reserve ~$0.59 held back for gas/fees). Will retry automatically once funded.
+2026-09-02T00:11:40: [23] [2026-09-01T18:41:40.257Z] Skipping buy — insufficient funds (wallet ~$0.67, reserve ~$0.59 held back for gas/fees). Will retry automatically once funded.
+2026-09-02T00:11:47: [23] [2026-09-01T18:41:47.450Z] Skipping buy — insufficient funds (wallet ~$0.67, reserve ~$0.59 held back for gas/fees). Will retry automatically once funded.
+2026-09-02T00:11:51: [23] [2026-09-01T18:41:51.402Z] Skipping buy — insufficient funds (wallet ~$0.67, reserve ~$0.59 held back for gas/fees). Will retry automatically once funded.
