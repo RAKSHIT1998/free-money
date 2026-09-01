@@ -12,6 +12,23 @@ internal timers, nobody has to visit the URL to keep them alive). You need the
 
 ---
 
+## Already have a manually-created service that's misbehaving?
+
+If you already went through "New → Web Service" by hand (not the Blueprint flow
+below) and it's flip-flopping between working and Render's own "Not Found" page,
+or `/` 404s — this repo now has a `render.yaml` that codifies the two settings that
+caused that (Build Command, Health Check Path), but Render does **not** retroactively
+apply a repo's `render.yaml` to a service that wasn't created from it. Two options:
+
+- **Fastest**: manually fix the same two settings once — Settings → Build Command →
+  `npm install && npm run build` → Save → **Manual Deploy → Deploy latest commit**;
+  then Settings → Health Check Path → `/health` → Save.
+- **Cleanest**: delete that service and follow "2. Create via Blueprint" below
+  instead — it reads every setting from `render.yaml` automatically, so this class
+  of drift can't happen again on a future recreate.
+
+---
+
 ## 1. MongoDB Atlas (same as any host — do this first)
 
 Render's disk is ephemeral per deploy just like Railway's, so the local JSON
@@ -26,20 +43,25 @@ a real database. 5 minutes, free:
 
 ---
 
-## 2. Create the Web Service
+## 2. Create via Blueprint (recommended — reads render.yaml automatically)
 
-1. **render.com** → sign in with GitHub → **New → Web Service**
-2. Connect the `RAKSHIT1998/free-money` repo
-3. Fill in:
-   - **Name**: anything
-   - **Region**: whichever is closest to you
-   - **Branch**: `main`
-   - **Runtime**: Node
-   - **Build Command**: `npm install && npm run build`
-   - **Start Command**: `node server.js`
-   - **Instance Type**: **Starter** (not Free — see above)
-4. Don't click Create yet — add environment variables first (next section), or add
-   them right after and let it redeploy once they're in.
+1. **render.com** → sign in with GitHub → **New → Blueprint**
+2. Connect the `RAKSHIT1998/free-money` repo — Render detects `render.yaml` at the
+   repo root and shows the `free-money-backend` service it defines (region:
+   Frankfurt, plan: Starter, build/start commands, health check path — all pre-filled
+   correctly, nothing to type).
+3. Click through to create it. Instance type is already pinned to Starter in the
+   blueprint (not Free — see above).
+
+<details>
+<summary>Prefer the manual flow instead?</summary>
+
+**New → Web Service** → connect the repo → fill in Region: Frankfurt, Branch:
+`main`, Runtime: Node, Build Command: `npm install && npm run build`, Start Command:
+`node server.js`, Instance Type: Starter. You'll also want to set Health Check Path
+to `/health` under Settings after creating it — the Blueprint flow above does this
+for you automatically, which is why it's the recommended path.
+</details>
 
 ---
 

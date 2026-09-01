@@ -1,0 +1,27 @@
+# Render Blueprint (Infrastructure as Code) — added 2026-09-02 after two real,
+# live misconfigurations on a manually-created Web Service:
+#   1. Build Command was left at Render's default `npm install`, never actually
+#      including `npm run build` — the dashboard build silently never happened,
+#      and '/' 404'd forever as a result.
+#   2. No explicit Health Check Path was set, so Render likely checked '/' itself
+#      — which was 404ing because of #1 — and cycled the container as
+#      "unhealthy", producing a live service that flip-flopped between the real
+#      app and Render's own platform-level 404 on every other request.
+# Both are declared explicitly here so they can't silently drift again.
+#
+# NOTE: this file only takes effect for a service created via Render's
+# "New -> Blueprint" flow (or an existing service you explicitly link to sync
+# with it) — pointing an existing manually-created Web Service at this repo
+# does NOT retroactively apply it. See RENDER.md for the one-time steps to
+# either link an existing service to this blueprint or recreate one from it.
+services:
+  - type: web
+    name: free-money-backend
+    runtime: node
+    plan: starter
+    region: frankfurt
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: node server.js
+    healthCheckPath: /health
+    autoDeploy: true
