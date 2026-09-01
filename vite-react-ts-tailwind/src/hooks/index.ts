@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import apiClient from '../services/api';
 import type {
-  WalletData,
   WalletBalance,
   WalletTransaction,
   Agent,

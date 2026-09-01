@@ -14,9 +14,9 @@ import { Card } from '../components/ui/Card';
 import api from '../services/api';
 
 const DashboardPage = () => {
-  const { balance, transactions, loading: walletLoading, refresh: refreshWallet } = useWallet();
-  const { agents, agentStats, loading: agentsLoading, refresh: refreshAgents } = useAgents();
-  const { opportunityStats, loading: opportunitiesLoading, refresh: refreshOpportunities } = useOpportunities();
+  const { balance, transactions, loading: walletLoading } = useWallet();
+  const { agents, agentStats, loading: agentsLoading } = useAgents();
+  const { opportunityStats, loading: opportunitiesLoading } = useOpportunities();
   const [realPnl, setRealPnl] = useState<number | null>(null);
   const [usdInrRate, setUsdInrRate] = useState<number | null>(null);
 

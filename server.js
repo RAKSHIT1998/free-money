@@ -83,6 +83,22 @@ app.use(helmet({
   }
 }));
 app.use(morgan(process.env.LOG_LEVEL || 'combined'));
+
+// Serves the built React dashboard (vite-react-ts-tailwind/dist) from this same
+// Express process — added for single-port cloud deployment (2026-09-02). Locally,
+// the dashboard is normally run separately via `vite --port 3000`, so `dist/` won't
+// exist unless someone has run `npm run build` in vite-react-ts-tailwind; the
+// fs.existsSync guard means local dev is completely unaffected either way. On a
+// cloud VM, this lets one process/one open port serve both the API and the
+// dashboard, instead of needing two separate services and CORS configuration.
+// Registered BEFORE the legacy `public/` static folder below — public/index.html
+// predates the React dashboard and is dead/unreferenced, but express.static resolves
+// `/` to whichever mount matches first, so it would otherwise shadow the real app.
+const frontendDistPath = path.join(__dirname, 'vite-react-ts-tailwind', 'dist');
+const frontendBuildExists = fs.existsSync(path.join(frontendDistPath, 'index.html'));
+if (frontendBuildExists) {
+  app.use(express.static(frontendDistPath));
+}
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Rate limiting
@@ -145,6 +161,17 @@ app.use((err, req, res, next) => {
     message: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
+
+// SPA fallback — any GET that isn't /api/*, /health, or a real static file falls
+// through to the dashboard's index.html so React Router's client-side routes (e.g.
+// /real-money on a hard refresh) resolve instead of 404ing. Must come after the
+// static middleware above (which already serves real files first) and before the
+// JSON 404 handler below (which still covers API routes and non-GET requests).
+if (frontendBuildExists) {
+  app.get(/^(?!\/api\/|\/health).*/, (req, res) => {
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+}
 
 // 404 handler
 app.use('*', (req, res) => {
