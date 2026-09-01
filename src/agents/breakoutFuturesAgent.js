@@ -140,6 +140,21 @@ class BreakoutFuturesAgent extends BaseAgent {
       return [];
     }
 
+    // Checked upfront (2026-09-01, same fix as binanceFuturesDcaAgent.js) — this
+    // agent's scan doesn't always find a qualifying candidate, so it doesn't hit
+    // this every cycle the way the DCA agent's unconditional schedule did, but the
+    // exact same landmine is here: an uncaught throw from openLeveraged* on any
+    // cycle that DOES find one would false-flag this as 'error' for what's actually
+    // just LIVE_FUTURES_TRADING_CONFIRMED being off, and could trip
+    // realAgentMonitorAgent's shared-failure detector right alongside it.
+    try {
+      realFuturesTradingService.assertLiveFuturesTradingAllowed();
+    } catch (error) {
+      this.log('info', `Resting — ${error.message}`);
+      this.state = 'resting';
+      return [];
+    }
+
     this.state = 'active';
 
     const [tickers, perpetualSymbols, symbolsTradedToday] = await Promise.all([

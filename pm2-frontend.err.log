@@ -1,0 +1,145 @@
+2026-09-01T06:28:22: failed to load config from /Users/rakshitbargotra/Documents/free money/free-money/vite-react-ts-tailwind/vite.config.ts
+2026-09-01T06:28:22: 6:28:22 AM [vite] config must export or return an object.
+2026-09-01T06:28:22: 6:28:22 AM [vite] server restart failed
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T07:43:32: 7:43:32 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T08:01:36: Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'rolldown' imported from /Users/rakshitbargotra/.node_modules_store/free-money-frontend/vite/dist/node/chunks/node.js
+2026-09-01T08:01:36:     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)
+2026-09-01T08:01:36:     at packageResolve (node:internal/modules/esm/resolve:768:81)
+2026-09-01T08:01:36:     at moduleResolve (node:internal/modules/esm/resolve:859:18)
+2026-09-01T08:01:36:     at defaultResolve (node:internal/modules/esm/resolve:991:11)
+2026-09-01T08:01:36:     at #cachedDefaultResolve (node:internal/modules/esm/loader:713:20)
+2026-09-01T08:01:36:     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:730:38)
+2026-09-01T08:01:36:     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:52)
+2026-09-01T08:01:36:     at #resolve (node:internal/modules/esm/loader:695:17)
+2026-09-01T08:01:36:     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:615:35)
+2026-09-01T08:01:36:     at ModuleJob.syncLink (node:internal/modules/esm/module_job:160:33) {
+2026-09-01T08:01:36:   code: 'ERR_MODULE_NOT_FOUND'
+2026-09-01T08:01:36: }
+2026-09-01T10:28:50: 10:28:50 AM [vite] (client) [Unhandled error] TypeError: Spread syntax requires ...iterable not be null or undefined
+2026-09-01T10:28:50:  > OpportunitiesPage src/pages/OpportunitiesPage.tsx:65:48
+2026-09-01T10:28:50:     63 |    };
+2026-09-01T10:28:50:     64 |  
+2026-09-01T10:28:50:     65 |    const sortedOpportunities = [...opportunities].sort((a, b) => {
+2026-09-01T10:28:50:        |                                                  ^
+2026-09-01T10:28:50:     66 |      if (sortOrder === 'asc') {
+2026-09-01T10:28:50:     67 |        return new Date(a[sortBy as keyof typeof a] as string | number).getTime() - new Date(b[sortBy as keyof typeof b...
+2026-09-01T10:28:50:  > react_stack_bottom_frame ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:25904:29
+2026-09-01T10:28:50:  > renderWithHooks ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:7662:40
+2026-09-01T10:28:50:  > updateFunctionComponent ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10167:8
+2026-09-01T10:28:50:  > runWithFiberInDEV ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:874:21
+2026-09-01T10:28:50:  > performUnitOfWork ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:17642:12
+2026-09-01T10:28:50:  > workLoopSync ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:17469:58
+2026-09-01T10:28:50:  > renderRootSync ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:17450:23
+2026-09-01T10:28:50:  > performWorkOnRoot ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16584:18
+2026-09-01T10:28:50:  > performWorkOnRootViaSchedulerTask ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:18958:8
+2026-09-01T10:28:50:  > performWorkUntilDeadline ../../../../.node_modules_store/free-money-frontend/node_modules/scheduler/cjs/scheduler.development.js:46:22
+2026-09-01T10:28:50: 
+2026-09-01T10:28:50: 10:28:50 AM [vite] (client) [console.warn] An error occurred in the <OpportunitiesPage> component.
+2026-09-01T10:28:50: 
+2026-09-01T10:28:50: Consider adding an error boundary to your tree to customize error handling behavior.
+2026-09-01T10:28:50: Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+2026-09-01T10:28:50: 
+2026-09-01T10:28:52: 10:28:52 AM [vite] (client) [Unhandled error] TypeError: Spread syntax requires ...iterable not be null or undefined
+2026-09-01T10:28:52:  > OpportunitiesPage src/pages/OpportunitiesPage.tsx:65:48
+2026-09-01T10:28:52:     63 |    };
+2026-09-01T10:28:52:     64 |  
+2026-09-01T10:28:52:     65 |    const sortedOpportunities = [...opportunities].sort((a, b) => {
+2026-09-01T10:28:52:        |                                                  ^
+2026-09-01T10:28:52:     66 |      if (sortOrder === 'asc') {
+2026-09-01T10:28:52:     67 |        return new Date(a[sortBy as keyof typeof a] as string | number).getTime() - new Date(b[sortBy as keyof typeof b...
+2026-09-01T10:28:52:  > react_stack_bottom_frame ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:25904:29
+2026-09-01T10:28:52:  > renderWithHooks ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:7662:40
+2026-09-01T10:28:52:  > updateFunctionComponent ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10167:8
+2026-09-01T10:28:52:  > runWithFiberInDEV ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:874:21
+2026-09-01T10:28:52:  > performUnitOfWork ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:17642:12
+2026-09-01T10:28:52:  > workLoopSync ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:17469:58
+2026-09-01T10:28:52:  > renderRootSync ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:17450:23
+2026-09-01T10:28:52:  > performWorkOnRoot ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16584:18
+2026-09-01T10:28:52:  > performWorkOnRootViaSchedulerTask ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:18958:8
+2026-09-01T10:28:52:  > performWorkUntilDeadline ../../../../.node_modules_store/free-money-frontend/node_modules/scheduler/cjs/scheduler.development.js:46:22
+2026-09-01T10:28:52: 
+2026-09-01T10:28:52: 10:28:52 AM [vite] (client) [console.warn] An error occurred in the <OpportunitiesPage> component.
+2026-09-01T10:28:52: 
+2026-09-01T10:28:52: Consider adding an error boundary to your tree to customize error handling behavior.
+2026-09-01T10:28:52: Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+2026-09-01T10:28:52: 
+2026-09-01T11:23:35: failed to load config from /Users/rakshitbargotra/Documents/free money/free-money/vite-react-ts-tailwind/vite.config.ts
+2026-09-01T11:23:35: 11:23:35 AM [vite] Build failed with 1 error:
+2026-09-01T11:23:35: 
+2026-09-01T11:23:35: [31m[UNHANDLEABLE_ERROR] [0mSomething went wrong inside rolldown, please report this problem at https://github.com/rolldown/rolldown/issues.
+2026-09-01T11:23:35: JSONError { path: "/Users/rakshitbargotra/Documents/free money/free-money/vite-react-ts-tailwind/package.json", message: "File is empty", line: 0, column: 0 }
+2026-09-01T11:23:35: 
+2026-09-01T11:23:35: 11:23:35 AM [vite] server restart failed
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T11:23:37: 11:23:37 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T11:23:45: 11:23:45 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T11:23:45: 11:23:45 AM [vite] (client) [console.error] [vite] Failed to reload /src/pages/RealMoneyPage.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T11:23:45: 11:23:45 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T11:23:45: 11:23:45 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T11:24:12: 11:24:12 AM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T11:24:12: 11:24:12 AM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T11:50:17: 11:50:17 AM [vite] (client) [Unhandled error] TypeError: Spread syntax requires ...iterable not be null or undefined
+2026-09-01T11:50:17:  > OpportunitiesPage src/pages/OpportunitiesPage.tsx:65:48
+2026-09-01T11:50:17:     63 |    };
+2026-09-01T11:50:17:     64 |  
+2026-09-01T11:50:17:     65 |    const sortedOpportunities = [...opportunities].sort((a, b) => {
+2026-09-01T11:50:17:        |                                                  ^
+2026-09-01T11:50:17:     66 |      if (sortOrder === 'asc') {
+2026-09-01T11:50:17:     67 |        return new Date(a[sortBy as keyof typeof a] as string | number).getTime() - new Date(b[sortBy as keyof typeof b...
+2026-09-01T11:50:17:  > react_stack_bottom_frame ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:25904:29
+2026-09-01T11:50:17:  > renderWithHooks ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:7662:40
+2026-09-01T11:50:17:  > updateFunctionComponent ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:10167:8
+2026-09-01T11:50:17:  > runWithFiberInDEV ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:874:21
+2026-09-01T11:50:17:  > performUnitOfWork ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:17642:12
+2026-09-01T11:50:17:  > workLoopSync ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:17469:58
+2026-09-01T11:50:17:  > renderRootSync ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:17450:23
+2026-09-01T11:50:17:  > performWorkOnRoot ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:16584:18
+2026-09-01T11:50:17:  > performWorkOnRootViaSchedulerTask ../../../../.node_modules_store/free-money-frontend/node_modules/react-dom/cjs/react-dom-client.development.js:18958:8
+2026-09-01T11:50:17:  > performWorkUntilDeadline ../../../../.node_modules_store/free-money-frontend/node_modules/scheduler/cjs/scheduler.development.js:46:22
+2026-09-01T11:50:17: 
+2026-09-01T11:50:17: 11:50:17 AM [vite] (client) [console.warn] An error occurred in the <OpportunitiesPage> component.
+2026-09-01T11:50:17: 
+2026-09-01T11:50:17: Consider adding an error boundary to your tree to customize error handling behavior.
+2026-09-01T11:50:17: Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+2026-09-01T11:50:17: 
+2026-09-01T17:27:45: 5:27:45 PM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T17:27:45: 5:27:45 PM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T17:27:45: 5:27:45 PM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T17:27:45: 5:27:45 PM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T17:27:45: 5:27:45 PM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T17:27:45: 5:27:45 PM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+2026-09-01T17:27:45: 5:27:45 PM [vite] (client) [console.error] [vite] TypeError: Importing a module script failed.
+2026-09-01T17:27:45: 5:27:45 PM [vite] (client) [console.error] [vite] Failed to reload /src/index.css. This could be due to syntax errors or importing non-existent modules. (see errors above)

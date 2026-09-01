@@ -1,0 +1,905 @@
+{
+  "fetchedAt": "2026-09-01T06:22:06.859Z",
+  "traders": [
+    {
+      "wallet": "6cNjLym8bDZ5JFGFSDom2us27iF7EBHYUXdFCdC5zWhX",
+      "realizedPnlUsd": 22276662.58,
+      "roi": 209.96,
+      "winRate": 90.69,
+      "tradingDays": 90,
+      "tokensTraded": 3137,
+      "trades": 122268
+    },
+    {
+      "wallet": "FkaLnX17cXZGyeu3kZGdHCNdFMJJzBrPPYVvd18B3MZp",
+      "realizedPnlUsd": 15927457.19,
+      "roi": 3.23,
+      "winRate": 46.15,
+      "tradingDays": 90,
+      "tokensTraded": 52,
+      "trades": 1924013
+    },
+    {
+      "wallet": "DdwfjfVurXwujbADY6r11s63hAdiD3P1MN3MSZCSB9io",
+      "realizedPnlUsd": 11582520.85,
+      "roi": 34.94,
+      "winRate": 80.26,
+      "tradingDays": 81,
+      "tokensTraded": 4852,
+      "trades": 303975
+    },
+    {
+      "wallet": "8RvqEo9pqTmzhPbaEcnENY9WXJdRqHFWQVFqKA7QCCs5",
+      "realizedPnlUsd": 11372827.98,
+      "roi": 1.11,
+      "winRate": 55.34,
+      "tradingDays": 45,
+      "tokensTraded": 562,
+      "trades": 116737
+    },
+    {
+      "wallet": "6LkGY852ponKKMuq2e7yZXrxnz1jd6weU1XBs7tEvHS",
+      "realizedPnlUsd": 10765618.51,
+      "roi": 5.86,
+      "winRate": 80.83,
+      "tradingDays": 22,
+      "tokensTraded": 1476,
+      "trades": 1186389
+    },
+    {
+      "wallet": "B9NrWpPzAkHu9PMSRfwM84VaUZnXcivU6HgqRV53nUfF",
+      "realizedPnlUsd": 9990933.21,
+      "roi": 61.35,
+      "winRate": 97.16,
+      "tradingDays": 43,
+      "tokensTraded": 705,
+      "trades": 2240
+    },
+    {
+      "wallet": "8eXZhxZHrZZQzpnF76VTXrVNUz2FcQjP5acxwYLP6aTz",
+      "realizedPnlUsd": 9980382.3,
+      "roi": 60.77,
+      "winRate": 97.16,
+      "tradingDays": 43,
+      "tokensTraded": 703,
+      "trades": 2239
+    },
+    {
+      "wallet": "71i5cxJ7yWWCQeoHpnr68yh65MGg66uutGdiVs6EGE7t",
+      "realizedPnlUsd": 9665859.16,
+      "roi": 49.44,
+      "winRate": 74.87,
+      "tradingDays": 77,
+      "tokensTraded": 4468,
+      "trades": 258492
+    },
+    {
+      "wallet": "J6xzseCNC1t5oUL6UjH1G6BrgZfWqNTy9cCwhyGrY6zC",
+      "realizedPnlUsd": 9429497.89,
+      "roi": 57.62,
+      "winRate": 96.26,
+      "tradingDays": 42,
+      "tokensTraded": 668,
+      "trades": 2174
+    },
+    {
+      "wallet": "6YbPe5CVaUXRrChBjQ67SJoSru8AjchegoGc4ZNBSTb",
+      "realizedPnlUsd": 9265844.5,
+      "roi": 60.15,
+      "winRate": 97.24,
+      "tradingDays": 33,
+      "tokensTraded": 652,
+      "trades": 2105
+    },
+    {
+      "wallet": "6ZYxbuqPJqpq8GsMbDihg14a7QRaWQqNKbejyL4P6Abq",
+      "realizedPnlUsd": 9068857.14,
+      "roi": 59.68,
+      "winRate": 96.04,
+      "tradingDays": 34,
+      "tokensTraded": 632,
+      "trades": 2062
+    },
+    {
+      "wallet": "AiuRbiK8xZmeKyCw1Shk4xCeQyFcShE1KpydwNoETL1K",
+      "realizedPnlUsd": 8902336.83,
+      "roi": 89459.53,
+      "winRate": 50,
+      "tradingDays": 16,
+      "tokensTraded": 2,
+      "trades": 741
+    },
+    {
+      "wallet": "2MkWW4Un9KjCEe9dLDv5eEUAbXy7GeBGcK33u8Q2dGJx",
+      "realizedPnlUsd": 8574666.06,
+      "roi": 61.7,
+      "winRate": 97.18,
+      "tradingDays": 42,
+      "tokensTraded": 602,
+      "trades": 1934
+    },
+    {
+      "wallet": "7BQJ9Pu6Zunf79oJUsZm8uyk7YZQmCvkMV2HhXpjF2ji",
+      "realizedPnlUsd": 8548161.26,
+      "roi": 4.59,
+      "winRate": 80.8,
+      "tradingDays": 22,
+      "tokensTraded": 1479,
+      "trades": 1195752
+    },
+    {
+      "wallet": "99KkxSmzZc7gyDZLeXatKCyGdQGz6m8zAz9nn92uqPW1",
+      "realizedPnlUsd": 8519568.28,
+      "roi": 59.99,
+      "winRate": 97.67,
+      "tradingDays": 42,
+      "tokensTraded": 601,
+      "trades": 1960
+    },
+    {
+      "wallet": "3qzTfpfYidYcEzFKok1HUs6MLhW41ZA5oKp7PyTWmZZz",
+      "realizedPnlUsd": 8457945.64,
+      "roi": 55.68,
+      "winRate": 94.22,
+      "tradingDays": 29,
+      "tokensTraded": 606,
+      "trades": 2058
+    },
+    {
+      "wallet": "FExPB7nVCA8gB6Lb8BCvL1TsFKxpjwitWC99EW9WmaF1",
+      "realizedPnlUsd": 8410733.17,
+      "roi": 61.47,
+      "winRate": 97.63,
+      "tradingDays": 42,
+      "tokensTraded": 591,
+      "trades": 1898
+    },
+    {
+      "wallet": "ormzJzC6qzB3CBMAnGV3vtPvRoUkQsQLRYkKuFnFxcn",
+      "realizedPnlUsd": 8218040.64,
+      "roi": 60.55,
+      "winRate": 97.57,
+      "tradingDays": 41,
+      "tokensTraded": 575,
+      "trades": 1876
+    },
+    {
+      "wallet": "95czn48QnRySL7CXvpcX7LhFxhGxSTQ1SS3C6VsDAWbx",
+      "realizedPnlUsd": 8214299.84,
+      "roi": 60.64,
+      "winRate": 96.05,
+      "tradingDays": 41,
+      "tokensTraded": 583,
+      "trades": 1876
+    },
+    {
+      "wallet": "EC6eqBFmmxNvuFgzsHN3BgVYvYPckG4voysosLwDD3x8",
+      "realizedPnlUsd": 7862121.88,
+      "roi": 65.01,
+      "winRate": 98.71,
+      "tradingDays": 37,
+      "tokensTraded": 544,
+      "trades": 1679
+    },
+    {
+      "wallet": "BhchocVkJyuYtbiU4CkYifSNX15CiqmyfYX3mScFhTGJ",
+      "realizedPnlUsd": 7859278.09,
+      "roi": 62.81,
+      "winRate": 98.37,
+      "tradingDays": 41,
+      "tokensTraded": 553,
+      "trades": 1734
+    },
+    {
+      "wallet": "7DAsJSzK8CogdXmbcZjhXMrr9Gn3mX8wKSx2Y2qixRnU",
+      "realizedPnlUsd": 7833950.51,
+      "roi": 63.83,
+      "winRate": 97.44,
+      "tradingDays": 38,
+      "tokensTraded": 547,
+      "trades": 1700
+    },
+    {
+      "wallet": "6rEq9Tz95oFi7N217r8rWpASj4oA3xY6J3dPSS5NL6vk",
+      "realizedPnlUsd": 7825714.08,
+      "roi": 62.99,
+      "winRate": 98,
+      "tradingDays": 41,
+      "tokensTraded": 549,
+      "trades": 1725
+    },
+    {
+      "wallet": "z9th2vKE1XLP2Shp6bLVqbxdFeHCk34nxtXV3f3qUTR",
+      "realizedPnlUsd": 7818534.84,
+      "roi": 64.07,
+      "winRate": 97.25,
+      "tradingDays": 37,
+      "tokensTraded": 546,
+      "trades": 1694
+    },
+    {
+      "wallet": "7j4dmU7PA9kmyTvMAUvLLD8dxxFq1W6GxcfUW9qVPW3z",
+      "realizedPnlUsd": 7805538.61,
+      "roi": 64.15,
+      "winRate": 96.7,
+      "tradingDays": 37,
+      "tokensTraded": 545,
+      "trades": 1687
+    },
+    {
+      "wallet": "AFyPC1utWyLJV7yLnFyotmoq49uUkGhqKsoD4UdSNwvF",
+      "realizedPnlUsd": 7787449.33,
+      "roi": 62.69,
+      "winRate": 97.26,
+      "tradingDays": 41,
+      "tokensTraded": 548,
+      "trades": 1718
+    },
+    {
+      "wallet": "AuKgm21FeU7cCq5Y96DoveHJxxrdAEMR8Md2cSeWQreZ",
+      "realizedPnlUsd": 7767053.8,
+      "roi": 63.21,
+      "winRate": 97.26,
+      "tradingDays": 39,
+      "tokensTraded": 548,
+      "trades": 1709
+    },
+    {
+      "wallet": "5ncDMXk1Tyas8qnsXZFakg4YYFjq9isVHtmEmGW9gYeE",
+      "realizedPnlUsd": 7765467.15,
+      "roi": 63.79,
+      "winRate": 97.24,
+      "tradingDays": 37,
+      "tokensTraded": 544,
+      "trades": 1687
+    },
+    {
+      "wallet": "EzsxjD1n66hNXUuN6D117VQa8RthvXHQejv9AjcxPuqG",
+      "realizedPnlUsd": 7736890.78,
+      "roi": 64.81,
+      "winRate": 98.51,
+      "tradingDays": 37,
+      "tokensTraded": 538,
+      "trades": 1654
+    },
+    {
+      "wallet": "46jwMMad5vVw3vNWSes9QBi3B1L1d4CTwBMX7bPm8ms9",
+      "realizedPnlUsd": 7720318.63,
+      "roi": 65.22,
+      "winRate": 98.68,
+      "tradingDays": 37,
+      "tokensTraded": 532,
+      "trades": 1642
+    },
+    {
+      "wallet": "DSE8EpBrGZjrEVV5youGyEA53KzsQSJw7jA2ofLAzW9t",
+      "realizedPnlUsd": 7696487.01,
+      "roi": 63.22,
+      "winRate": 97.06,
+      "tradingDays": 37,
+      "tokensTraded": 544,
+      "trades": 1684
+    },
+    {
+      "wallet": "4bEYoDPQ5mucUd4AkwdC819rFTdgi6JNXPjPhTjK5gGw",
+      "realizedPnlUsd": 7631610.92,
+      "roi": 63.58,
+      "winRate": 96.12,
+      "tradingDays": 37,
+      "tokensTraded": 541,
+      "trades": 1668
+    },
+    {
+      "wallet": "PGhYoUt8awqicsPSAzcnutWHUc5efkcgixdXHYBSaMC",
+      "realizedPnlUsd": 7591449.45,
+      "roi": 4.07,
+      "winRate": 81.02,
+      "tradingDays": 22,
+      "tokensTraded": 1517,
+      "trades": 1215371
+    },
+    {
+      "wallet": "CZxcyqHaj2ZDA7KpqkaiPJDWFz3VoTZVarZoK5qGbAg1",
+      "realizedPnlUsd": 7558556.59,
+      "roi": 64.5,
+      "winRate": 99.04,
+      "tradingDays": 37,
+      "tokensTraded": 523,
+      "trades": 1631
+    },
+    {
+      "wallet": "21enKC473NwfqtmyivkQRJ7gQCv4Bct6n2E6maWY45KU",
+      "realizedPnlUsd": 7555499.03,
+      "roi": 64.15,
+      "winRate": 98.11,
+      "tradingDays": 37,
+      "tokensTraded": 528,
+      "trades": 1631
+    },
+    {
+      "wallet": "BpntL4hjz9wmMFakjtKTvjTXhSTgruWCuoHpXK6L3wkK",
+      "realizedPnlUsd": 7515379.66,
+      "roi": 64.83,
+      "winRate": 98.48,
+      "tradingDays": 37,
+      "tokensTraded": 525,
+      "trades": 1610
+    },
+    {
+      "wallet": "FMhsP7jLpqRpBjQsjoxs4EoPzfKJHGqwCtHN3dwmFURf",
+      "realizedPnlUsd": 7477930.3,
+      "roi": 66.39,
+      "winRate": 98.83,
+      "tradingDays": 37,
+      "tokensTraded": 515,
+      "trades": 1577
+    },
+    {
+      "wallet": "7y5yKZBwHNuReaSzr8f2vbYBikKc1G6yPdmXe19mJq7v",
+      "realizedPnlUsd": 7368975.83,
+      "roi": 3.94,
+      "winRate": 83.38,
+      "tradingDays": 22,
+      "tokensTraded": 1480,
+      "trades": 1187870
+    },
+    {
+      "wallet": "5dr24vmZD2rvngiHMC3Q7Mf5LQyMijm5donoWLcj1Frw",
+      "realizedPnlUsd": 7291827.64,
+      "roi": 68.12,
+      "winRate": 98.62,
+      "tradingDays": 37,
+      "tokensTraded": 508,
+      "trades": 1517
+    },
+    {
+      "wallet": "EUbffXkxM6oKSichMegtf9QYTSq65uDcFQM7vePphEBD",
+      "realizedPnlUsd": 7125509.2,
+      "roi": 68.95,
+      "winRate": 97.79,
+      "tradingDays": 37,
+      "tokensTraded": 498,
+      "trades": 1460
+    },
+    {
+      "wallet": "4fr1C8gWsrKAQ9aKV4LexHDB17ajk5FFyQ3ZFUNBzhGM",
+      "realizedPnlUsd": 7080236.61,
+      "roi": 70.46,
+      "winRate": 97.98,
+      "tradingDays": 37,
+      "tokensTraded": 494,
+      "trades": 1415
+    },
+    {
+      "wallet": "5j6ukAbpcgywrTdJoz4KsYGbQKVSg2asY6YQR87dMeJN",
+      "realizedPnlUsd": 7009695.59,
+      "roi": 3.74,
+      "winRate": 82.17,
+      "tradingDays": 22,
+      "tokensTraded": 1481,
+      "trades": 1173467
+    },
+    {
+      "wallet": "CkP33SXmTZt757sPwj3bDuSiphsZY7kaueqmXD5bn6hb",
+      "realizedPnlUsd": 7008433.66,
+      "roi": 3.74,
+      "winRate": 82.93,
+      "tradingDays": 22,
+      "tokensTraded": 1482,
+      "trades": 1187910
+    },
+    {
+      "wallet": "CRU8tcjFPsYUbMMs6A5N6HDxvUB3nrRM72BT7WUpHzB9",
+      "realizedPnlUsd": 7002134.84,
+      "roi": 3.73,
+      "winRate": 82.19,
+      "tradingDays": 22,
+      "tokensTraded": 1477,
+      "trades": 1178912
+    },
+    {
+      "wallet": "2CkNMwA9QTRZtCHaVH3xzGK3T6P3W1NtEgVnvFvwQ9ei",
+      "realizedPnlUsd": 6997012.57,
+      "roi": 70.68,
+      "winRate": 97.77,
+      "tradingDays": 37,
+      "tokensTraded": 493,
+      "trades": 1386
+    },
+    {
+      "wallet": "EGQqZkk18fqxzFkGYPpgtmk33uxj9M1WWyDPJf52jzAQ",
+      "realizedPnlUsd": 6991476.17,
+      "roi": 71.07,
+      "winRate": 96.74,
+      "tradingDays": 37,
+      "tokensTraded": 491,
+      "trades": 1375
+    },
+    {
+      "wallet": "Az8jHBMJqVM6hg86et32ZQhnibti2x2oaTbvFpoMHjay",
+      "realizedPnlUsd": 6986656.13,
+      "roi": 71.82,
+      "winRate": 97.76,
+      "tradingDays": 36,
+      "tokensTraded": 491,
+      "trades": 1359
+    },
+    {
+      "wallet": "5QKHxJtL7X5FSVHVkNu69X71twr73JuEaNsSdCBVGZkn",
+      "realizedPnlUsd": 6928244.37,
+      "roi": 73.88,
+      "winRate": 97.53,
+      "tradingDays": 36,
+      "tokensTraded": 485,
+      "trades": 1322
+    },
+    {
+      "wallet": "36uWVq7Qu9iBgFFMJJzUG8eC8wiEYcAtLJiGMZmJYEXy",
+      "realizedPnlUsd": 6801311.66,
+      "roi": 3.65,
+      "winRate": 78.8,
+      "tradingDays": 22,
+      "tokensTraded": 1481,
+      "trades": 1180546
+    },
+    {
+      "wallet": "A66Uo46wJYtGkV6JhddnT8tktMjJzFATRDJcuFiz1Mwt",
+      "realizedPnlUsd": 6779385.35,
+      "roi": 3.62,
+      "winRate": 81.73,
+      "tradingDays": 22,
+      "tokensTraded": 1478,
+      "trades": 1184958
+    },
+    {
+      "wallet": "wbq9Jyo5SvsxvDqJgfWxxij62VhobhmM6LYXK2kasSy",
+      "realizedPnlUsd": 6682202.24,
+      "roi": 74.38,
+      "winRate": 97.67,
+      "tradingDays": 36,
+      "tokensTraded": 473,
+      "trades": 1265
+    },
+    {
+      "wallet": "3nPoZ5YgQ1FNutW7SacWvG7DkisPHHJSyhmoYhpKk4cC",
+      "realizedPnlUsd": 6662762.31,
+      "roi": 3.56,
+      "winRate": 81.79,
+      "tradingDays": 22,
+      "tokensTraded": 1477,
+      "trades": 1180861
+    },
+    {
+      "wallet": "BTm12Tkn1u5Wzp9gBFJewEYBCrkkdFDDKyuTpXEKcBBC",
+      "realizedPnlUsd": 6594190.52,
+      "roi": 3.52,
+      "winRate": 81.71,
+      "tradingDays": 22,
+      "tokensTraded": 1482,
+      "trades": 1187979
+    },
+    {
+      "wallet": "J76AEfKYC7HDb6EwiDkKtieR1Tn3jeuGKkzjNcJciveH",
+      "realizedPnlUsd": 6580459.06,
+      "roi": 3.53,
+      "winRate": 79.44,
+      "tradingDays": 22,
+      "tokensTraded": 1503,
+      "trades": 1212162
+    },
+    {
+      "wallet": "6u6T35bp2yzGgF2M9zJVk9WhrqCCddsyo9mvDSGP5mVJ",
+      "realizedPnlUsd": 6554578.84,
+      "roi": 3.5,
+      "winRate": 79.45,
+      "tradingDays": 22,
+      "tokensTraded": 1479,
+      "trades": 1185126
+    },
+    {
+      "wallet": "D7i5Mq8dyX1z818TbXSSjbBaCzFB4VXUGiy4L1jG47d9",
+      "realizedPnlUsd": 6520856.44,
+      "roi": 3.49,
+      "winRate": 82.56,
+      "tradingDays": 22,
+      "tokensTraded": 1474,
+      "trades": 1178436
+    },
+    {
+      "wallet": "EhyhwNUvy1XBd55xD4m2NuffNxaADgf4KZnrCCv8ngEK",
+      "realizedPnlUsd": 6515578.75,
+      "roi": 75.34,
+      "winRate": 98.02,
+      "tradingDays": 35,
+      "tokensTraded": 455,
+      "trades": 1233
+    },
+    {
+      "wallet": "91yUa7wk5BkUbhFb79X21p1HF87VaWa4n98DN46oob19",
+      "realizedPnlUsd": 6485439.86,
+      "roi": 3.46,
+      "winRate": 79.26,
+      "tradingDays": 22,
+      "tokensTraded": 1480,
+      "trades": 1183636
+    },
+    {
+      "wallet": "9U9j667j2WVBXJohGUZN8gxsn6xBd19UHQ7wm7Dbkysy",
+      "realizedPnlUsd": 6442034.6,
+      "roi": 3.43,
+      "winRate": 77.91,
+      "tradingDays": 22,
+      "tokensTraded": 1476,
+      "trades": 1199355
+    },
+    {
+      "wallet": "3N1Ya1KesKWi4PX6Kpis9bs5HJqnxSKBq7P671j5oCWm",
+      "realizedPnlUsd": 6423902.8,
+      "roi": 76.31,
+      "winRate": 97.57,
+      "tradingDays": 34,
+      "tokensTraded": 453,
+      "trades": 1189
+    },
+    {
+      "wallet": "7WwaAzvdoNyw1jcyqU8gtuqECKrHob2Pr5vZf7hNAf5o",
+      "realizedPnlUsd": 6319806.36,
+      "roi": 3.37,
+      "winRate": 77.67,
+      "tradingDays": 22,
+      "tokensTraded": 1478,
+      "trades": 1192837
+    },
+    {
+      "wallet": "CHsJ9DAtX2fjBpZzuZNZvSi2HtSns884ybdwvfwk4zTp",
+      "realizedPnlUsd": 6295557.18,
+      "roi": 3.35,
+      "winRate": 79.55,
+      "tradingDays": 22,
+      "tokensTraded": 1511,
+      "trades": 1209737
+    },
+    {
+      "wallet": "CkS9uU1wtTEn1rBRaBucjXhkL5shf3HAZxQpRQQXHKAc",
+      "realizedPnlUsd": 6284416.52,
+      "roi": 3.35,
+      "winRate": 79.39,
+      "tradingDays": 22,
+      "tokensTraded": 1514,
+      "trades": 1203517
+    },
+    {
+      "wallet": "8StkTM9BXnsWwWcbihCL8pUn9xBePvjQfXHqTkNjuyGD",
+      "realizedPnlUsd": 6279306.87,
+      "roi": 2.49,
+      "winRate": 76.19,
+      "tradingDays": 90,
+      "tokensTraded": 42,
+      "trades": 808086
+    },
+    {
+      "wallet": "gVg6bJqaqYmPz1eiDJZKeLJvpmLqRC2HdcYedNvcs5d",
+      "realizedPnlUsd": 6216807.48,
+      "roi": 3.33,
+      "winRate": 79.73,
+      "tradingDays": 22,
+      "tokensTraded": 1480,
+      "trades": 1167365
+    },
+    {
+      "wallet": "DQARUFWGyCxitNR81FJtZp77XMAq8RPVb2dqFwbwNfC9",
+      "realizedPnlUsd": 6216448.2,
+      "roi": 77.05,
+      "winRate": 97.74,
+      "tradingDays": 34,
+      "tokensTraded": 442,
+      "trades": 1142
+    },
+    {
+      "wallet": "GeAqhomhY5YhmGeCtpLzSf7BXc9t4JoWucwPcnigsNpq",
+      "realizedPnlUsd": 5779913.85,
+      "roi": 661.82,
+      "winRate": 20.33,
+      "tradingDays": 20,
+      "tokensTraded": 797,
+      "trades": 4955
+    },
+    {
+      "wallet": "DeRqerdWmBASTpT58fX3ukhyyJLTyEQssHyM8y93emz2",
+      "realizedPnlUsd": 5575495.83,
+      "roi": 85.12,
+      "winRate": 100,
+      "tradingDays": 13,
+      "tokensTraded": 2,
+      "trades": 247
+    },
+    {
+      "wallet": "3CBMzBUFF5532VNYbY9mU2y8WqnGaUSpb2ybiVHt4bPM",
+      "realizedPnlUsd": 5485126.34,
+      "roi": 166.99,
+      "winRate": 100,
+      "tradingDays": 4,
+      "tokensTraded": 32,
+      "trades": 73902
+    },
+    {
+      "wallet": "8fYVsdmrCHMXjwJsAQe9HNqqjxbtqYUHfYnDWDdHDpiT",
+      "realizedPnlUsd": 5200992.74,
+      "roi": 3.16,
+      "winRate": 97.54,
+      "tradingDays": 35,
+      "tokensTraded": 325,
+      "trades": 429411
+    },
+    {
+      "wallet": "5KbaDXxCvdUV1i6a5Pc6QWahraP9hKvvMVkcGW1Mgqcr",
+      "realizedPnlUsd": 5030288.99,
+      "roi": 3.03,
+      "winRate": 96.37,
+      "tradingDays": 35,
+      "tokensTraded": 331,
+      "trades": 430485
+    },
+    {
+      "wallet": "2UE1nYhhWq7WNbdfk2RTTjDCBdPUxBYTXSWamAwYQi5y",
+      "realizedPnlUsd": 4977830.16,
+      "roi": 2.97,
+      "winRate": 96.97,
+      "tradingDays": 35,
+      "tokensTraded": 330,
+      "trades": 432195
+    },
+    {
+      "wallet": "93s3p7XkbvGzcc6dLYvtJ61Xqi7CN5yi5S9XXkjWSSy4",
+      "realizedPnlUsd": 4967236.94,
+      "roi": 2.97,
+      "winRate": 96.34,
+      "tradingDays": 35,
+      "tokensTraded": 328,
+      "trades": 383927
+    },
+    {
+      "wallet": "43YjwEj6dbYccaxLyftCEZ7VV7Zj74CXGezpzPu3B6Yf",
+      "realizedPnlUsd": 4966082.57,
+      "roi": 2.96,
+      "winRate": 96.35,
+      "tradingDays": 35,
+      "tokensTraded": 329,
+      "trades": 432756
+    },
+    {
+      "wallet": "6g9rgUeBJc7CdKsVfV3sA9FG3hTjiPNj5ZqSjQmuRSnR",
+      "realizedPnlUsd": 4959750.3,
+      "roi": 2.98,
+      "winRate": 96.32,
+      "tradingDays": 35,
+      "tokensTraded": 326,
+      "trades": 431128
+    },
+    {
+      "wallet": "HBYcUx8DgNU8heFiuGqhY2vxC4zQvFRYpZ1eeNixLo34",
+      "realizedPnlUsd": 4944674.84,
+      "roi": 2.96,
+      "winRate": 97.82,
+      "tradingDays": 35,
+      "tokensTraded": 321,
+      "trades": 430558
+    },
+    {
+      "wallet": "A1wKpVbv4oyP1tvrqjiUVCzPTG7xJPhWmSaJtwQGRJpC",
+      "realizedPnlUsd": 4915155.46,
+      "roi": 2.95,
+      "winRate": 97.19,
+      "tradingDays": 35,
+      "tokensTraded": 320,
+      "trades": 382022
+    },
+    {
+      "wallet": "5rmF7VENN7oqpPgiA5QdNPCBDAKRrA9VDh12QaVELy7r",
+      "realizedPnlUsd": 4911144.96,
+      "roi": 2.93,
+      "winRate": 95.44,
+      "tradingDays": 35,
+      "tokensTraded": 329,
+      "trades": 433385
+    },
+    {
+      "wallet": "EC3NSzg6dR9ALHy1z5CRrnKfNQnCXKGgEi9JkHfbq1eU",
+      "realizedPnlUsd": 4909151.37,
+      "roi": 2.94,
+      "winRate": 96.04,
+      "tradingDays": 35,
+      "tokensTraded": 328,
+      "trades": 431550
+    },
+    {
+      "wallet": "A9PzVmoBvTMLSh8VcaPQfYc3qwH63pmLuMxRmWraqGYk",
+      "realizedPnlUsd": 4888117.41,
+      "roi": 4.26,
+      "winRate": 77.14,
+      "tradingDays": 90,
+      "tokensTraded": 35,
+      "trades": 487074
+    },
+    {
+      "wallet": "5YfT5nCwDgTGo8iqFop2ZWHT8YELAm2dN54LRwgrZFFV",
+      "realizedPnlUsd": 4884777.66,
+      "roi": 2.91,
+      "winRate": 96.35,
+      "tradingDays": 35,
+      "tokensTraded": 329,
+      "trades": 432580
+    },
+    {
+      "wallet": "CmJVfQ8dXcsFPKekM3nQKfh3yehPvdwH54iyd818bZiF",
+      "realizedPnlUsd": 4846564.38,
+      "roi": 2.92,
+      "winRate": 95.71,
+      "tradingDays": 35,
+      "tokensTraded": 326,
+      "trades": 430853
+    },
+    {
+      "wallet": "Hd7LuFb8vPF4FUex2TZ9c9BG4YvB2ZHoGucJHX8CAB9H",
+      "realizedPnlUsd": 4404320.84,
+      "roi": 226.9,
+      "winRate": 40.75,
+      "tradingDays": 90,
+      "tokensTraded": 1325,
+      "trades": 53561
+    },
+    {
+      "wallet": "2CQgjcdNEo7WtbQLpJTAVcC3Ga61pNvRDTgP5grzctFG",
+      "realizedPnlUsd": 4374799.82,
+      "roi": 18.93,
+      "winRate": 69.22,
+      "tradingDays": 90,
+      "tokensTraded": 106790,
+      "trades": 477653
+    },
+    {
+      "wallet": "667G4GALy5zJWNWcVeegSTvSHGZjrVqpdE13vQVFVZko",
+      "realizedPnlUsd": 4326225.74,
+      "roi": 1.07,
+      "winRate": 59.41,
+      "tradingDays": 50,
+      "tokensTraded": 505,
+      "trades": 1001852
+    },
+    {
+      "wallet": "DxT1a98WXAFFn6YzPV5urPEbktagMMDMVzy2e1ZmmWx6",
+      "realizedPnlUsd": 4189309.17,
+      "roi": 1.03,
+      "winRate": 55.78,
+      "tradingDays": 50,
+      "tokensTraded": 502,
+      "trades": 1006953
+    },
+    {
+      "wallet": "31wTaLbA1JS6QFyNNpRzuVhQ71uYfmj21bhZwqoQ5pRX",
+      "realizedPnlUsd": 4183259.61,
+      "roi": 1.03,
+      "winRate": 56.49,
+      "tradingDays": 50,
+      "tokensTraded": 501,
+      "trades": 1006290
+    },
+    {
+      "wallet": "H2LMj9VzSo41fZWmYfxM4kUvyuURGBbjbCDEsZh13PDs",
+      "realizedPnlUsd": 4109410,
+      "roi": 1.01,
+      "winRate": 56.69,
+      "tradingDays": 50,
+      "tokensTraded": 501,
+      "trades": 1005321
+    },
+    {
+      "wallet": "7QYMJm2xpvRzSitNZ655W85PJYmmrdKcfA4CD5ZSj6sZ",
+      "realizedPnlUsd": 4065219.22,
+      "roi": 2.48,
+      "winRate": 95.52,
+      "tradingDays": 35,
+      "tokensTraded": 290,
+      "trades": 349919
+    },
+    {
+      "wallet": "5HNzhmMGXENAgKLj9FWb8djUwdCLh7PtHX69uYxRKrH1",
+      "realizedPnlUsd": 4046858.37,
+      "roi": 1,
+      "winRate": 60.36,
+      "tradingDays": 50,
+      "tokensTraded": 502,
+      "trades": 1005579
+    },
+    {
+      "wallet": "CazzHVpzqw5x3KmEeVXeZ8oCmXxwXpwpmN6h7ZDg4nz7",
+      "realizedPnlUsd": 4041137.19,
+      "roi": 2.45,
+      "winRate": 96.86,
+      "tradingDays": 35,
+      "tokensTraded": 287,
+      "trades": 350308
+    },
+    {
+      "wallet": "Di8jRdtPRwBG6CiA89Cyu9HNxnkk6xsV75Uvo2ikWF3",
+      "realizedPnlUsd": 4034368.02,
+      "roi": 0.99,
+      "winRate": 58.48,
+      "tradingDays": 50,
+      "tokensTraded": 501,
+      "trades": 1010664
+    },
+    {
+      "wallet": "kxscutWDN8QUeJdqgZkWYBbEh4EHZKzWoNwYNpyHo5N",
+      "realizedPnlUsd": 3982667.7,
+      "roi": 2.45,
+      "winRate": 95.73,
+      "tradingDays": 35,
+      "tokensTraded": 281,
+      "trades": 346063
+    },
+    {
+      "wallet": "DYgw6rPEfHLVPKfCoqyuqo9B5n71M1R6zP3LUDRqoq7C",
+      "realizedPnlUsd": 3973397.65,
+      "roi": 2.41,
+      "winRate": 95.52,
+      "tradingDays": 35,
+      "tokensTraded": 290,
+      "trades": 350282
+    },
+    {
+      "wallet": "CGwUQXA3Aichh9J9thFUem8NfyEhxySB2GVeimqVCco9",
+      "realizedPnlUsd": 3954455.62,
+      "roi": 2.46,
+      "winRate": 96.85,
+      "tradingDays": 35,
+      "tokensTraded": 286,
+      "trades": 343670
+    },
+    {
+      "wallet": "9UukihP2UkES9HWu7ZJBv7BHTzC3fQG4BwrcYEcioJw6",
+      "realizedPnlUsd": 3933043.3,
+      "roi": 2.46,
+      "winRate": 96.5,
+      "tradingDays": 35,
+      "tokensTraded": 286,
+      "trades": 344801
+    },
+    {
+      "wallet": "45ozS396oJPaNPiNCXKhU1q3D5y8WyCu6Ad7pVRB7BCc",
+      "realizedPnlUsd": 3923225.83,
+      "roi": 2.38,
+      "winRate": 95.89,
+      "tradingDays": 35,
+      "tokensTraded": 292,
+      "trades": 349770
+    },
+    {
+      "wallet": "2VgtAcewTGehkgBE6aryCwoJ9sjRKDjVmgLgwdMvsX1b",
+      "realizedPnlUsd": 3912872.7,
+      "roi": 0.96,
+      "winRate": 55.2,
+      "tradingDays": 50,
+      "tokensTraded": 500,
+      "trades": 1006334
+    },
+    {
+      "wallet": "G2sXjjuzk2REfpw2XxoduN1XNSSC8QmrnmTx3Dofrfac",
+      "realizedPnlUsd": 3890902.81,
+      "roi": 0.96,
+      "winRate": 57.49,
+      "tradingDays": 50,
+      "tokensTraded": 501,
+      "trades": 1002913
+    },
+    {
+      "wallet": "ERRRrSq6uB3tsfJMtjoXnsdj1kdXJa9LiyyrrfZkYWPH",
+      "realizedPnlUsd": 3864523.07,
+      "roi": 0.95,
+      "winRate": 58.68,
+      "tradingDays": 50,
+      "tokensTraded": 501,
+      "trades": 1004595
+    }
+  ]
+}

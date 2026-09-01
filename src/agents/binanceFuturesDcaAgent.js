@@ -97,6 +97,28 @@ class BinanceFuturesDcaAgent extends BaseAgent {
       return null;
     }
 
+    // Checked upfront (2026-09-01) — this used to only surface deep inside
+    // openLeveragedLong, as an uncaught throw that landed this agent in 'error'
+    // state every single cycle for as long as LIVE_FUTURES_TRADING_CONFIRMED stays
+    // false (a real, ongoing, deliberate policy choice, not a bug — see server.js's
+    // FUTURES_DCA_SLOTS comment). Unlike breakoutFutures/meanReversionFutures (whose
+    // scan conditions often don't find a candidate, so they rarely even reach the
+    // blocked call), this agent's unconditional daily-DCA schedule hit it every
+    // time, permanently false-flagging 8 healthy, correctly-behaving agents as
+    // "error" — which in turn made realAgentMonitorAgent's shared-failure detector
+    // treat it as a systemic incident and stand down entirely for 45 minutes,
+    // silently disabling restart protection for any FUTURE real error too. Now
+    // reported honestly as 'resting', matching every other non-error stop condition
+    // already in this function.
+    try {
+      realFuturesTradingService.assertLiveFuturesTradingAllowed();
+    } catch (error) {
+      // Hourly cycle (checkIntervalMs) — logging every occurrence is not spam.
+      this.log('info', `Resting — ${error.message}`);
+      this.state = 'resting';
+      return null;
+    }
+
     const symbolPerformance = await realFuturesTradingService.getSymbolPerformance(this.config.symbol);
     if (symbolPerformance.closedTradeCount >= this.config.minClosedTradesBeforeCircuitBreaker) {
       const approxRisked = symbolPerformance.closedTradeCount * this.config.dailyMarginUsd;

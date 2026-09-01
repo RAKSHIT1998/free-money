@@ -9,6 +9,10 @@ const MeanReversionFuturesAgent = require('./meanReversionFuturesAgent');
 const HackerOneBountyAgent = require('./hackerOneBountyAgent');
 const GithubBountyHunterAgent = require('./githubBountyHunterAgent');
 const CryptoGigHunterAgent = require('./cryptoGigHunterAgent');
+const AirdropClaimScannerAgent = require('./airdropClaimScannerAgent');
+const CryptoUpdatesTrackerAgent = require('./cryptoUpdatesTrackerAgent');
+const SmartMoneyTrackerAgent = require('./smartMoneyTrackerAgent');
+const TelegramNotifierAgent = require('./telegramNotifierAgent');
 const CompanyLeadHunterAgent = require('./companyLeadHunterAgent');
 const PumpFunSniperAgent = require('./pumpFunSniperAgent');
 const RealAgentMonitorAgent = require('./realAgentMonitorAgent');
@@ -290,6 +294,58 @@ class AgentManager {
           id: this.nextId++,
           config: {
             ...this.config.get('agentTypes.companyLeadHunter') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'airdropclaimscanner':
+      case 'airdrop claim scanner':
+      case 'airdropclaimscanneragent':
+        agent = new AirdropClaimScannerAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.airdropClaimScanner') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'cryptoupdatestracker':
+      case 'crypto updates tracker':
+      case 'cryptoupdatestrackeragent':
+        agent = new CryptoUpdatesTrackerAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.cryptoUpdatesTracker') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'smartmoneytracker':
+      case 'smart money tracker':
+      case 'smartmoneytrackeragent':
+        agent = new SmartMoneyTrackerAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.smartMoneyTracker') || {},
+            ...options.config
+          },
+          ...options
+        });
+        break;
+
+      case 'telegramnotifier':
+      case 'telegram notifier':
+      case 'telegramnotifieragent':
+        agent = new TelegramNotifierAgent({
+          id: this.nextId++,
+          config: {
+            ...this.config.get('agentTypes.telegramNotifier') || {},
             ...options.config
           },
           ...options

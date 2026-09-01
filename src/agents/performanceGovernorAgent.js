@@ -10,6 +10,8 @@
 const BaseAgent = require('./baseAgent');
 const realFuturesTradingService = require('../services/realFuturesTradingService');
 const agentCullService = require('../services/agentCullService');
+const agentMemoryService = require('../services/agentMemoryService');
+const telegramNotifierService = require('../services/telegramNotifierService');
 
 const FUTURES_TYPES = ['binanceFuturesDca', 'breakoutFutures', 'meanReversionFutures'];
 
@@ -101,6 +103,8 @@ class PerformanceGovernorAgent extends BaseAgent {
       const reason = `Culled: net realized P&L $${perf.netRealizedPnlUsd.toFixed(2)} over ${perf.closedTradeCount} closed trades (${perf.winCount}W/${perf.lossCount}L) breached -${(this.config.lossThresholdPct * 100).toFixed(0)}% loss threshold`;
       this.log('warn', `${label}: ${reason}`);
       await agentCullService.recordCull(agent.type, agent.config?.symbol || null, reason, perf);
+      agentMemoryService.recordLesson(agent.type, reason, { symbol: agent.config?.symbol, agentId: agent.id });
+      telegramNotifierService.sendMessage(`⚠️ <b>Culled ${label}</b>\n${reason}`).catch(() => {});
       await manager.removeAgent(agent.id);
       return 'culled';
     }
@@ -108,7 +112,10 @@ class PerformanceGovernorAgent extends BaseAgent {
     if (budgetCapUsd && perf.netRealizedPnlUsd >= this.config.eliteThresholdPct * budgetCapUsd) {
       const newCap = Math.min(budgetCapUsd * this.config.boostFactor, this.config.maxBudgetCapUsd);
       if (newCap > budgetCapUsd) {
-        this.log('info', `${label}: elite performer (net +$${perf.netRealizedPnlUsd.toFixed(2)} over ${perf.closedTradeCount} trades, ${perf.winCount}W/${perf.lossCount}L) — raising budgetCapUsd $${budgetCapUsd} -> $${newCap.toFixed(2)}`);
+        const boostMsg = `Boosted: elite performer (net +$${perf.netRealizedPnlUsd.toFixed(2)} over ${perf.closedTradeCount} trades, ${perf.winCount}W/${perf.lossCount}L) — budgetCapUsd $${budgetCapUsd} -> $${newCap.toFixed(2)}`;
+        this.log('info', `${label}: ${boostMsg}`);
+        agentMemoryService.recordLesson(agent.type, boostMsg, { symbol: agent.config?.symbol, agentId: agent.id });
+        telegramNotifierService.sendMessage(`🚀 <b>Boosted ${label}</b>\n${boostMsg}`).catch(() => {});
         await manager.updateAgentConfig(agent.id, { budgetCapUsd: newCap });
         return 'boosted';
       }
@@ -120,18 +127,41 @@ class PerformanceGovernorAgent extends BaseAgent {
   async evaluatePumpFunAgent(manager, agent) {
     if (agent.openPosition) return null; // never touch an agent mid-position
 
-    // opportunitiesFound counts buys; actionsTaken counts every buy+sell action —
-    // the difference is a reasonable proxy for completed (bought-and-sold) snipes.
-    const closedCount = Math.max(0, (agent.performance.actionsTaken || 0) - (agent.performance.opportunitiesFound || 0));
-    if (closedCount < this.config.minClosedTradesPumpFun) return null;
+    // Source real history from the persistent, restart-safe ledger, not
+    // agent.performance/actionsTaken -- those live only in this process's memory
+    // (reset to zero on every pm2 restart) and every fresh spawn gets a new
+    // incrementing agent id too, so neither one ever actually accumulates enough to
+    // trip this cull path across a restart. Found 2026-09-01 auditing why this had
+    // never fired despite real, live losses. getAllTimeSummary() is global (every
+    // pump.fun trade ever recorded, any agent id) -- the right scope for "should
+    // this STRATEGY keep running", not "has this particular process instance done
+    // badly since it last booted".
+    const pumpFunTradingService = require('../services/pumpFunTradingService');
+    const summary = await pumpFunTradingService.getAllTimeSummary();
+    if (summary.closedTradeCount < this.config.minClosedTradesPumpFun) return null;
 
-    const earnings = agent.performance.earnings || 0;
-    const budgetCapUsd = Number.isFinite(agent.config?.budgetCapUsd) ? agent.config.budgetCapUsd : 10;
+    const earnings = summary.totalRealizedPnlUsd || 0;
+    const configuredCap = Number.isFinite(agent.config?.budgetCapUsd) ? agent.config.budgetCapUsd : null;
+    let refBudget = configuredCap;
+    if (!refBudget) {
+      // budgetCapUsd is Infinity by design (2026-09-01: "whatever's in the wallet,
+      // use it") -- the old hardcoded $10 fallback made the -50% cull threshold
+      // ($5) meaningless against a real wallet worth ~$2. Use the wallet's current
+      // free SOL value instead: the real amount actually at risk right now, with a
+      // $1 floor so a single small loss can't trip it on a near-empty wallet.
+      const [freeSol, solPrice] = await Promise.all([
+        pumpFunTradingService.getWalletBalanceSol(),
+        pumpFunTradingService.getSolUsdPrice()
+      ]);
+      refBudget = Math.max(freeSol * solPrice, 1);
+    }
 
-    if (earnings <= -(this.config.lossThresholdPct * budgetCapUsd)) {
-      const reason = `Culled: cumulative realized P&L $${earnings.toFixed(2)} over ~${closedCount} closed snipes breached -${(this.config.lossThresholdPct * 100).toFixed(0)}% loss threshold`;
+    if (earnings <= -(this.config.lossThresholdPct * refBudget)) {
+      const reason = `Culled: lifetime real P&L $${earnings.toFixed(2)} over ${summary.closedTradeCount} closed trades (${summary.winCount}W/${summary.lossCount}L) breached -${(this.config.lossThresholdPct * 100).toFixed(0)}% of $${refBudget.toFixed(2)} at-risk reference`;
       this.log('warn', `pumpFunSniper#${agent.id}: ${reason}`);
-      await agentCullService.recordCull(agent.type, null, reason, { netRealizedPnlUsd: earnings, closedTradeCount: closedCount });
+      await agentCullService.recordCull(agent.type, null, reason, { netRealizedPnlUsd: earnings, closedTradeCount: summary.closedTradeCount });
+      agentMemoryService.recordLesson(agent.type, reason, { agentId: agent.id });
+      telegramNotifierService.sendMessage(`⚠️ <b>Culled pumpFunSniper#${agent.id}</b>\n${reason}`).catch(() => {});
       await manager.removeAgent(agent.id);
       return 'culled';
     }

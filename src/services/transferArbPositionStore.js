@@ -145,15 +145,16 @@ async function getStatusSummary(agentId) {
  * without silently dropping history from before the most recent restart.
  * @returns {Promise<Object>}
  */
-async function getAllTimeSummary() {
-  let allPositions;
+async function getAllPositions() {
   if (persistenceEnabled) {
     const Model = getModel();
-    allPositions = await Model.find({}).lean();
-  } else {
-    allPositions = loadFile();
+    return Model.find({}).lean();
   }
+  return loadFile();
+}
 
+async function getAllTimeSummary() {
+  const allPositions = await getAllPositions();
   const closed = allPositions.filter(p => p.status === 'closed' && p.realizedPnlUsd != null);
   const totalRealizedPnlUsd = closed.reduce((sum, p) => sum + p.realizedPnlUsd, 0);
 
@@ -172,6 +173,7 @@ module.exports = {
   createPosition,
   getPendingDepositPositions,
   countOpenPositions,
+  getAllPositions,
   getAllTimeSummary,
   getStatusSummary
 };

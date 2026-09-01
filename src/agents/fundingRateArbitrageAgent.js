@@ -28,14 +28,7 @@
 const BaseAgent = require('./baseAgent');
 const realTradingService = require('../services/realTradingService');
 const realFuturesTradingService = require('../services/realFuturesTradingService');
-
-let RealFundingArbPosition;
-function getPositionModel() {
-  if (!RealFundingArbPosition) {
-    RealFundingArbPosition = require('../models/RealFundingArbPosition');
-  }
-  return RealFundingArbPosition;
-}
+const positionStore = require('../services/fundingArbPositionStore');
 
 class FundingRateArbitrageAgent extends BaseAgent {
   constructor(options = {}) {
@@ -101,8 +94,7 @@ class FundingRateArbitrageAgent extends BaseAgent {
 
     this.state = 'active';
 
-    const Model = getPositionModel();
-    const openPositions = await Model.find({ agentId: this.id, status: 'open' });
+    const openPositions = await positionStore.getPositionsByStatus(this.id, 'open');
     const openSymbols = new Set(openPositions.map(p => p.symbol));
 
     // Exit pass first — free up capital before considering new entries.
@@ -117,15 +109,24 @@ class FundingRateArbitrageAgent extends BaseAgent {
       }
     }
 
-    // Entry pass — only symbols without an already-open pair.
-    const [tickers, perpetualSymbols] = await Promise.all([
+    // Entry pass — only symbols without an already-open pair. A symbol also needs an
+    // active SPOT market: this agent's hedge requires holding spot + shorting the
+    // perp, and a growing number of Binance perpetuals (meme/exotic listings, e.g.
+    // futures-only symbols with no spot pair at all) have no spot counterpart. Without
+    // this filter, openPair's spot leg was reaching Binance and getting rejected with
+    // a 400 "Invalid symbol" on every such candidate — safe (nothing fills), but it
+    // silently burned every real opportunity on symbols that could never be traded
+    // as a hedged pair in the first place.
+    const [tickers, perpetualSymbols, spotSymbols] = await Promise.all([
       realFuturesTradingService.getAll24hrTickers(),
-      realFuturesTradingService.getUsdtPerpetualSymbols()
+      realFuturesTradingService.getUsdtPerpetualSymbols(),
+      realTradingService.getSpotTradableSymbols()
     ]);
     const perpetualSet = new Set(perpetualSymbols);
 
     const eligible = tickers.filter(t =>
       perpetualSet.has(t.symbol) &&
+      spotSymbols.has(t.symbol) &&
       !openSymbols.has(t.symbol) &&
       t.quoteVolume >= this.config.minQuoteVolumeUsd
     );
@@ -172,7 +173,6 @@ class FundingRateArbitrageAgent extends BaseAgent {
    * @param {number} fundingRate
    */
   async openPair(symbol, fundingRate) {
-    const Model = getPositionModel();
     const notionalUsd = this.config.perTradeNotionalUsd;
 
     const spotTrade = await realTradingService.placeMarketBuyOrder({
@@ -205,7 +205,7 @@ class FundingRateArbitrageAgent extends BaseAgent {
         this.log('info', `Successfully unwound spot leg for ${symbol} after futures leg failure`);
         return;
       } catch (unwindError) {
-        await Model.create({
+        await positionStore.createPosition({
           agentId: this.id,
           symbol,
           status: 'unhedged',
@@ -226,7 +226,7 @@ class FundingRateArbitrageAgent extends BaseAgent {
       try {
         await realTradingService.placeMarketSellOrder({ symbol, quantity: spotTrade.filledQty, agentId: this.id });
       } catch (unwindError) {
-        await Model.create({
+        await positionStore.createPosition({
           agentId: this.id,
           symbol,
           status: 'unhedged',
@@ -241,7 +241,7 @@ class FundingRateArbitrageAgent extends BaseAgent {
       return;
     }
 
-    await Model.create({
+    await positionStore.createPosition({
       agentId: this.id,
       symbol,
       status: 'open',
@@ -302,12 +302,7 @@ class FundingRateArbitrageAgent extends BaseAgent {
    * @returns {Promise<Object>}
    */
   async getStatusExtended() {
-    const Model = getPositionModel();
-    const [openPositions, unhedgedPositions, recentClosed] = await Promise.all([
-      Model.find({ agentId: this.id, status: 'open' }).lean(),
-      Model.find({ agentId: this.id, status: 'unhedged' }).lean(),
-      Model.find({ agentId: this.id, status: 'closed' }).sort({ closedAt: -1 }).limit(10).lean()
-    ]);
+    const { openPositions, unhedgedPositions, recentClosed } = await positionStore.getStatusSummary(this.id);
 
     return {
       ...this.getStatus(),

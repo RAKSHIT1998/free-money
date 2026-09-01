@@ -1,0 +1,186 @@
+{
+  "outcomes": {
+    "pumpFunSniper": [
+      {
+        "at": "2026-09-01T05:02:51.730Z",
+        "pnlUsd": 0.13293629245,
+        "meta": {
+          "mint": "Cc571Tmb6Av4emEVN6rcPYkqzaSpUs7o6ACGiLu5h3ys",
+          "symbol": "KOR",
+          "reason": "max hold time reached (352s)"
+        }
+      },
+      {
+        "at": "2026-09-01T05:10:03.553Z",
+        "pnlUsd": 0.13352493417000036,
+        "meta": {
+          "mint": "3SEmpYH2kBn4Fe1Wry7FUQAUQva3ER9rcGZoCDYSpump",
+          "symbol": "Butthole",
+          "reason": "max hold time reached (365s)"
+        }
+      },
+      {
+        "at": "2026-09-01T05:11:39.853Z",
+        "pnlUsd": -0.33719275200000015,
+        "meta": {
+          "mint": "ArM2JxFRdD7x6ekFgMbvJgZA57CNv8z6s2iHtKgTpump",
+          "symbol": "NEVER",
+          "reason": "trailing stop hit (-24.6% from entry, -24.7% off peak)"
+        }
+      },
+      {
+        "at": "2026-09-01T05:18:47.738Z",
+        "pnlUsd": 0.19453902354000033,
+        "meta": {
+          "mint": "Hrp1cDfzKE5XTmHwDFYvAGfP3HzeFgZqGn1YkthBpump",
+          "symbol": "EVEILEB",
+          "reason": "max hold time reached (303s)"
+        }
+      },
+      {
+        "at": "2026-09-01T05:24:16.308Z",
+        "pnlUsd": 0.19101504257999982,
+        "meta": {
+          "mint": "AUd4Se9o5UtKjpLnq3SfFpxVth3ps7Hc2hVm6o68pump",
+          "symbol": "J",
+          "reason": "max hold time reached (309s)"
+        }
+      },
+      {
+        "at": "2026-09-01T05:31:04.123Z",
+        "pnlUsd": 0.18890441082000003,
+        "meta": {
+          "mint": "2ar4xUdh3htQcoLu6YCv5KSUSXDjX4jgHM8pnfpFpump",
+          "symbol": "LIGHTBALLS",
+          "reason": "max hold time reached (317s)"
+        }
+      },
+      {
+        "at": "2026-09-01T05:37:32.201Z",
+        "pnlUsd": 0.19354269255999995,
+        "meta": {
+          "mint": "AdNEtGyKgYGP6Xaz3dswKPCrpY8aNPEuXiZJzPVppump",
+          "symbol": "BABA",
+          "reason": "max hold time reached (320s)"
+        }
+      },
+      {
+        "at": "2026-09-01T05:45:17.144Z",
+        "pnlUsd": 0.15569732639999992,
+        "meta": {
+          "mint": "2pShzS13nWSb25xUn27ubC1tHQ7jBuCGWzUhrVAHpump",
+          "symbol": "prostate",
+          "reason": "max hold time reached (403s)"
+        }
+      },
+      {
+        "at": "2026-09-01T05:50:12.475Z",
+        "pnlUsd": 0.8173547131200002,
+        "meta": {
+          "mint": "J9BkAQymtHF9NZvC31g6hDR9eoiVc625X2bug3hrpump",
+          "symbol": "Analtoly",
+          "reason": "trailing stop hit (68.8% from entry, -69.5% off peak)"
+        }
+      },
+      {
+        "at": "2026-09-01T05:56:01.073Z",
+        "pnlUsd": -0.11036030100000023,
+        "meta": {
+          "mint": "DSWc7V7EXt41t8BLcDh364JKuPQdTk4jbyDkhjaBpump",
+          "symbol": "COLLECTORS",
+          "reason": "max hold time reached (301s)"
+        }
+      },
+      {
+        "at": "2026-09-01T06:06:55.845Z",
+        "pnlUsd": 0.1926213433600001,
+        "meta": {
+          "mint": "BAzXJQpSoZeh5DEjBQBoW45LoeLmMddTwyYKu65mpump",
+          "symbol": "HERO",
+          "reason": "max hold time reached (623s)"
+        }
+      },
+      {
+        "at": "2026-09-01T06:12:42.331Z",
+        "pnlUsd": 0.12292515459000004,
+        "meta": {
+          "mint": "A2UBM4CuNj4J5FkYwAnShSDUxwB6bEVqm3s6hWaepump",
+          "symbol": "dihcoin",
+          "reason": "max hold time reached (320s)"
+        }
+      },
+      {
+        "at": "2026-09-01T07:00:24.250Z",
+        "pnlUsd": -0.03040312740000014,
+        "meta": {
+          "mint": "5fHEqKAekzftmQ2y2n6ZD3jQmJZcxgSBQ6cB2SPypump",
+          "symbol": "Ponyo",
+          "reason": "max hold time reached (2328s)"
+        }
+      },
+      {
+        "at": "2026-09-01T07:05:50.541Z",
+        "pnlUsd": 0.09336481770000016,
+        "meta": {
+          "mint": "4Kjj569xyb2oWY3ZZ9u8b3XSSUCzNCMSV2g1E1Grpump",
+          "symbol": "CLOTHIMALS",
+          "reason": "max hold time reached (306s)"
+        }
+      },
+      {
+        "at": "2026-09-01T07:08:47.209Z",
+        "pnlUsd": 0.037192773199999946,
+        "meta": {
+          "mint": "FUgnsEiDTnW97cyYD962QzKXmQ4TFP6zhn4QXDF3t2fP",
+          "symbol": "69",
+          "reason": "stop-loss hit (-45.8% from entry)"
+        }
+      },
+      {
+        "at": "2026-09-01T11:57:43.748Z",
+        "pnlUsd": 0.17989448008000006,
+        "meta": {
+          "mint": "48FciVawMLPZRfury58sxZPwfu2d11LJ54bza2wvpump",
+          "symbol": "Anna",
+          "reason": "max hold time reached (17141s)"
+        }
+      },
+      {
+        "at": "2026-09-01T12:04:04.750Z",
+        "pnlUsd": 0.20394685575,
+        "meta": {
+          "mint": "9yeDBCD87dhSQBq8tTRXMu5KqpwJMWcVhDenN3j3pump",
+          "symbol": "WIZARD",
+          "reason": "max hold time reached (340s)"
+        }
+      },
+      {
+        "at": "2026-09-01T12:10:45.904Z",
+        "pnlUsd": 0.1856742842400001,
+        "meta": {
+          "mint": "7sxp1Nx918XbreYQb2ekFJ2VtWrQKo9gaqs7ccfgpump",
+          "symbol": "FIBS",
+          "reason": "max hold time reached (342s)"
+        }
+      }
+    ]
+  },
+  "lessons": {
+    "pumpFunSniper": [
+      {
+        "at": "2026-09-01T04:56:02.625Z",
+        "text": "Reconciled stale position fred — wallet held zero on-chain, real P&L unknown (a prior sell likely landed without client confirmation)",
+        "meta": {
+          "mint": "5LnadjGjZq5GDCjckshrXKL2YFzMajeMFo8s5AuHpump"
+        }
+      },
+      {
+        "at": "2026-09-01T06:20:12.238Z",
+        "text": "Reconciled stale position SBROKER — wallet held zero on-chain, real P&L unknown (a prior sell likely landed without client confirmation)",
+        "meta": {
+          "mint": "7pMwL5bY6S5t3W7kYrgPMPKa3gKj1kRU6uyCkpNzpump"
+        }
+      }
+    ]
+  }
+}

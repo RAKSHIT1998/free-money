@@ -48,10 +48,19 @@
 // - A creator whose past token this agent held and watched close at a severe loss
 //   is never bought from again (pumpFunCreatorReputationService) — permanent, no
 //   auto-reset, same philosophy as the budget cap.
+const fs = require('fs');
+const path = require('path');
 const BaseAgent = require('./baseAgent');
 const pumpFunTradingService = require('../services/pumpFunTradingService');
 const creatorReputationService = require('../services/pumpFunCreatorReputationService');
+const agentMemoryService = require('../services/agentMemoryService');
+const smartMoneyTrackerService = require('../services/smartMoneyTrackerService');
+const telegramNotifierService = require('../services/telegramNotifierService');
 const Agent = require('../models/Agent');
+const { Config } = require('../config/config');
+
+const persistenceEnabled = new Config().get('agentManager.persistenceEnabled', true);
+const openPositionFilePath = path.join(process.cwd(), 'pumpfun_open_position.json');
 
 const PUMPPORTAL_WS_URL = 'wss://pumpportal.fun/api/data';
 
@@ -67,12 +76,22 @@ class PumpFunSniperAgent extends BaseAgent {
         budgetCapUsd: options.config?.budgetCapUsd != null ? options.config.budgetCapUsd : 10,
         // SOL kept back, never spent on a buy — covers network gas + priority fees
         // on both the buy AND the eventual sell.
-        reserveSol: options.config?.reserveSol != null ? options.config.reserveSol : 0.003,
+        reserveSol: options.config?.reserveSol != null ? options.config.reserveSol : 0.006,
         maxSolPerSnipe: options.config?.maxSolPerSnipe != null ? options.config.maxSolPerSnipe : 0.05,
         slippagePct: options.config?.slippagePct != null ? options.config.slippagePct : 15,
         priorityFeeSol: options.config?.priorityFeeSol != null ? options.config.priorityFeeSol : 0.00005,
-        profitTargetPct: options.config?.profitTargetPct != null ? options.config.profitTargetPct : 50,
         stopLossPct: options.config?.stopLossPct != null ? options.config.stopLossPct : 40,
+        // Trailing stop (2026-09-01) replaces the old flat profitTargetPct exit — a
+        // fixed target sells a token that pumps 200% at the same +50% a token that
+        // barely moved gets, capping the few real winners at exactly the size that
+        // would have made this a net-positive strategy. Once the position is in
+        // profit, the exit price ratchets UP with the peak instead of staying fixed,
+        // so a real winner keeps running while still giving back at most
+        // trailingStopPct from its best point — same mechanism as
+        // backtestService.js's simulateTrailingTrades / Binance's real
+        // TRAILING_STOP_MARKET order type. stopLossPct above still applies from
+        // entry as the hard floor for a position that never gets into profit at all.
+        trailingStopPct: options.config?.trailingStopPct != null ? options.config.trailingStopPct : 20,
         maxHoldMs: options.config?.maxHoldMs || 300000, // 5 minutes
         priceCheckIntervalMs: options.config?.priceCheckIntervalMs || 20000,
         // How often the SAME repeated error (e.g. an active Binance ban) is allowed
@@ -124,6 +143,26 @@ class PumpFunSniperAgent extends BaseAgent {
    * independent of agentManager's broader (spawn/stop/shutdown-only) save cycle.
    */
   async persistOpenPosition() {
+    if (!persistenceEnabled) {
+      // File-based fallback — added 2026-09-01 after a real position (Pow,
+      // ~$2.11) got orphaned across a restart: Agent.findOneAndUpdate() below
+      // requires MongoDB, which isn't connected in this setup, so the position
+      // was never actually being saved anywhere despite this method appearing to
+      // run without error (the try/catch just logged and moved on). A fresh agent
+      // instance then started with openPosition: null while the real tokens sat
+      // untouched on-chain — correct info wallet-balance-wise (that reads the
+      // chain directly), but the position was left with no exit management at all.
+      try {
+        if (this.openPosition) {
+          fs.writeFileSync(openPositionFilePath, JSON.stringify({ agentId: String(this.id), openPosition: this.openPosition }, null, 2), 'utf8');
+        } else if (fs.existsSync(openPositionFilePath)) {
+          fs.unlinkSync(openPositionFilePath);
+        }
+      } catch (error) {
+        this.log('error', 'Failed to persist openPosition to file:', error.message);
+      }
+      return;
+    }
     try {
       await Agent.findOneAndUpdate({ agentId: String(this.id) }, { openPosition: this.openPosition });
     } catch (error) {
@@ -131,12 +170,33 @@ class PumpFunSniperAgent extends BaseAgent {
     }
   }
 
+  /**
+   * Loads a position left open by a previous instance (file-based fallback only —
+   * the Mongo path already restores this via agentManager's normal DB-backed
+   * rehydration on spawn). Called once at the start of run().
+   */
+  loadPersistedOpenPositionFromFile() {
+    if (persistenceEnabled || this.openPosition) return;
+    try {
+      if (fs.existsSync(openPositionFilePath)) {
+        const saved = JSON.parse(fs.readFileSync(openPositionFilePath, 'utf8'));
+        if (saved?.openPosition) {
+          this.openPosition = saved.openPosition;
+          this.log('info', `Resumed open position from a previous run: ${saved.openPosition.symbol || saved.openPosition.mint}`);
+        }
+      }
+    } catch (error) {
+      this.log('error', 'Failed to load persisted openPosition from file:', error.message);
+    }
+  }
+
   async run() {
+    this.loadPersistedOpenPositionFromFile();
     this.log(
       'info',
       `Starting pump.fun sniper (REAL MONEY, high risk — see file header): budget cap $${this.config.budgetCapUsd}, ` +
-      `max ${this.config.maxSolPerSnipe} SOL/snipe, profit target +${this.config.profitTargetPct}%, ` +
-      `stop-loss -${this.config.stopLossPct}%, max hold ${Math.round(this.config.maxHoldMs / 1000)}s. ` +
+      `max ${this.config.maxSolPerSnipe} SOL/snipe, trailing stop ${this.config.trailingStopPct}% off peak once in profit, ` +
+      `stop-loss -${this.config.stopLossPct}% from entry, max hold ${Math.round(this.config.maxHoldMs / 1000)}s. ` +
       `Filtering: ${this.config.observationWindowMs / 1000}s observation window, requires >= ` +
       `${this.config.minRealSolReservesForEntry} real SOL committed before buying (not literally the first launch seen).`
     );
@@ -290,6 +350,16 @@ class PumpFunSniperAgent extends BaseAgent {
         `committed within ${Math.round((now - candidate.firstSeenAt) / 1000)}s of launch (reply_count=${info.reply_count || 0})`
       );
 
+      // Fire-and-forget, real on-chain observation for the smart-money tracker —
+      // runs for every candidate that clears the filter, not just ones this agent
+      // buys, so its coverage isn't limited to our own single-position-at-a-time
+      // trading. Never awaited: a slow/failed RPC call in here must never delay or
+      // break the actual buy decision below.
+      if (info.usd_market_cap) {
+        smartMoneyTrackerService.recordEarlyBuyers(candidate.mint, info.usd_market_cap)
+          .catch(error => this.log('warn', 'Smart-money observation failed (non-fatal):', error.message));
+      }
+
       if (this.openPosition || this.haltedReason || this.buying) return; // state changed mid-loop
       this.buying = true;
       try {
@@ -317,7 +387,18 @@ class PumpFunSniperAgent extends BaseAgent {
 
     const availableSol = balanceSol - this.config.reserveSol;
     const remainingBudgetSol = (this.config.budgetCapUsd - spentUsd) / solPrice;
-    const buyAmountSol = Math.min(this.config.maxSolPerSnipe, availableSol, remainingBudgetSol);
+    const rawBuyAmountSol = Math.min(this.config.maxSolPerSnipe, availableSol, remainingBudgetSol);
+
+    // Memory-based caution throttle (2026-09-01): a real, persistent-across-restarts
+    // "brain" is only worth having if a bad stretch actually changes behavior. Needs
+    // a real sample size (6+ closed trades) before acting — otherwise ordinary
+    // variance in a handful of memecoin snipes would get mistaken for a genuine cold
+    // streak. Only ever scales DOWN, never up: a hot streak doesn't get bigger bets,
+    // it just stops throttling. See agentMemoryService.recordOutcome() in
+    // checkExitConditions for where this memory gets written.
+    const recentMemory = agentMemoryService.getStats('pumpFunSniper', 10);
+    const throttled = recentMemory.trades >= 6 && recentMemory.winRate < 0.25;
+    const buyAmountSol = rawBuyAmountSol * (throttled ? 0.5 : 1);
 
     // NaN <= 0.001 is false, same as every other NaN comparison — a bare threshold
     // check alone silently lets a broken (NaN) amount through to a real buy attempt.
@@ -341,7 +422,8 @@ class PumpFunSniperAgent extends BaseAgent {
 
     this.log(
       'info',
-      `New launch: ${tokenMsg.name || '?'} (${tokenMsg.symbol || '?'}) ${tokenMsg.mint} — buying ${buyAmountSol.toFixed(4)} SOL`
+      `New launch: ${tokenMsg.name || '?'} (${tokenMsg.symbol || '?'}) ${tokenMsg.mint} — buying ${buyAmountSol.toFixed(4)} SOL` +
+      (throttled ? ` (halved — cold streak: ${recentMemory.wins}W/${recentMemory.losses}L over last ${recentMemory.trades})` : '')
     );
 
     const trade = await pumpFunTradingService.buyToken({
@@ -355,6 +437,46 @@ class PumpFunSniperAgent extends BaseAgent {
     this.updatePerformance({ actionsTaken: this.performance.actionsTaken + 1 });
 
     if (trade.status !== 'confirmed') {
+      // "failed" here can mean two very different things: the transaction never
+      // landed (genuinely nothing to do), or it landed but confirmTransaction()
+      // itself timed out/errored before finding out — the exact case that stranded
+      // a real position (Ponyo, ~$0.53) on 2026-09-01: recorded as a failed buy,
+      // openPosition never set, so this agent had no idea it held anything, while
+      // also never being able to buy again once the wallet ran low. A timeout
+      // ("not confirmed in X seconds... unknown if it succeeded") is exactly the
+      // ambiguous case worth checking; other errors (e.g. a real simulation
+      // rejection) can't have landed anything, so skip the extra RPC call for those.
+      const ambiguous = /not confirmed|unknown if it (succeeded|failed)/i.test(trade.raw?.error || '');
+      if (ambiguous) {
+        // A single immediate check isn't enough — confirmed live 2026-09-01 (Anna,
+        // ~$0.14): the timeout fires at 30s, but the transaction can still land a
+        // few seconds AFTER that, so checking only once right away can (and did)
+        // race ahead of it and see a false "not held", stranding the position
+        // anyway despite this whole check existing to prevent exactly that. Retries
+        // for up to ~20s past the original timeout before giving up for real.
+        let heldAmount = 0;
+        for (let attempt = 0; attempt < 4 && heldAmount === 0; attempt++) {
+          if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 5000));
+          heldAmount = await pumpFunTradingService.getTokenBalanceUi(tokenMsg.mint).catch(() => 0);
+        }
+        if (heldAmount > 0) {
+          this.log('warn', `Buy for ${tokenMsg.mint} reported failed/ambiguous but ${heldAmount} tokens are actually held on-chain — adopting the position instead of stranding it.`);
+          const info = preFetchedInfo || await pumpFunTradingService.getTokenInfo(tokenMsg.mint).catch(() => null);
+          this.openPosition = {
+            mint: tokenMsg.mint,
+            symbol: tokenMsg.symbol,
+            name: tokenMsg.name,
+            creator: tokenMsg.creator,
+            entrySolAmount: buyAmountSol,
+            entryMarketCapUsd: info?.usd_market_cap || null,
+            peakMarketCapUsd: info?.usd_market_cap || null,
+            boughtAt: Date.now()
+          };
+          await this.persistOpenPosition();
+          this.updatePerformance({ opportunitiesFound: this.performance.opportunitiesFound + 1 });
+          return;
+        }
+      }
       this.log('error', `Buy failed for ${tokenMsg.mint}:`, trade.raw?.error || 'unknown error');
       return;
     }
@@ -371,6 +493,10 @@ class PumpFunSniperAgent extends BaseAgent {
       creator: tokenMsg.creator,
       entrySolAmount: buyAmountSol,
       entryMarketCapUsd: info?.usd_market_cap || null,
+      // Tracks the best market cap seen since entry — the trailing stop in
+      // checkExitConditions ratchets off this, not off entryMarketCapUsd, once the
+      // position is in profit.
+      peakMarketCapUsd: info?.usd_market_cap || null,
       boughtAt: Date.now()
     };
     await this.persistOpenPosition();
@@ -385,11 +511,19 @@ class PumpFunSniperAgent extends BaseAgent {
 
     let reason = null;
     if (info?.usd_market_cap && pos.entryMarketCapUsd) {
-      const changePct = ((info.usd_market_cap - pos.entryMarketCapUsd) / pos.entryMarketCapUsd) * 100;
-      if (changePct >= this.config.profitTargetPct) {
-        reason = `profit target hit (+${changePct.toFixed(1)}%)`;
-      } else if (changePct <= -this.config.stopLossPct) {
-        reason = `stop-loss hit (${changePct.toFixed(1)}%)`;
+      pos.peakMarketCapUsd = Math.max(pos.peakMarketCapUsd || pos.entryMarketCapUsd, info.usd_market_cap);
+      const changeFromEntryPct = ((info.usd_market_cap - pos.entryMarketCapUsd) / pos.entryMarketCapUsd) * 100;
+      const changeFromPeakPct = ((info.usd_market_cap - pos.peakMarketCapUsd) / pos.peakMarketCapUsd) * 100;
+
+      if (changeFromEntryPct <= -this.config.stopLossPct) {
+        // Hard floor from entry — fires regardless of peak, protecting a position
+        // that never got into profit at all (peak stayed near entry).
+        reason = `stop-loss hit (${changeFromEntryPct.toFixed(1)}% from entry)`;
+      } else if (pos.peakMarketCapUsd > pos.entryMarketCapUsd && changeFromPeakPct <= -this.config.trailingStopPct) {
+        // Only trails once the position has actually been in profit — a token that
+        // immediately dipped and never recovered exits on the hard stop-loss above,
+        // not a trailing stop measured from a peak that was never really a gain.
+        reason = `trailing stop hit (${changeFromEntryPct.toFixed(1)}% from entry, ${changeFromPeakPct.toFixed(1)}% off peak)`;
       }
     }
     if (!reason && heldMs >= this.config.maxHoldMs) {
@@ -409,6 +543,26 @@ class PumpFunSniperAgent extends BaseAgent {
 
     this.updatePerformance({ actionsTaken: this.performance.actionsTaken + 1 });
 
+    if (trade.status === 'no_position') {
+      // The wallet genuinely holds none of this token on-chain right now — almost
+      // certainly a prior sell that landed but whose confirmation was lost to a
+      // network blip (see sellToken's getTokenBalanceUi check). Unlike a normal
+      // failed sell, retrying this forever is pointless (it can never succeed) and
+      // actively harmful (blocks this agent from ever buying again). Reconcile:
+      // clear the position. The real proceeds from whatever sell actually landed
+      // are unrecoverable from here, so P&L is honestly recorded as unknown, not
+      // fabricated as zero or as the entry cost.
+      this.log('warn', `${pos.symbol || pos.mint}: reconciled — wallet holds none of this token on-chain (stale position, likely an unconfirmed-but-landed prior sell). Clearing.`);
+      agentMemoryService.recordLesson(
+        'pumpFunSniper',
+        `Reconciled stale position ${pos.symbol || pos.mint} — wallet held zero on-chain, real P&L unknown (a prior sell likely landed without client confirmation)`,
+        { mint: pos.mint, creator: pos.creator }
+      );
+      this.openPosition = null;
+      await this.persistOpenPosition();
+      return;
+    }
+
     if (trade.status !== 'confirmed') {
       // Sell failed — we still hold the position. Keep it open so the next cycle
       // retries; clearing it here would make the agent forget a real, still-held
@@ -424,6 +578,30 @@ class PumpFunSniperAgent extends BaseAgent {
       `, tx ${trade.txSignature}`
     );
     this.updatePerformance({ earnings: this.performance.earnings + (trade.realizedPnlUsd || 0) });
+
+    // Fire-and-forget real-time alert — never awaited, a Telegram outage must never
+    // delay clearing openPosition below or anything else in this real trade path.
+    const pnl = trade.realizedPnlUsd || 0;
+    telegramNotifierService.sendMessage(
+      `${pnl >= 0 ? '🟢' : '🔴'} <b>Sold ${pos.symbol || pos.mint}</b>\n` +
+      `P&L: $${pnl.toFixed(2)} — ${reason}\n` +
+      `Received ${trade.solAmount.toFixed(4)} SOL`
+    ).catch(() => {});
+
+    // Feed every real close into the shared memory service — this is what lets
+    // attemptBuy() below throttle sizing after a real cold streak, and survives a
+    // restart (unlike this.performance, which resets to zero every deploy).
+    agentMemoryService.recordOutcome('pumpFunSniper', {
+      pnlUsd: trade.realizedPnlUsd || 0,
+      meta: { mint: pos.mint, symbol: pos.symbol, reason }
+    });
+    if ((trade.realizedPnlUsd || 0) <= -1) {
+      agentMemoryService.recordLesson(
+        'pumpFunSniper',
+        `Lost $${Math.abs(trade.realizedPnlUsd).toFixed(2)} on ${pos.symbol || pos.mint} — ${reason}`,
+        { mint: pos.mint, creator: pos.creator }
+      );
+    }
 
     // Feed the real outcome back into creator reputation — a stop-loss exit means
     // this specific token dropped by at least stopLossPct from entry, a real,

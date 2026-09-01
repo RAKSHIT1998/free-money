@@ -13832,6 +13832,12 @@
       "balances": {},
       "transactions": [],
       "_id": "1788202409591"
+    },
+    {
+      "userId": "demo-user",
+      "balances": {},
+      "transactions": [],
+      "_id": "1788242907863"
     }
   ]
 }

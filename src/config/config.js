@@ -194,6 +194,41 @@ class Config {
           pollIntervalMs: parseInt(process.env.CRYPTO_GIG_HUNTER_POLL_INTERVAL_MS) || 3600000,
           maxResultsPerPoll: parseInt(process.env.CRYPTO_GIG_HUNTER_MAX_RESULTS) || 20
         },
+        // Read-only real airdrops.io project feed (2026-09-01). No auth, no wallet
+        // connect, never checks a specific address's eligibility or claims anything —
+        // surfaces which real airdrops currently exist so the user can check their
+        // own wallet and claim manually on the official project site. See
+        // airdropClaimScannerAgent.js's file header for why this is the safe,
+        // legitimate version of "find unclaimed crypto".
+        airdropClaimScanner: {
+          pollIntervalMs: parseInt(process.env.AIRDROP_SCANNER_POLL_INTERVAL_MS) || 3600000,
+          maxResultsPerPoll: parseInt(process.env.AIRDROP_SCANNER_MAX_RESULTS) || 20,
+          maxEnrichPerPoll: parseInt(process.env.AIRDROP_SCANNER_MAX_ENRICH) || 10
+        },
+        // Read-only real CoinGecko trending-coins feed (2026-09-01) — requested as a
+        // "Twitter tracker for crypto updates"; true X/Twitter API access requires a
+        // paid developer plan (their free tier has no search/timeline read access),
+        // which this app does not have configured. CoinGecko trending is a real,
+        // keyless, honest stand-in for "what's spiking in attention right now." See
+        // cryptoUpdatesTrackerAgent.js's file header.
+        cryptoUpdatesTracker: {
+          pollIntervalMs: parseInt(process.env.CRYPTO_UPDATES_POLL_INTERVAL_MS) || 1800000,
+          maxResultsPerPoll: parseInt(process.env.CRYPTO_UPDATES_MAX_RESULTS) || 15
+        },
+        // Read-only, self-built "best meme coin traders" leaderboard (2026-09-01) —
+        // judges real on-chain early-buy observations (recorded by pumpFunSniperAgent
+        // as it evaluates candidates) against real market-cap growth. Never trades,
+        // never follows a wallet. See smartMoneyTrackerService.js's file header.
+        smartMoneyTracker: {
+          reconcileIntervalMs: parseInt(process.env.SMART_MONEY_RECONCILE_INTERVAL_MS) || 1800000,
+          maxReconcilePerCycle: parseInt(process.env.SMART_MONEY_MAX_RECONCILE_PER_CYCLE) || 20
+        },
+        // Real Telegram push notifications (2026-09-01) — periodic digest + event
+        // alerts. Idle (not an error) if TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID aren't
+        // set. See telegramNotifierService.js for setup.
+        telegramNotifier: {
+          digestIntervalMs: parseInt(process.env.TELEGRAM_DIGEST_INTERVAL_MS) || 14400000
+        },
         // Read-only real Hacker News company/project-lead feed ("Who is hiring?" +
         // "Seeking freelancer?" monthly threads). No auth, never posts/replies —
         // surfaces real leads plus a capped number of auto-drafted pitch responses
@@ -261,13 +296,30 @@ class Config {
         // real risk profile (most tokens go to zero; this is not comparable to the
         // exchange-traded Binance strategies).
         pumpFunSniper: {
-          budgetCapUsd: parseFloat(process.env.PUMPFUN_SNIPER_BUDGET_CAP_USD) || 10,
-          reserveSol: parseFloat(process.env.PUMPFUN_SNIPER_RESERVE_SOL) || 0.003,
+          // No hard $ ceiling by default (2026-09-01, user preference: "whatever is
+          // in the wallet, use it") — the real, effective ceiling is still whatever
+          // real SOL the wallet actually holds (reserveSol always held back for gas;
+          // see attemptBuy's availableSol check), this just removes the SEPARATE,
+          // arbitrary $ cap on top of that. Set PUMPFUN_SNIPER_BUDGET_CAP_USD to
+          // restore an explicit ceiling if you want one back.
+          budgetCapUsd: parseFloat(process.env.PUMPFUN_SNIPER_BUDGET_CAP_USD) || Infinity,
+          // 0.003 (pre-2026-09-01) left only ~0.0009 SOL of margin over the ~0.0021 SOL
+          // a new token's associated-token-account rent-exemption + priority fee + tx
+          // fee actually costs -- razor-thin, and Token-2022 mints with extensions (a
+          // metadata pointer, transfer fee, etc.) need more account space and therefore
+          // more rent than a plain SPL token, blowing straight through it. That's the
+          // most likely cause of the "Simulation failed." buy failures seen live this
+          // session (formatTradeError above was also silently swallowing the real
+          // reason on top of this -- fixed 2026-09-01 too). Doubled for real margin.
+          reserveSol: parseFloat(process.env.PUMPFUN_SNIPER_RESERVE_SOL) || 0.006,
           maxSolPerSnipe: parseFloat(process.env.PUMPFUN_SNIPER_MAX_SOL_PER_SNIPE) || 0.05,
           slippagePct: parseFloat(process.env.PUMPFUN_SNIPER_SLIPPAGE_PCT) || 15,
           priorityFeeSol: parseFloat(process.env.PUMPFUN_SNIPER_PRIORITY_FEE_SOL) || 0.00005,
-          profitTargetPct: parseFloat(process.env.PUMPFUN_SNIPER_PROFIT_TARGET_PCT) || 50,
           stopLossPct: parseFloat(process.env.PUMPFUN_SNIPER_STOP_LOSS_PCT) || 40,
+          // Trailing stop (2026-09-01) replaced the old flat profit target — lets a
+          // real winner keep running instead of capping it at a fixed %, giving back
+          // at most this much from its peak once in profit. See pumpFunSniperAgent.js.
+          trailingStopPct: parseFloat(process.env.PUMPFUN_SNIPER_TRAILING_STOP_PCT) || 20,
           maxHoldMs: parseInt(process.env.PUMPFUN_SNIPER_MAX_HOLD_MS) || 300000,
           priceCheckIntervalMs: parseInt(process.env.PUMPFUN_SNIPER_PRICE_CHECK_INTERVAL_MS) || 20000,
           // Entry filtering (2026-09-01) — see pumpFunSniperAgent.js's file header

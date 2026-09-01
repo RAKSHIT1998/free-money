@@ -6,6 +6,7 @@ const realFuturesTradingService = require('../../services/realFuturesTradingServ
 const pumpFunTradingService = require('../../services/pumpFunTradingService');
 const agentCullService = require('../../services/agentCullService');
 const transferArbPositionStore = require('../../services/transferArbPositionStore');
+const currencyService = require('../../services/currencyService');
 
 // Get agent manager instance (lazy initialization)
 let agentManager = null;
@@ -399,7 +400,13 @@ exports.getMeanReversionFuturesStatus = async (req, res) => {
  * (e.g. no real credentials configured yet) is reported as unavailable rather than
  * failing the whole request.
  */
-exports.getRealMoneySummary = async (req, res) => {
+/**
+ * Extracted 2026-09-01 so telegramNotifierAgent.js can build the same real summary
+ * for its periodic digest without duplicating (and risking drifting out of sync
+ * with) this logic — the Express handler below is now a thin wrapper around this.
+ * @returns {Promise<Object>}
+ */
+async function buildRealMoneySummary() {
   const summary = {
     spot: null,
     spotError: null,
@@ -418,6 +425,7 @@ exports.getRealMoneySummary = async (req, res) => {
     transferArbitrage: null,
     transferArbitrageError: null,
     culledAgents: [],
+    usdInrRate: null,
     // Single headline number: every real-money source that reports a genuinely
     // REALIZED (closed-trade) P&L, summed. Binance spot DCA isn't included — its
     // P&L there is unrealized (still-held inventory), not a closed number, and
@@ -491,7 +499,209 @@ exports.getRealMoneySummary = async (req, res) => {
     (summary.pumpFun?.totalRealizedPnlUsd || 0) +
     (summary.transferArbitrage?.totalRealizedPnlUsd || 0);
 
+  // Real USD/INR rate for the dashboard to show alongside every $ P&L figure —
+  // cached server-side (currencyService.js), so this adds no real per-request cost.
+  summary.usdInrRate = await currencyService.getUsdToInrRate().catch(() => null);
+
+  return summary;
+}
+
+exports.buildRealMoneySummary = buildRealMoneySummary;
+
+exports.getRealMoneySummary = async (req, res) => {
+  const summary = await buildRealMoneySummary();
   res.json({ success: true, data: summary });
+};
+
+/**
+ * ALL-TIME real activity feed: every futures trade (Binance's own income history),
+ * every pump.fun trade, every transfer-arbitrage close, and every cull event, merged
+ * into one chronological stream. Unlike getRealMoneySummary's per-strategy cards,
+ * this is what actually answers "what has every agent been doing" as a single
+ * timeline instead of separate aggregates — real events, not a fabricated activity
+ * log (contrast walletService's simulated "earnings" transactions elsewhere).
+ */
+exports.getRealMoneyFeed = async (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit) || 100, 500);
+  const events = [];
+
+  try {
+    const incomeEntries = await realFuturesTradingService.getIncomeHistory({ incomeType: 'REALIZED_PNL' });
+    for (const e of incomeEntries) {
+      events.push({
+        source: 'futures',
+        kind: parseFloat(e.income) >= 0 ? 'win' : 'loss',
+        symbol: e.symbol,
+        pnlUsd: parseFloat(e.income),
+        time: new Date(parseInt(e.time)).toISOString(),
+        description: `Binance futures ${e.symbol} closed ${parseFloat(e.income) >= 0 ? '+' : ''}$${parseFloat(e.income).toFixed(2)}`
+      });
+    }
+  } catch (error) {
+    // A down/unauthenticated Binance futures connection shouldn't block the other
+    // three sources from showing up — this source is just omitted for this request.
+  }
+
+  try {
+    const trades = await pumpFunTradingService.getAllTrades();
+    for (const t of trades) {
+      if (t.action === 'sell' && t.realizedPnlUsd != null) {
+        events.push({
+          source: 'pumpfun',
+          kind: t.realizedPnlUsd >= 0 ? 'win' : 'loss',
+          symbol: t.tokenMint,
+          pnlUsd: t.realizedPnlUsd,
+          time: new Date(t.timestamp).toISOString(),
+          description: `pump.fun ${t.tokenMint.slice(0, 8)}... sold ${t.realizedPnlUsd >= 0 ? '+' : ''}$${t.realizedPnlUsd.toFixed(2)}`
+        });
+      } else if (t.action === 'buy' && t.status === 'confirmed') {
+        events.push({
+          source: 'pumpfun',
+          kind: 'buy',
+          symbol: t.tokenMint,
+          pnlUsd: null,
+          time: new Date(t.timestamp).toISOString(),
+          description: `pump.fun bought ${t.tokenMint.slice(0, 8)}... for ${t.solAmount.toFixed(4)} SOL`
+        });
+      } else if (t.status === 'failed') {
+        events.push({
+          source: 'pumpfun',
+          kind: 'failed',
+          symbol: t.tokenMint,
+          pnlUsd: null,
+          time: new Date(t.timestamp).toISOString(),
+          description: `pump.fun ${t.action} failed for ${t.tokenMint.slice(0, 8)}...`
+        });
+      }
+    }
+  } catch (error) {
+    // Same non-fatal treatment as above.
+  }
+
+  try {
+    const positions = await transferArbPositionStore.getAllPositions();
+    for (const p of positions) {
+      if (p.status === 'closed' && p.realizedPnlUsd != null) {
+        events.push({
+          source: 'transferArbitrage',
+          kind: p.realizedPnlUsd >= 0 ? 'win' : 'loss',
+          symbol: p.asset,
+          pnlUsd: p.realizedPnlUsd,
+          time: new Date(p.closedAt).toISOString(),
+          description: `Transfer-arb ${p.asset} closed ${p.realizedPnlUsd >= 0 ? '+' : ''}$${p.realizedPnlUsd.toFixed(2)}`
+        });
+      }
+    }
+  } catch (error) {
+    // Same non-fatal treatment as above.
+  }
+
+  try {
+    const culled = await agentCullService.getAllCulled();
+    for (const c of culled) {
+      events.push({
+        source: 'governor',
+        kind: 'culled',
+        symbol: c.symbol,
+        pnlUsd: c.netRealizedPnlUsd ?? null,
+        time: new Date(c.culledAt).toISOString(),
+        description: `Performance governor permanently stopped ${c.type}${c.symbol ? ` (${c.symbol})` : ''}: ${c.reason}`
+      });
+    }
+  } catch (error) {
+    // Same non-fatal treatment as above.
+  }
+
+  events.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+  res.json({ success: true, data: events.slice(0, limit) });
+};
+
+// Both real SPL token program IDs pump.fun mints under — confirmed live 2026-09-01
+// that relying on an agent's in-memory openPosition to know what's held is
+// unreliable (it doesn't survive a restart, and a restart doesn't touch the
+// blockchain), and that checking only the classic Token program missed real
+// holdings under Token-2022. Reading token accounts directly from the chain can't
+// go stale or get lost the way in-memory agent state can.
+const SPL_TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+const SPL_TOKEN_2022_PROGRAM_ID = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
+
+/**
+ * Real wallet balances — actual on-chain/exchange state, not anything this app
+ * tracks itself, so this can never drift from reality (or get lost across a
+ * restart) the way an internal ledger/in-memory position could. Solana comes
+ * straight from the RPC (both native SOL and every SPL/Token-2022 token account
+ * actually held); Binance from the account endpoint. Both read-only.
+ */
+async function buildRealWallets() {
+  const wallets = { solana: null, solanaError: null, binance: null, binanceError: null };
+
+  try {
+    const { Connection, PublicKey } = require('@solana/web3.js');
+    const keypair = pumpFunTradingService.getKeypair();
+    const connection = pumpFunTradingService.getConnection();
+    const owner = keypair.publicKey;
+
+    const [freeSol, solPrice, tokenAccounts, token2022Accounts] = await Promise.all([
+      pumpFunTradingService.getWalletBalanceSol(),
+      pumpFunTradingService.getSolUsdPrice(),
+      connection.getParsedTokenAccountsByOwner(owner, { programId: new PublicKey(SPL_TOKEN_PROGRAM_ID) }),
+      connection.getParsedTokenAccountsByOwner(owner, { programId: new PublicKey(SPL_TOKEN_2022_PROGRAM_ID) })
+    ]);
+
+    const heldTokens = [...tokenAccounts.value, ...token2022Accounts.value]
+      .map(({ account }) => account.data.parsed.info)
+      .filter(info => parseFloat(info.tokenAmount.uiAmountString) > 0);
+
+    const tokenHoldings = await Promise.all(heldTokens.map(async (t) => {
+      try {
+        const coinInfo = await pumpFunTradingService.getTokenInfo(t.mint);
+        if (!coinInfo) {
+          return { mint: t.mint, symbol: null, amount: parseFloat(t.tokenAmount.uiAmountString), usdValue: null, note: 'Not found on pump.fun (delisted, or never a real launch)' };
+        }
+        const uiSupply = coinInfo.total_supply / (10 ** t.tokenAmount.decimals);
+        const pricePerToken = uiSupply > 0 ? coinInfo.usd_market_cap / uiSupply : 0;
+        return {
+          mint: t.mint,
+          symbol: coinInfo.symbol,
+          amount: parseFloat(t.tokenAmount.uiAmountString),
+          usdValue: parseFloat(t.tokenAmount.uiAmountString) * pricePerToken
+        };
+      } catch (error) {
+        return { mint: t.mint, symbol: null, amount: parseFloat(t.tokenAmount.uiAmountString), usdValue: null, note: error.message };
+      }
+    }));
+
+    const tokenHoldingsUsd = tokenHoldings.reduce((sum, t) => sum + (t.usdValue || 0), 0);
+
+    wallets.solana = {
+      address: owner.toBase58(),
+      freeSol,
+      freeSolUsd: freeSol * solPrice,
+      solPrice,
+      tokenHoldings,
+      tokenHoldingsUsd,
+      totalUsd: (freeSol * solPrice) + tokenHoldingsUsd
+    };
+  } catch (error) {
+    wallets.solanaError = error.message;
+  }
+
+  try {
+    const usdtBalance = await realTradingService.getAssetBalance('USDT');
+    wallets.binance = { usdtFree: usdtBalance };
+  } catch (error) {
+    wallets.binanceError = error.message;
+  }
+
+  return wallets;
+}
+
+exports.buildRealWallets = buildRealWallets;
+
+exports.getRealWallets = async (req, res) => {
+  const wallets = await buildRealWallets();
+  res.json({ success: true, data: wallets });
 };
 
 /**
@@ -578,6 +788,56 @@ exports.closeFuturesPosition = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to close futures position',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Exposes the shared agent memory service (added 2026-09-01) — every scope's
+// rolling win/loss stats plus its recent journal entries, for the dashboard's
+// "agent memory" card and for anyone checking whether the memory-based throttles
+// (see pumpFunSniperAgent.attemptBuy) have actually kicked in.
+exports.getAgentMemory = async (req, res) => {
+  try {
+    const agentMemoryService = require('../../services/agentMemoryService');
+    const snapshot = agentMemoryService.getAllScopesSnapshot();
+    res.json({ success: true, data: snapshot });
+  } catch (error) {
+    console.error('Error getting agent memory:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get agent memory',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Real, self-built "best meme coin traders" leaderboard (2026-09-01) — see
+// smartMoneyTrackerService.js for the full design. Read-only; this endpoint never
+// triggers a trade or a follow, only reports what's already been observed/judged.
+exports.getSmartMoneyLeaderboard = async (req, res) => {
+  try {
+    const smartMoneyTrackerService = require('../../services/smartMoneyTrackerService');
+    const limit = Math.min(parseInt(req.query.limit) || 20, 100);
+    res.json({
+      success: true,
+      data: {
+        // This app's own, self-built, on-chain-observed leaderboard — starts cold,
+        // grows only from what the sniper itself has actually seen.
+        diyLeaderboard: smartMoneyTrackerService.getLeaderboard(limit),
+        stats: smartMoneyTrackerService.getStats(),
+        pumpMultipleThreshold: smartMoneyTrackerService.PUMP_MULTIPLE_THRESHOLD,
+        // Established, multi-year, real leaderboard from data.solanatracker.io —
+        // empty until SOLANA_TRACKER_API_KEY is configured and the first refresh
+        // completes (up to FETCH_MIN_INTERVAL_MS after that).
+        establishedLeaderboard: smartMoneyTrackerService.getEstablishedLeaderboard(limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error getting smart money leaderboard:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get smart money leaderboard',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

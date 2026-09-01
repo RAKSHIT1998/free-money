@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useWallet } from '../hooks';
 import { useAgents } from '../hooks';
 import { useOpportunities } from '../hooks';
@@ -6,15 +7,31 @@ import { formatDistanceToNow } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { BarChart, Bar } from 'recharts';
 import { PieChart, Pie, Cell } from 'recharts';
-import { FiCreditCard, FiBriefcase, FiTruck, FiActivity, FiUsers } from 'react-icons/fi';
+import { FiCreditCard, FiBriefcase, FiTruck, FiActivity, FiUsers, FiDollarSign, FiArrowRight } from 'react-icons/fi';
 import { Button } from '../components/ui/Button';
 import { Skeleton } from '../components/ui/Skeleton';
 import { Card } from '../components/ui/Card';
+import api from '../services/api';
 
 const DashboardPage = () => {
   const { balance, transactions, loading: walletLoading, refresh: refreshWallet } = useWallet();
   const { agents, agentStats, loading: agentsLoading, refresh: refreshAgents } = useAgents();
   const { opportunityStats, loading: opportunitiesLoading, refresh: refreshOpportunities } = useOpportunities();
+  const [realPnl, setRealPnl] = useState<number | null>(null);
+  const [usdInrRate, setUsdInrRate] = useState<number | null>(null);
+
+  // Real trading P&L — a completely separate system from the wallet/balance above
+  // (which tracks a fabricated in-app "earnings" currency nothing real ever writes
+  // to). Fetched here just for this callout banner so the two numbers on this page
+  // are never confused for the same thing.
+  useEffect(() => {
+    api.get('/agents/real/summary')
+      .then(res => {
+        setRealPnl(res.data.data.totalRealizedPnlUsd);
+        setUsdInrRate(res.data.data.usdInrRate ?? null);
+      })
+      .catch(() => setRealPnl(null));
+  }, []);
   const [earningsData, setEarningsData] = useState<{ date: string; earnings: number }[]>([]);
   const [agentPerformanceData, setAgentPerformanceData] = useState<{ name: string; earnings: number; opportunities: number }[]>([]);
   const [opportunityTypeData, setOpportunityTypeData] = useState<{ name: string; value: number }[]>([]);
@@ -238,21 +255,48 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-6">
+      {/* Real money banner — deliberately separate from the Wallet Balance card
+          below, which tracks a fabricated in-app currency that nothing real ever
+          writes to. This is what actually answers "how much money are we making." */}
+      <Link to="/real-money">
+        <Card className="bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer">
+          <div className="flex items-center justify-between p-2">
+            <div className="flex items-center gap-3">
+              <FiDollarSign size={28} className={realPnl != null && realPnl >= 0 ? 'text-green-400' : 'text-red-400'} />
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-400">Real Money — Total Realized P&amp;L</p>
+                <p className={`text-3xl font-bold ${realPnl != null && realPnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {realPnl != null ? `${realPnl >= 0 ? '+' : ''}$${realPnl.toFixed(2)}` : '…'}
+                </p>
+                {realPnl != null && usdInrRate != null && (
+                  <p className="text-sm text-gray-400">
+                    {realPnl >= 0 ? '+' : ''}₹{(realPnl * usdInrRate).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-sm text-gray-400">
+              View live feed &amp; per-agent breakdown <FiArrowRight />
+            </div>
+          </div>
+        </Card>
+      </Link>
+
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Wallet Balance */}
+        {/* Simulated Wallet -- NOT real money. See the banner above for that. */}
         <Card className="hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-center justify-between p-4">
             <div>
-              <h3 className="text-sm font-medium text-gray-500">Wallet Balance</h3>
-              <p className="text-2xl font-bold">{balance ? formatCurrency(balance.balance) : '$0.00'}</p>
+              <h3 className="text-sm font-medium text-gray-500">Simulated Wallet (unused)</h3>
+              <p className="text-2xl font-bold text-gray-400">{balance ? formatCurrency(balance.balance) : '$0.00'}</p>
             </div>
-            <div className="p-2 bg-green-100 rounded-full">
-              <FiCreditCard size={24} className="text-green-600" />
+            <div className="p-2 bg-gray-100 rounded-full">
+              <FiCreditCard size={24} className="text-gray-400" />
             </div>
           </div>
-          <div className="px-4 pb-4 text-sm text-gray-600">
-            {balance ? `Last updated: ${formatDate(balance.lastUpdated)}` : 'Loading...'}
+          <div className="px-4 pb-4 text-sm text-gray-400">
+            Fabricated in-app currency — no real agent writes to this. Real P&amp;L is above.
           </div>
         </Card>
 

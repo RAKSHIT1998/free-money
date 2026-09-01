@@ -111,6 +111,18 @@ class MeanReversionFuturesAgent extends BaseAgent {
       return [];
     }
 
+    // Checked upfront (2026-09-01, same fix as binanceFuturesDcaAgent.js /
+    // breakoutFuturesAgent.js) — an uncaught throw from openLeveraged* on any cycle
+    // that finds a qualifying candidate would false-flag this as 'error' for what's
+    // actually just LIVE_FUTURES_TRADING_CONFIRMED being off.
+    try {
+      realFuturesTradingService.assertLiveFuturesTradingAllowed();
+    } catch (error) {
+      this.log('info', `Resting — ${error.message}`);
+      this.state = 'resting';
+      return [];
+    }
+
     this.state = 'active';
 
     const [tickers, perpetualSymbols, symbolsTradedToday] = await Promise.all([

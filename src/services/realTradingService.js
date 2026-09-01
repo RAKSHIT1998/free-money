@@ -252,6 +252,24 @@ async function getExchangeInfo() {
 }
 
 /**
+ * Set of symbols actually tradable on Binance SPOT right now. Used by strategies that
+ * hold a spot leg (e.g. fundingRateArbitrage) to filter out futures-only perpetuals
+ * before attempting a spot order — without this, a candidate like a futures-only
+ * meme perpetual (no spot pair at all) reaches placeMarketBuyOrder and is rejected
+ * with a 400 "Invalid symbol", wasting the cycle on an opportunity that was never
+ * actually tradable as a spot+futures pair.
+ * @returns {Promise<Set<string>>}
+ */
+async function getSpotTradableSymbols() {
+  const data = await getExchangeInfo();
+  return new Set(
+    data.symbols
+      .filter(s => s.status === 'TRADING' && s.isSpotTradingAllowed !== false)
+      .map(s => s.symbol)
+  );
+}
+
+/**
  * Fetch the quantity step size (LOT_SIZE filter) for a spot symbol, so a sell quantity
  * can be rounded to a value Binance will accept — without this, placeMarketSellOrder
  * would need a caller to already know the exact precision Binance expects, which
@@ -638,6 +656,7 @@ async function withdraw({ asset, amount, address, network, agentId }) {
 module.exports = {
   getCurrentPrice,
   getQuantityStepSize,
+  getSpotTradableSymbols,
   placeMarketBuyOrder,
   placeMarketSellOrder,
   getLedger,

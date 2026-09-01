@@ -1,0 +1,44 @@
+{
+  "opportunities": [
+    {
+      "observedAt": "2026-09-01T18:31:38.426Z",
+      "asset": "ENA",
+      "buyExchange": "gate",
+      "buyAsk": 0.15745,
+      "sellExchange": "binance",
+      "sellBid": 0.1586,
+      "grossSpreadPct": 0.007303906001905267,
+      "netSpreadPct": 0.004303906001905267
+    },
+    {
+      "observedAt": "2026-09-01T18:31:40.432Z",
+      "asset": "ENA",
+      "buyExchange": "gate",
+      "buyAsk": 0.1574,
+      "sellExchange": "binance",
+      "sellBid": 0.1586,
+      "grossSpreadPct": 0.007623888182973181,
+      "netSpreadPct": 0.004623888182973181
+    },
+    {
+      "observedAt": "2026-09-01T18:31:42.436Z",
+      "asset": "ENA",
+      "buyExchange": "gate",
+      "buyAsk": 0.15711,
+      "sellExchange": "binance",
+      "sellBid": 0.1588,
+      "grossSpreadPct": 0.010756794602507778,
+      "netSpreadPct": 0.007756794602507778
+    },
+    {
+      "observedAt": "2026-09-01T18:39:10.328Z",
+      "asset": "DASH",
+      "buyExchange": "gate",
+      "buyAsk": 42.83,
+      "sellExchange": "binance",
+      "sellBid": 43.13,
+      "grossSpreadPct": 0.007004436142890597,
+      "netSpreadPct": 0.004004436142890597
+    }
+  ]
+}

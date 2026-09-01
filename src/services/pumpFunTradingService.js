@@ -14,7 +14,7 @@
 // network gas.
 const fs = require('fs');
 const path = require('path');
-const { Connection, Keypair, VersionedTransaction, LAMPORTS_PER_SOL } = require('@solana/web3.js');
+const { Connection, Keypair, PublicKey, VersionedTransaction, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 const bs58 = require('bs58').default;
 const { Config, isLikelyRealBinanceKey } = require('../config/config');
 
@@ -80,6 +80,31 @@ async function getWalletBalanceSol() {
   return lamports / LAMPORTS_PER_SOL;
 }
 
+/**
+ * Real, on-chain held balance of one token — checked directly against the RPC
+ * (both the standard SPL Token program and Token-2022), same query
+ * getRealWallets() uses. Added 2026-09-01 after a position (5LnadjGj...) got stuck
+ * retrying a sell every ~20s for over 10 hours: PumpPortal's on-chain program
+ * correctly rejected every attempt with "SellZeroAmount" because the wallet
+ * genuinely held none of it (almost certainly a sell that landed on-chain during an
+ * earlier network blip, but whose confirmTransaction() call itself then failed --
+ * "fetch failed" -- so the client recorded status:'failed' and, correctly per the
+ * existing safety design, never cleared openPosition). sellToken() now checks this
+ * FIRST so a stale/already-empty position gets reconciled instead of hammering a
+ * doomed transaction forever.
+ * @param {string} mint
+ * @returns {Promise<number>} UI amount held (0 if none / account doesn't exist)
+ */
+async function getTokenBalanceUi(mint) {
+  const keypair = getKeypair();
+  const connection = getConnection();
+  // Filtering by { mint } alone (rather than { programId }) unambiguously finds the
+  // account regardless of whether it's a standard SPL Token or Token-2022 mint — no
+  // need to query both program IDs separately here.
+  const { value } = await connection.getParsedTokenAccountsByOwner(keypair.publicKey, { mint: new PublicKey(mint) });
+  return value.reduce((sum, { account }) => sum + (parseFloat(account.data.parsed.info.tokenAmount.uiAmountString) || 0), 0);
+}
+
 // pump.fun's own new-token WebSocket firehose can emit several events per second at
 // busy times, and getSolUsdPrice() used to be called fresh on every single one —
 // hammering Binance's spot ticker endpoint dozens of times a minute with zero
@@ -138,44 +163,98 @@ async function getTokenInfo(mint) {
   return res.json();
 }
 
-// @solana/web3.js's SendTransactionError.message is only ever the first line of a
-// multi-line template ("Simulation failed. \nMessage: ...\nLogs: \n[...]\n..."); the
-// actual on-chain revert reason lives in the separate .transactionLogs array, which
-// error.message never includes. Losing that meant every failed trade's stored/logged
-// reason was just the useless literal string "Simulation failed." — found live
-// 2026-08-05 reconstructing Render's line-by-line log output by hand to see why every
-// single pump.fun buy attempt was failing (an IncorrectProgramId / Token-2022 mismatch,
-// invisible without this).
+// @solana/web3.js's SendTransactionError.message is a multi-line template
+// ("Simulation failed. \nMessage: <actual reason>\nLogs: \n[...]\n..."); keeping
+// only the first line (the old code) meant every stored/logged reason was just the
+// useless literal string "Simulation failed." with the real cause — the "Message:"
+// line — silently dropped. Found live 2026-08-05 (an IncorrectProgramId / Token-2022
+// mismatch, invisible without the Logs array) and again 2026-09-01: a wave of buys
+// failing with nothing but "Simulation failed." plus a *successful*-looking program
+// log tail, because non-program-level reverts (e.g. insufficient balance for rent,
+// checked by the runtime after every instruction succeeds) never appear in
+// transactionLogs at all — only in this "Message:" line. Now kept in full.
 function formatTradeError(error) {
-  const firstLine = String(error?.message || 'unknown error').split('\n')[0].trim();
+  const rawMessage = String(error?.message || 'unknown error');
+  let reason = rawMessage
+    .replace(/\n?\s*Logs:\s*\n[\s\S]*$/i, '') // drop the embedded Logs blob; transactionLogs covers that separately below
+    .split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .join(' ') || 'unknown error';
+
+  // Node's fetch (undici) wraps the real underlying network error in `.cause` and
+  // reduces the visible message to the generic "fetch failed" — added 2026-09-02
+  // after that generic message turned out to be ~55% of all sell attempts with no
+  // way to tell a DNS failure from a connection reset from a timeout. AggregateError
+  // (multiple DNS-resolved addresses all failing) nests one level deeper still.
+  if (error?.cause) {
+    const cause = error.cause;
+    const causeDetails = Array.isArray(cause?.errors)
+      ? cause.errors.map(e => e?.message || String(e)).join('; ')
+      : (cause?.message || cause?.code || String(cause));
+    if (causeDetails) reason = `${reason} (cause: ${causeDetails})`;
+  }
+
   const logs = Array.isArray(error?.transactionLogs) ? error.transactionLogs : null;
-  if (!logs || logs.length === 0) return firstLine;
+  if (!logs || logs.length === 0) return reason;
 
   const relevant = logs.filter(line => /failed|error/i.test(line));
   const tail = relevant.length > 0 ? relevant : logs.slice(-4);
-  return `${firstLine} | ${tail.join(' // ')}`;
+  return `${reason} | ${tail.join(' // ')}`;
+}
+
+// Ledger analysis 2026-09-02: since the getTokenBalanceUi fix eliminated the earlier
+// SellZeroAmount storm, the dominant remaining sell failure (~96% of what's left,
+// ~55% of all sell attempts) is a bare "fetch failed" against PumpPortal's
+// trade-local endpoint — this is the build-transaction step, BEFORE anything is
+// signed or broadcast, so nothing has touched the chain yet and retrying it is
+// unconditionally safe (unlike retrying sendTransaction/confirmTransaction, which
+// could risk acting on a transaction that already landed). It previously had no
+// timeout (a hung request could stall a whole scan cycle) and no local retry at all
+// — every transient blip fell through to status:'failed' and had to wait for the
+// agent's next ~20s cycle to try again, which is what produced 1000+ failed sell
+// attempts stacked up behind a handful of real positions.
+async function fetchTradeLocalWithRetry(body, { attempts = 3, timeoutMs = 12000, retryDelayMs = 400 } = {}) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(PUMPPORTAL_TRADE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        throw new Error(`PumpPortal trade-local failed (${response.status}): ${text || response.statusText}`);
+      }
+      return response;
+    } catch (error) {
+      clearTimeout(timeout);
+      lastError = error;
+      if (attempt < attempts) {
+        await new Promise(resolve => setTimeout(resolve, retryDelayMs * attempt));
+      }
+    }
+  }
+  throw lastError;
 }
 
 async function buildSignAndSend({ publicKey, action, mint, amount, denominatedInSol, slippage, priorityFee, pool }) {
-  const response = await fetch(PUMPPORTAL_TRADE_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      publicKey,
-      action,
-      mint,
-      amount,
-      denominatedInSol: denominatedInSol ? 'true' : 'false',
-      slippage,
-      priorityFee,
-      pool: pool || 'auto'
-    })
+  const response = await fetchTradeLocalWithRetry({
+    publicKey,
+    action,
+    mint,
+    amount,
+    denominatedInSol: denominatedInSol ? 'true' : 'false',
+    slippage,
+    priorityFee,
+    pool: pool || 'auto'
   });
-
-  if (!response.ok) {
-    const text = await response.text().catch(() => '');
-    throw new Error(`PumpPortal trade-local failed (${response.status}): ${text || response.statusText}`);
-  }
 
   const data = await response.arrayBuffer();
   const tx = VersionedTransaction.deserialize(new Uint8Array(data));
@@ -260,6 +339,27 @@ async function buyToken({ mint, solAmount, agentId, slippagePct = 15, priorityFe
 async function sellToken({ mint, agentId, percent = 100, slippagePct = 20, priorityFeeSol = 0.00005, costBasisSolAmount }) {
   assertLivePumpFunTradingAllowed();
   const keypair = getKeypair();
+
+  // Check the real on-chain balance FIRST — see getTokenBalanceUi's comment for why
+  // this exists: a position whose sell transaction actually landed on-chain but whose
+  // confirmTransaction() call then failed (network blip) looks identical, from here,
+  // to a normal transient failure, and the existing safety design correctly never
+  // clears openPosition on a failed sell — without this check that combination means
+  // retrying a doomed "sell zero amount" transaction forever. If the wallet already
+  // holds nothing, there is nothing to submit; report it as such instead.
+  const heldAmount = await getTokenBalanceUi(mint).catch(() => null);
+  if (heldAmount === 0) {
+    const record = {
+      agentId,
+      timestamp: new Date(),
+      action: 'sell',
+      tokenMint: mint,
+      solAmount: 0,
+      status: 'no_position',
+      raw: { note: 'Wallet already holds none of this token on-chain — nothing to sell (likely a prior sell that landed but was never confirmed client-side).' }
+    };
+    return appendTrade(record);
+  }
 
   const balanceBefore = await getWalletBalanceSol().catch(() => null);
 
@@ -384,9 +484,8 @@ async function getTotalSpentSol(agentId) {
  * Real P&L across EVERY pump.fun trade ever recorded, regardless of which agent
  * instance/restart made it — a fresh agent spawn gets a new incrementing ID, so a
  * per-agentId summary alone would silently drop history from before the most recent
- * restart. Same summary shape as realFuturesTradingService.getTradeHistorySummary()
- * for consistency when both are shown together.
- * @returns {Promise<Object>}
+ * restart.
+ * @returns {Promise<Array>}
  */
 async function getAllTrades() {
   if (persistenceEnabled) {
@@ -396,11 +495,14 @@ async function getAllTrades() {
   return loadTradesFromFile().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 }
 
+/**
+ * Same data as getAllTrades(), summarized — win rate, best/worst trade, etc. Same
+ * shape as realFuturesTradingService.getTradeHistorySummary() for consistency when
+ * both are shown together.
+ * @returns {Promise<Object>}
+ */
 async function getAllTimeSummary() {
   const allTrades = await getAllTrades();
-  {
-  }
-
   const sells = allTrades.filter(t => t.action === 'sell' && t.status === 'confirmed' && t.realizedPnlUsd != null);
   const totalRealizedPnlUsd = sells.reduce((sum, t) => sum + t.realizedPnlUsd, 0);
   const wins = sells.filter(t => t.realizedPnlUsd > 0);
@@ -426,12 +528,14 @@ module.exports = {
   getKeypair,
   getConnection,
   getWalletBalanceSol,
+  getTokenBalanceUi,
   getSolUsdPrice,
   getTokenInfo,
   buyToken,
   sellToken,
   getLedger,
   getTotalSpentSol,
+  getAllTrades,
   getAllTimeSummary,
   assertLivePumpFunTradingAllowed
 };

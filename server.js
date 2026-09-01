@@ -309,6 +309,51 @@ const startServer = async () => {
           }
         });
 
+        // Real, read-only airdrops.io project feed — zero financial risk (never
+        // checks a specific wallet, never connects a wallet, never claims anything),
+        // safe to auto-spawn by default. See airdropClaimScannerAgent.js for why.
+        await spawnIfMissing('airdropClaimScanner', {
+          name: 'Initial Airdrop Claim Scanner',
+          config: {
+            pollIntervalMs: configInstance.get('agentTypes.airdropClaimScanner.pollIntervalMs') || 3600000,
+            maxResultsPerPoll: configInstance.get('agentTypes.airdropClaimScanner.maxResultsPerPoll') || 20,
+            maxEnrichPerPoll: configInstance.get('agentTypes.airdropClaimScanner.maxEnrichPerPoll') || 10
+          }
+        });
+
+        // Real, read-only CoinGecko trending-coins feed — zero financial risk (never
+        // trades on this signal, only surfaces it), safe to auto-spawn by default.
+        // See cryptoUpdatesTrackerAgent.js for why this isn't a literal Twitter feed.
+        await spawnIfMissing('cryptoUpdatesTracker', {
+          name: 'Initial Crypto Updates Tracker',
+          config: {
+            pollIntervalMs: configInstance.get('agentTypes.cryptoUpdatesTracker.pollIntervalMs') || 1800000,
+            maxResultsPerPoll: configInstance.get('agentTypes.cryptoUpdatesTracker.maxResultsPerPoll') || 15
+          }
+        });
+
+        // Real, read-only, self-built "best meme coin traders" tracker — never
+        // trades, never follows a wallet, only judges real on-chain early-buy
+        // observations against real market-cap outcomes. Safe to auto-spawn by
+        // default. See smartMoneyTrackerService.js for the full design.
+        await spawnIfMissing('smartMoneyTracker', {
+          name: 'Initial Smart Money Tracker',
+          config: {
+            reconcileIntervalMs: configInstance.get('agentTypes.smartMoneyTracker.reconcileIntervalMs') || 1800000,
+            maxReconcilePerCycle: configInstance.get('agentTypes.smartMoneyTracker.maxReconcilePerCycle') || 20
+          }
+        });
+
+        // Real Telegram push notifications — idle (not an error) until
+        // TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID are configured. Zero financial risk
+        // (never trades), safe to auto-spawn by default.
+        await spawnIfMissing('telegramNotifier', {
+          name: 'Initial Telegram Notifier',
+          config: {
+            digestIntervalMs: configInstance.get('agentTypes.telegramNotifier.digestIntervalMs') || 14400000
+          }
+        });
+
         // Real, read-only Hacker News company/project-lead feed — never posts, never
         // contacts anyone. Small, capped real Claude API cost for auto-drafted pitch
         // responses (never sent automatically); no orders, no payments. Safe to
