@@ -2493,160 +2493,160 @@
       "mint": "CEMZd5LpVMVAsVYXh1roM8CMm5tuwMG3EPAJy9Crpump",
       "atMarketCapUsd": 2984.1347778989734,
       "observedAt": "2026-09-01T11:54:12.629Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.9352729621551483
     },
     {
       "wallet": "rBxxBPscYVoELvpVbRCei8pCaE6do7xJFsLPQByuwvP",
       "mint": "CEMZd5LpVMVAsVYXh1roM8CMm5tuwMG3EPAJy9Crpump",
       "atMarketCapUsd": 2984.1347778989734,
       "observedAt": "2026-09-01T11:54:12.629Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.9352729621551483
     },
     {
       "wallet": "5n2umv17r7Yphdnm3TWW7PHQwcWahPWdoxoUSK9YF4C4",
       "mint": "CEMZd5LpVMVAsVYXh1roM8CMm5tuwMG3EPAJy9Crpump",
       "atMarketCapUsd": 2984.1347778989734,
       "observedAt": "2026-09-01T11:54:12.629Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.9352729621551483
     },
     {
       "wallet": "6GQWScYtuDFzZLUYBSbstP7ZhGQ1nH1vHUCBf3vzqd23",
       "mint": "HKcrrKSAzLuxBmyVyGjWeVxrAx6b652VFEuUR2qgpump",
       "atMarketCapUsd": 4150.196405178179,
       "observedAt": "2026-09-01T11:55:49.556Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.8076129343468786
     },
     {
       "wallet": "9H9HbzNNmHZPdYtJtXMnfJ7YtggXor7zztb6Ey2V5Frx",
       "mint": "3CopQeJnAXaaakdcA58DXYJJJYdXKCognWVT25MPpump",
       "atMarketCapUsd": 6747.402363033002,
       "observedAt": "2026-09-01T11:58:01.207Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.41361110021543096
     },
     {
       "wallet": "DfCgZNowa8ADLcBjzrS3PkxLqu7AvPYEDPh8aFtVEHMx",
       "mint": "3CopQeJnAXaaakdcA58DXYJJJYdXKCognWVT25MPpump",
       "atMarketCapUsd": 6747.402363033002,
       "observedAt": "2026-09-01T11:58:01.207Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.41361110021543096
     },
     {
       "wallet": "ALEXXXvtdxQ81BVFbCEdYsmKZpe8ihfnryCoRgcRyRAX",
       "mint": "GZeneowZHRsZKxSBRJkabzHMqcscRoz9dqby5U8Xpump",
       "atMarketCapUsd": 3069.696584246912,
       "observedAt": "2026-09-01T12:14:37.938Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.9091453950777434
     },
     {
       "wallet": "2Ui8mNFkfxgV5H5bN3oiMUykqJnG18n72L7ezjXCTRDq",
       "mint": "GZeneowZHRsZKxSBRJkabzHMqcscRoz9dqby5U8Xpump",
       "atMarketCapUsd": 3069.696584246912,
       "observedAt": "2026-09-01T12:14:37.938Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.9091453950777434
     },
     {
       "wallet": "BysPRLAHCLEiHZQ4Mz1Ek1Njgzj6tLEXND4Y74oqWBx",
       "mint": "GZeneowZHRsZKxSBRJkabzHMqcscRoz9dqby5U8Xpump",
       "atMarketCapUsd": 3069.696584246912,
       "observedAt": "2026-09-01T12:14:37.938Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.9091453950777434
     },
     {
       "wallet": "BohHTVdwVDnSvhpg8GcLjZQ8ipNC6dEWydDWLh6JqVNN",
       "mint": "GZeneowZHRsZKxSBRJkabzHMqcscRoz9dqby5U8Xpump",
       "atMarketCapUsd": 3069.696584246912,
       "observedAt": "2026-09-01T12:14:37.938Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.9091453950777434
     },
     {
       "wallet": "6opQ1iG1W1b4XRa9v6B9n2ESKuQxXg1NnKMzWU4Wf9qG",
       "mint": "AzEig49KwV1KsMtSofwDAdPfs7ip4vbSp3xr8gHKpump",
       "atMarketCapUsd": 6105.605943816504,
       "observedAt": "2026-09-01T12:16:13.151Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.45863763920141465
     },
     {
       "wallet": "B34b27msLgryT1TqkWreKqEcGtMG3H2VdvMEGY8Xpnn2",
       "mint": "AzEig49KwV1KsMtSofwDAdPfs7ip4vbSp3xr8gHKpump",
       "atMarketCapUsd": 6105.605943816504,
       "observedAt": "2026-09-01T12:16:13.151Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.45863763920141465
     },
     {
       "wallet": "BQVz7fQ1WsQmSTMY3umdPEPPTm1sdcBcX9sP7o6kPRmB",
       "mint": "AzEig49KwV1KsMtSofwDAdPfs7ip4vbSp3xr8gHKpump",
       "atMarketCapUsd": 6105.605943816504,
       "observedAt": "2026-09-01T12:16:13.151Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.45863763920141465
     },
     {
       "wallet": "45HVFN2muCBacKhjbmCLNrxoScUf6b9oUvWASwQk1yZy",
       "mint": "AzEig49KwV1KsMtSofwDAdPfs7ip4vbSp3xr8gHKpump",
       "atMarketCapUsd": 6105.605943816504,
       "observedAt": "2026-09-01T12:16:13.151Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.45863763920141465
     },
     {
       "wallet": "2YftSbxoawsk59MtCzwNoBtymzhCtcPsErHfK1quCEdq",
       "mint": "3EevXRdgsjTQjpqHnANL6UNcLceX9bEJxoBkhefqpump",
       "atMarketCapUsd": 5936.083511262764,
       "observedAt": "2026-09-01T12:18:27.522Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.4702187349447635
     },
     {
       "wallet": "9Nk7ZvVV2UzTTfcXcAdHBQdeKiYF3pGUW4XUJCbrQqyH",
       "mint": "3EevXRdgsjTQjpqHnANL6UNcLceX9bEJxoBkhefqpump",
       "atMarketCapUsd": 5936.083511262764,
       "observedAt": "2026-09-01T12:18:27.522Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.4702187349447635
     },
     {
       "wallet": "FmPu4BahE4nLhmde9Z56pg2XiHmmJwwKYhzCGCxUtn5T",
       "mint": "3EevXRdgsjTQjpqHnANL6UNcLceX9bEJxoBkhefqpump",
       "atMarketCapUsd": 5936.083511262764,
       "observedAt": "2026-09-01T12:18:27.522Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.4702187349447635
     },
     {
       "wallet": "DsHT2zuKDHd2tS9JfeymXtN6LfZJ19R4PKrJCrKRc4uS",
       "mint": "3EevXRdgsjTQjpqHnANL6UNcLceX9bEJxoBkhefqpump",
       "atMarketCapUsd": 5936.083511262764,
       "observedAt": "2026-09-01T12:18:27.522Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.4702187349447635
     },
     {
       "wallet": "CrMfXJLWvZFMa9WniHR7vkLF4aNkAXd346JYrk1UXbZ5",
       "mint": "3EevXRdgsjTQjpqHnANL6UNcLceX9bEJxoBkhefqpump",
       "atMarketCapUsd": 5936.083511262764,
       "observedAt": "2026-09-01T12:18:27.522Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.4702746411506756
     },
     {
       "wallet": "an3QWTShdABetqb17bwdFcGWYF6MqMHDQHAuQGrHLTT",
       "mint": "3EevXRdgsjTQjpqHnANL6UNcLceX9bEJxoBkhefqpump",
       "atMarketCapUsd": 5936.083511262764,
       "observedAt": "2026-09-01T12:18:27.522Z",
-      "reconciled": false,
-      "multiple": null
+      "reconciled": true,
+      "multiple": 0.4702746411506756
     },
     {
       "wallet": "6PsuSv6PUnUJKhYcduQXwCsgyeu2bRi52HhAhSb567R2",
@@ -2773,6 +2773,174 @@
       "mint": "8c6KDHVDKFESA6zU7Nf8WMKTRanBYmDFHBxajZnrpump",
       "atMarketCapUsd": 2930.839871128811,
       "observedAt": "2026-09-01T18:47:15.867Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "GkJ17pJkLEzsYma1QFFvCKPUVtmfR9G32HkHrcZK7dgQ",
+      "mint": "DLkDDuXJVZGk8HRwcgove2FoQHK8fCEVHxugcYLdpump",
+      "atMarketCapUsd": 2936.4758647458584,
+      "observedAt": "2026-09-01T19:00:05.988Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "6kGyjuMTahoBri7eR4uw6APTKNMVdNuhwYP6jmSKBptA",
+      "mint": "DLkDDuXJVZGk8HRwcgove2FoQHK8fCEVHxugcYLdpump",
+      "atMarketCapUsd": 2936.4758647458584,
+      "observedAt": "2026-09-01T19:00:05.988Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "FSsQzXUix2y6CLEr5WEdm44nGPztuxiHVrz6kK6z7LiV",
+      "mint": "DLkDDuXJVZGk8HRwcgove2FoQHK8fCEVHxugcYLdpump",
+      "atMarketCapUsd": 2936.4758647458584,
+      "observedAt": "2026-09-01T19:00:05.988Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "BwWK17cbHxwWBKZkUYvzxLcNQ1YVyaFezduWbtm2de6s",
+      "mint": "7rzDAu17WYi3PyjukdqJorDnhsatif4qQGjPLMQApump",
+      "atMarketCapUsd": 3173.2650261442773,
+      "observedAt": "2026-09-01T19:01:38.369Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "GFMt3kKk74jdVbfcKzYKHMZEehjWpcEmMRz8CmEbWSdN",
+      "mint": "7rzDAu17WYi3PyjukdqJorDnhsatif4qQGjPLMQApump",
+      "atMarketCapUsd": 3173.2650261442773,
+      "observedAt": "2026-09-01T19:01:38.369Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "Ai6VJ3avjNdVLfFKjmm9pvEAs4w83xeuAcbsM7any9R2",
+      "mint": "FggPqspEVLLLFJ8UdXvRZgUacdiHmweT1TnxM16spump",
+      "atMarketCapUsd": 3190.9454598527727,
+      "observedAt": "2026-09-01T19:04:46.543Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "BysPRLAHCLEiHZQ4Mz1Ek1Njgzj6tLEXND4Y74oqWBx",
+      "mint": "FggPqspEVLLLFJ8UdXvRZgUacdiHmweT1TnxM16spump",
+      "atMarketCapUsd": 3190.9454598527727,
+      "observedAt": "2026-09-01T19:04:46.543Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "5zWxvqhrow6np1MWujaJ63V76DuDQ5pnKCh6UGnEUT3K",
+      "mint": "FggPqspEVLLLFJ8UdXvRZgUacdiHmweT1TnxM16spump",
+      "atMarketCapUsd": 3190.9454598527727,
+      "observedAt": "2026-09-01T19:04:46.543Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "Bf6z1Tr49i8VWbcad4HAi2RukBd2ghFJS1ETacUbdM2j",
+      "mint": "FggPqspEVLLLFJ8UdXvRZgUacdiHmweT1TnxM16spump",
+      "atMarketCapUsd": 3190.9454598527727,
+      "observedAt": "2026-09-01T19:04:46.543Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "9jH6foRSjAUfPeKuLaLocC2yhqs7Uy9t29ZqrhDpePrd",
+      "mint": "FggPqspEVLLLFJ8UdXvRZgUacdiHmweT1TnxM16spump",
+      "atMarketCapUsd": 3190.9454598527727,
+      "observedAt": "2026-09-01T19:04:46.543Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "FSsQzXUix2y6CLEr5WEdm44nGPztuxiHVrz6kK6z7LiV",
+      "mint": "FggPqspEVLLLFJ8UdXvRZgUacdiHmweT1TnxM16spump",
+      "atMarketCapUsd": 3190.9454598527727,
+      "observedAt": "2026-09-01T19:04:46.543Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "FSsQzXUix2y6CLEr5WEdm44nGPztuxiHVrz6kK6z7LiV",
+      "mint": "AvRG1reC2iRV5K3ZQ514NPEy9Fad41KEmWNRsTiqpump",
+      "atMarketCapUsd": 3162.4841954313315,
+      "observedAt": "2026-09-01T19:07:57.447Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "6zsQXiQP3xAwcX9AwiyAATtACkaftgFwWBJ6hmsWYMNa",
+      "mint": "JE5N3XXVQdMtV9vXDKkCDybQjdEaJPYm3dLPe3fEpump",
+      "atMarketCapUsd": 2948.450747345607,
+      "observedAt": "2026-09-01T19:14:28.360Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "B8cJjRnS69ikJ7iE7gSW4isc6WFAz3jfH6XnZ8g5uWyL",
+      "mint": "C8pU3467kW2WjsmDgbyLqCer7HGoTdtyc234pP5upump",
+      "atMarketCapUsd": 2869.7336723877484,
+      "observedAt": "2026-09-01T19:19:09.660Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "A6Dpt4FVxoPFTqo7i2kTBoSXtjHHngUcfiNNdXPLEtiS",
+      "mint": "C8pU3467kW2WjsmDgbyLqCer7HGoTdtyc234pP5upump",
+      "atMarketCapUsd": 2869.7336723877484,
+      "observedAt": "2026-09-01T19:19:09.660Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "E83AvoFVWPbVx6m5TvCQytifvBts7p1YF6f4bbNVoydU",
+      "mint": "C8pU3467kW2WjsmDgbyLqCer7HGoTdtyc234pP5upump",
+      "atMarketCapUsd": 2869.7336723877484,
+      "observedAt": "2026-09-01T19:19:09.660Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "C8aPw4t6KXpiUqiCCsPGH4qeQXLv89qPx2hVgQew3wnT",
+      "mint": "C8pU3467kW2WjsmDgbyLqCer7HGoTdtyc234pP5upump",
+      "atMarketCapUsd": 2869.7336723877484,
+      "observedAt": "2026-09-01T19:19:09.660Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "5C62wGTqcqkbpTx26xXkrq1EPfDk8p1eRaTscZPep21j",
+      "mint": "C8pU3467kW2WjsmDgbyLqCer7HGoTdtyc234pP5upump",
+      "atMarketCapUsd": 2869.7336723877484,
+      "observedAt": "2026-09-01T19:19:09.660Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "BwWK17cbHxwWBKZkUYvzxLcNQ1YVyaFezduWbtm2de6s",
+      "mint": "7yXSFmDBMxj79JzeDBD43YG47qTvnmqLPy5dxKvZpump",
+      "atMarketCapUsd": 2020.3831273746266,
+      "observedAt": "2026-09-01T19:22:23.057Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "bzu8skcp2LGoQivojFP1aJcpPeqpBY2Qn6SgXjNAzKM",
+      "mint": "7yXSFmDBMxj79JzeDBD43YG47qTvnmqLPy5dxKvZpump",
+      "atMarketCapUsd": 2020.3831273746266,
+      "observedAt": "2026-09-01T19:22:23.057Z",
+      "reconciled": false,
+      "multiple": null
+    },
+    {
+      "wallet": "GZPBumZdKY1wVc9oeZz1RpZnko9VqMHxL5C4H4oFPtEc",
+      "mint": "7yXSFmDBMxj79JzeDBD43YG47qTvnmqLPy5dxKvZpump",
+      "atMarketCapUsd": 2020.3831273746266,
+      "observedAt": "2026-09-01T19:22:23.057Z",
       "reconciled": false,
       "multiple": null
     }

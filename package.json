@@ -8,7 +8,7 @@
     "dev": "nodemon server.js",
     "test": "jest",
     "lint": "eslint .",
-    "build": "echo \"No build step required for backend\""
+    "build": "cd vite-react-ts-tailwind && npm install && npm run build"
   },
   "keywords": [
     "money",
