@@ -1,5 +1,11 @@
 server.log
-node_modules/
+# No trailing slash: this machine keeps its actual node_modules elsewhere and
+# symlinks it in (see .node_modules_store) — a `node_modules/` (trailing-slash)
+# pattern only matches real directories, not that symlink, which is exactly how
+# it ended up committed and then broke the Railway build (a machine-specific
+# symlink target copied verbatim into a Linux build container, colliding with
+# npm ci's own node_modules directory at the same path).
+node_modules
 .env
 
 # pm2 runtime logs — regenerated fresh wherever the app runs, no reason to ship
