@@ -3079,6 +3079,14 @@
       "observedAt": "2026-09-01T19:57:53.432Z",
       "reconciled": false,
       "multiple": null
+    },
+    {
+      "wallet": "pdkkWsF725PXWJi5RiUuwPyNH9tATZ2xyrVEVoBsBQy",
+      "mint": "43N7NWNvWfFrnEYMMATJG7q6iqKDqPUXL1Gdc8pbpump",
+      "atMarketCapUsd": 2897.6559133372975,
+      "observedAt": "2026-09-01T20:04:18.364Z",
+      "reconciled": false,
+      "multiple": null
     }
   ]
 }
