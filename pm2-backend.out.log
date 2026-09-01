@@ -46218,3 +46218,205 @@
 2026-09-02T00:11:49: [9] [2026-09-01T18:41:49.348Z] No candidate spreads above 0.30% net threshold this cycle
 2026-09-02T00:11:51: [23] [2026-09-01T18:41:51.127Z] COIN cleared the interest filter: 32.949 real SOL committed within 12s of launch (reply_count=0)
 2026-09-02T00:11:51: [9] [2026-09-01T18:41:51.348Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:11:53: [9] [2026-09-01T18:41:53.351Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:11:55: [9] [2026-09-01T18:41:55.377Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:11:57: [9] [2026-09-01T18:41:57.475Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:11:57: [23] [2026-09-01T18:41:57.838Z] Fossil cleared the interest filter: 0.444 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:11:59: [9] [2026-09-01T18:41:59.477Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:01: [9] [2026-09-01T18:42:01.488Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:03: [23] [2026-09-01T18:42:03.318Z] Minewatch cleared the interest filter: 6.388 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:12:03: [9] [2026-09-01T18:42:03.495Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:05: [9] [2026-09-01T18:42:05.496Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:05: [23] [2026-09-01T18:42:05.715Z] solcat cleared the interest filter: 14.825 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:12:07: [9] [2026-09-01T18:42:07.496Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:09: [9] [2026-09-01T18:42:09.496Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:09: [23] [2026-09-01T18:42:09.799Z] Fossil cleared the interest filter: 1.047 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:12:10: [23] [2026-09-01T18:42:10.983Z] BRAINROT cleared the interest filter: 2.905 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:12:11: [9] [2026-09-01T18:42:11.516Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:11: [23] [2026-09-01T18:42:11.994Z] Racconn cleared the interest filter: 0.697 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:12:13: [9] [2026-09-01T18:42:13.517Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:15: [9] [2026-09-01T18:42:15.524Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:17: [9] [2026-09-01T18:42:17.527Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:19: [9] [2026-09-01T18:42:19.536Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:21: [9] [2026-09-01T18:42:21.537Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:23: [9] [2026-09-01T18:42:23.540Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:24: [23] [2026-09-01T18:42:24.527Z] PEASHOOTER cleared the interest filter: 5.676 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:12:24: [23] [2026-09-01T18:42:24.657Z] BADDIE cleared the interest filter: 0.395 real SOL committed within 14s of launch (reply_count=0)
+2026-09-02T00:12:25: [9] [2026-09-01T18:42:25.580Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:27: [9] [2026-09-01T18:42:27.580Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:28: [23] [2026-09-01T18:42:28.142Z] MARSBASE cleared the interest filter: 0.780 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:12:28: [23] [2026-09-01T18:42:28.856Z] PeaBlaze cleared the interest filter: 0.397 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:12:29: [9] [2026-09-01T18:42:29.581Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:31: [9] [2026-09-01T18:42:31.586Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:33: [9] [2026-09-01T18:42:33.618Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:35: [9] [2026-09-01T18:42:35.628Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:35: [23] [2026-09-01T18:42:35.787Z] PEABLAZE cleared the interest filter: 33.592 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:12:37: [9] [2026-09-01T18:42:37.628Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:38: [23] [2026-09-01T18:42:38.134Z] Pariah cleared the interest filter: 0.455 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:12:39: [9] [2026-09-01T18:42:39.629Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:40: [23] [2026-09-01T18:42:40.221Z] LLAKRON cleared the interest filter: 0.475 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:12:41: [9] [2026-09-01T18:42:41.747Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:41: [23] [2026-09-01T18:42:41.779Z] CameraJet cleared the interest filter: 14.203 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:12:42: [12] [2026-09-01T18:42:42.390Z] Found 0 funding-rate candidate(s) above 0.030%
+2026-09-02T00:12:43: [9] [2026-09-01T18:42:43.748Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:45: [9] [2026-09-01T18:42:45.749Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:47: [9] [2026-09-01T18:42:47.749Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:49: [23] [2026-09-01T18:42:49.286Z] PEABLAZE cleared the interest filter: 7.529 real SOL committed within 13s of launch (reply_count=0)
+2026-09-02T00:12:49: [9] [2026-09-01T18:42:49.750Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:51: [9] [2026-09-01T18:42:51.750Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:53: [9] [2026-09-01T18:42:53.750Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:55: [9] [2026-09-01T18:42:55.752Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:57: [9] [2026-09-01T18:42:57.772Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:12:59: [9] [2026-09-01T18:42:59.776Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:00: [23] [2026-09-01T18:43:00.112Z] guy cleared the interest filter: 8.253 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:13:01: [9] [2026-09-01T18:43:01.777Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:03: [9] [2026-09-01T18:43:03.782Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:05: [23] [2026-09-01T18:43:05.743Z] BRUSH cleared the interest filter: 9.046 real SOL committed within 15s of launch (reply_count=0)
+2026-09-02T00:13:05: [9] [2026-09-01T18:43:05.783Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:07: [9] [2026-09-01T18:43:07.789Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:08: [21] [2026-09-01T18:43:08.833Z] Resting — Real futures trading blocked: requires LIVE_TRADING_CONFIRMED=true, LIVE_FUTURES_TRADING_CONFIRMED=true, and validated (non-placeholder) BINANCE_API_KEY/SECRET.
+2026-09-02T00:13:09: [9] [2026-09-01T18:43:09.792Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:09: [23] [2026-09-01T18:43:09.903Z] size cleared the interest filter: 0.410 real SOL committed within 12s of launch (reply_count=0)
+2026-09-02T00:13:11: [9] [2026-09-01T18:43:11.794Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:13: [9] [2026-09-01T18:43:13.795Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:15: [9] [2026-09-01T18:43:15.996Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:18: [9] [2026-09-01T18:43:18.003Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:20: [9] [2026-09-01T18:43:20.099Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:22: [9] [2026-09-01T18:43:22.142Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:23: [23] [2026-09-01T18:43:23.449Z] BTC cleared the interest filter: 3.989 real SOL committed within 18s of launch (reply_count=0)
+2026-09-02T00:13:24: [9] [2026-09-01T18:43:24.189Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:26: [9] [2026-09-01T18:43:26.196Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:28: [9] [2026-09-01T18:43:28.248Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:30: [9] [2026-09-01T18:43:30.250Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:32: [9] [2026-09-01T18:43:32.250Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:34: [9] [2026-09-01T18:43:34.251Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:36: [9] [2026-09-01T18:43:36.253Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:38: [9] [2026-09-01T18:43:38.254Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:40: [9] [2026-09-01T18:43:40.254Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:42: [9] [2026-09-01T18:43:42.337Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:44: [9] [2026-09-01T18:43:44.342Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:46: [9] [2026-09-01T18:43:46.352Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:47: [23] [2026-09-01T18:43:47.316Z] FOSSILS cleared the interest filter: 21.747 real SOL committed within 14s of launch (reply_count=0)
+2026-09-02T00:13:48: [9] [2026-09-01T18:43:48.352Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:48: [23] [2026-09-01T18:43:48.790Z] SCHOLAR cleared the interest filter: 6.191 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:13:50: [9] [2026-09-01T18:43:50.385Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:52: [9] [2026-09-01T18:43:52.385Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:52: [23] [2026-09-01T18:43:52.582Z] MERRY cleared the interest filter: 0.590 real SOL committed within 13s of launch (reply_count=0)
+2026-09-02T00:13:54: [9] [2026-09-01T18:43:54.395Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:56: [9] [2026-09-01T18:43:56.396Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:58: [9] [2026-09-01T18:43:58.397Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:13:58: [23] [2026-09-01T18:43:58.889Z] eye cleared the interest filter: 0.395 real SOL committed within 12s of launch (reply_count=0)
+2026-09-02T00:14:01: [9] [2026-09-01T18:44:01.204Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:02: [23] [2026-09-01T18:44:02.877Z] TOGETHER cleared the interest filter: 0.534 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:14:03: [9] [2026-09-01T18:44:03.230Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:05: [23] [2026-09-01T18:44:05.022Z] FRIENDS cleared the interest filter: 7.340 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:14:05: [9] [2026-09-01T18:44:05.231Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:07: [9] [2026-09-01T18:44:07.241Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:09: [9] [2026-09-01T18:44:09.250Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:11: [9] [2026-09-01T18:44:11.251Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:13: [9] [2026-09-01T18:44:13.251Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:15: [9] [2026-09-01T18:44:15.254Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:17: [9] [2026-09-01T18:44:17.289Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:18: [23] [2026-09-01T18:44:18.224Z] TOGETHER cleared the interest filter: 13.623 real SOL committed within 14s of launch (reply_count=0)
+2026-09-02T00:14:19: [9] [2026-09-01T18:44:19.340Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:21: [9] [2026-09-01T18:44:21.351Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:23: [9] [2026-09-01T18:44:23.352Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:25: [9] [2026-09-01T18:44:25.355Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:27: [9] [2026-09-01T18:44:27.377Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:28: [23] [2026-09-01T18:44:28.996Z] That Guy cleared the interest filter: 0.392 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:14:29: [9] [2026-09-01T18:44:29.378Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:29: ::1 - - [01/Sep/2026:18:44:29 +0000] "GET /api/agents HTTP/1.1" 200 8153 "http://localhost:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15"
+2026-09-02T00:14:30: ::1 - - [01/Sep/2026:18:44:30 +0000] "GET /api/agents/real/feed?limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15"
+2026-09-02T00:14:30: [23] [2026-09-01T18:44:30.877Z] coinbot cleared the interest filter: 6.333 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:14:31: ::1 - - [01/Sep/2026:18:44:31 +0000] "GET /api/agents/real/summary HTTP/1.1" 200 2237 "http://localhost:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15"
+2026-09-02T00:14:31: [9] [2026-09-01T18:44:31.404Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:33: ::1 - - [01/Sep/2026:18:44:33 +0000] "GET /api/agents/real/wallets HTTP/1.1" 200 452 "http://localhost:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15"
+2026-09-02T00:14:33: [23] [2026-09-01T18:44:33.244Z] SOFI cleared the interest filter: 3.350 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:14:33: [9] [2026-09-01T18:44:33.406Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:35: [9] [2026-09-01T18:44:35.431Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:37: [9] [2026-09-01T18:44:37.433Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:39: [9] [2026-09-01T18:44:39.436Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:41: [9] [2026-09-01T18:44:41.442Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:42: [23] [2026-09-01T18:44:42.055Z] GINGER cleared the interest filter: 6.603 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:14:43: [9] [2026-09-01T18:44:43.542Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:45: [9] [2026-09-01T18:44:45.543Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:47: [9] [2026-09-01T18:44:47.597Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:48: [23] [2026-09-01T18:44:48.856Z] BRUSH cleared the interest filter: 3.626 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:14:48: ::1 - - [01/Sep/2026:18:44:48 +0000] "GET /api/agents HTTP/1.1" 200 8153 "http://localhost:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15"
+2026-09-02T00:14:49: ::1 - - [01/Sep/2026:18:44:49 +0000] "GET /api/agents/real/feed?limit=50 HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15"
+2026-09-02T00:14:49: ::1 - - [01/Sep/2026:18:44:49 +0000] "GET /api/agents/real/summary HTTP/1.1" 304 - "http://localhost:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15"
+2026-09-02T00:14:49: [9] [2026-09-01T18:44:49.675Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:50: [23] [2026-09-01T18:44:50.357Z] Erin cleared the interest filter: 2.173 real SOL committed within 13s of launch (reply_count=0)
+2026-09-02T00:14:51: [9] [2026-09-01T18:44:51.680Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:52: ::1 - - [01/Sep/2026:18:44:52 +0000] "GET /api/agents/real/wallets HTTP/1.1" 200 452 "http://localhost:3000/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Safari/605.1.15"
+2026-09-02T00:14:52: [23] [2026-09-01T18:44:52.527Z] Partycat cleared the interest filter: 1.010 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:14:53: [9] [2026-09-01T18:44:53.682Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:55: [9] [2026-09-01T18:44:55.688Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:57: [9] [2026-09-01T18:44:57.694Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:14:59: [9] [2026-09-01T18:44:59.696Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:01: [23] [2026-09-01T18:45:01.683Z] Paired cleared the interest filter: 10.516 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:15:01: [9] [2026-09-01T18:45:01.706Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:03: [9] [2026-09-01T18:45:03.721Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:05: [9] [2026-09-01T18:45:05.736Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:05: [23] [2026-09-01T18:45:05.843Z] CRACK cleared the interest filter: 0.555 real SOL committed within 12s of launch (reply_count=0)
+2026-09-02T00:15:06: [23] [2026-09-01T18:45:06.795Z] fone cleared the interest filter: 10.916 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:15:07: [9] [2026-09-01T18:45:07.778Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:09: [9] [2026-09-01T18:45:09.784Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:11: [9] [2026-09-01T18:45:11.785Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:13: [9] [2026-09-01T18:45:13.789Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:15: [23] [2026-09-01T18:45:15.276Z] GRAVEYARD cleared the interest filter: 1.520 real SOL committed within 16s of launch (reply_count=0)
+2026-09-02T00:15:15: [9] [2026-09-01T18:45:15.792Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:17: [21] [2026-09-01T18:45:17.689Z] Resting — Real futures trading blocked: requires LIVE_TRADING_CONFIRMED=true, LIVE_FUTURES_TRADING_CONFIRMED=true, and validated (non-placeholder) BINANCE_API_KEY/SECRET.
+2026-09-02T00:15:17: [9] [2026-09-01T18:45:17.801Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:18: [23] [2026-09-01T18:45:18.302Z] kreisi cleared the interest filter: 4.467 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:15:19: [9] [2026-09-01T18:45:19.804Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:21: [9] [2026-09-01T18:45:21.809Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:23: [9] [2026-09-01T18:45:23.818Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:25: [23] [2026-09-01T18:45:25.809Z] MENTALIST cleared the interest filter: 3.701 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:15:25: [9] [2026-09-01T18:45:25.884Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:26: [23] [2026-09-01T18:45:26.981Z] WARFIGHTERS cleared the interest filter: 10.074 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:15:27: [9] [2026-09-01T18:45:27.885Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:29: [9] [2026-09-01T18:45:29.886Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:30: [23] [2026-09-01T18:45:30.139Z] COSTCO cleared the interest filter: 1.979 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:15:31: [9] [2026-09-01T18:45:31.888Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:32: [23] [2026-09-01T18:45:32.919Z] buttcrack cleared the interest filter: 15.030 real SOL committed within 10s of launch (reply_count=0)
+2026-09-02T00:15:33: [9] [2026-09-01T18:45:33.888Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:34: [23] [2026-09-01T18:45:34.950Z] PRO cleared the interest filter: 43.445 real SOL committed within 12s of launch (reply_count=0)
+2026-09-02T00:15:35: [9] [2026-09-01T18:45:35.927Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:37: [9] [2026-09-01T18:45:37.928Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:38: [23] [2026-09-01T18:45:38.583Z] ROBOX cleared the interest filter: 6.530 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:15:39: [9] [2026-09-01T18:45:39.952Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:40: [23] [2026-09-01T18:45:40.911Z] orangie cleared the interest filter: 8.857 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:15:41: [9] [2026-09-01T18:45:41.964Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:43: [23] [2026-09-01T18:45:43.283Z] DPEPE cleared the interest filter: 0.884 real SOL committed within 12s of launch (reply_count=0)
+2026-09-02T00:15:43: [9] [2026-09-01T18:45:43.988Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:46: [9] [2026-09-01T18:45:46.002Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:48: [9] [2026-09-01T18:45:48.002Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:50: [9] [2026-09-01T18:45:50.002Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:52: [9] [2026-09-01T18:45:52.043Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:54: [9] [2026-09-01T18:45:54.044Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:56: [23] [2026-09-01T18:45:56.021Z] LENNY cleared the interest filter: 18.859 real SOL committed within 14s of launch (reply_count=0)
+2026-09-02T00:15:56: [9] [2026-09-01T18:45:56.091Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:58: [9] [2026-09-01T18:45:58.094Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:15:59: [23] [2026-09-01T18:45:59.471Z] orangie cleared the interest filter: 13.010 real SOL committed within 13s of launch (reply_count=0)
+2026-09-02T00:16:00: [9] [2026-09-01T18:46:00.095Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:02: [9] [2026-09-01T18:46:02.097Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:04: [9] [2026-09-01T18:46:04.102Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:06: [9] [2026-09-01T18:46:06.209Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:08: [9] [2026-09-01T18:46:08.235Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:08: [23] [2026-09-01T18:46:08.636Z] Fossil cleared the interest filter: 4.189 real SOL committed within 12s of launch (reply_count=0)
+2026-09-02T00:16:10: [23] [2026-09-01T18:46:10.102Z] HELLO cleared the interest filter: 6.180 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:16:10: [9] [2026-09-01T18:46:10.289Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:12: [9] [2026-09-01T18:46:12.292Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:14: [9] [2026-09-01T18:46:14.305Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:16: [9] [2026-09-01T18:46:16.360Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:18: [9] [2026-09-01T18:46:18.556Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:19: [23] [2026-09-01T18:46:19.234Z] ELON cleared the interest filter: 5.980 real SOL committed within 12s of launch (reply_count=0)
+2026-09-02T00:16:19: [23] [2026-09-01T18:46:19.653Z] ansem  cleared the interest filter: 0.667 real SOL committed within 11s of launch (reply_count=0)
+2026-09-02T00:16:20: [9] [2026-09-01T18:46:20.697Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:23: [9] [2026-09-01T18:46:23.620Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:25: [9] [2026-09-01T18:46:25.929Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:27: [23] [2026-09-01T18:46:27.577Z] Watches cleared the interest filter: 0.415 real SOL committed within 17s of launch (reply_count=0)
+2026-09-02T00:16:28: [9] [2026-09-01T18:46:28.425Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:30: [9] [2026-09-01T18:46:30.584Z] No candidate spreads above 0.30% net threshold this cycle
+2026-09-02T00:16:30: [23] [2026-09-01T18:46:30.593Z] SNIFFER cleared the interest filter: 24.075 real SOL committed within 12s of launch (reply_count=0)

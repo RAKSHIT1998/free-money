@@ -94,3 +94,19 @@
 2026-09-01T23:55:39: 
 2026-09-01T23:55:39:   ➜  Local:   http://localhost:3000/
 2026-09-01T23:55:39:   ➜  Network: use --host to expose
+2026-09-02T00:14:29: 12:14:29 AM [vite] changed tsconfig file detected: /Users/rakshitbargotra/Documents/free money/free-money/vite-react-ts-tailwind/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+2026-09-02T00:14:29: 12:14:29 AM [vite] (client) hmr update /src/index.css
+2026-09-02T00:14:29: 12:14:29 AM [vite] (client) page reload index.html
+2026-09-02T00:14:29: 12:14:29 AM [vite] (client) hmr update /src/index.css
+2026-09-02T00:14:29: 12:14:29 AM [vite] (client) hmr update /src/index.css
+2026-09-02T00:14:29: 12:14:29 AM [vite] (client) hmr update /src/index.css
+2026-09-02T00:14:29: 12:14:29 AM [vite] (client) hmr update /src/index.css
+2026-09-02T00:14:29: 12:14:29 AM [vite] (client) hmr update /src/index.css
+2026-09-02T00:14:29: 12:14:29 AM [vite] (client) hmr update /src/index.css
+2026-09-02T00:14:29: 12:14:29 AM [vite] (client) hmr update /src/index.css
+2026-09-02T00:14:29: 12:14:29 AM [vite] .env changed, restarting server...
+2026-09-02T00:14:30: 12:14:30 AM [vite] (client) hmr update /src/index.css
+2026-09-02T00:14:30: 12:14:30 AM [vite] vite.config.ts changed, restarting server...
+2026-09-02T00:14:30: 12:14:30 AM [vite] (client) hmr update /src/index.css
+2026-09-02T00:14:30: 12:14:30 AM [vite] (client) hmr update /src/index.css
+2026-09-02T00:14:31: 12:14:31 AM [vite] server restarted.
