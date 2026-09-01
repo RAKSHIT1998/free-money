@@ -89,17 +89,30 @@ app.use(morgan(process.env.LOG_LEVEL || 'combined'));
 // the dashboard is normally run separately via `vite --port 3000`, so `dist/` won't
 // exist unless someone has run `npm run build` in vite-react-ts-tailwind; the
 // fs.existsSync guard means local dev is completely unaffected either way. On a
-// cloud VM, this lets one process/one open port serve both the API and the
+// cloud host, this lets one process/one open port serve both the API and the
 // dashboard, instead of needing two separate services and CORS configuration.
-// Registered BEFORE the legacy `public/` static folder below — public/index.html
-// predates the React dashboard and is dead/unreferenced, but express.static resolves
-// `/` to whichever mount matches first, so it would otherwise shadow the real app.
+//
+// This app previously had THREE other dead frontend artifacts fighting for this
+// same '/' route — a legacy public/index.html, a legacy public/dashboard.html, and
+// an entire unreferenced create-react-app under frontend/ (all removed 2026-09-02).
+// The specific bug that caused: on a host where the build command didn't actually
+// run `npm run build` (so dist/ was never produced), express.static silently fell
+// back to serving public/index.html instead — live, no error, just the wrong app,
+// which is exactly what happened on an early Render deploy. Now that those are
+// gone, a missing dist/ falls through to the plain 404 JSON handler instead of a
+// misleadingly-live wrong page — loud and diagnosable instead of silent.
 const frontendDistPath = path.join(__dirname, 'vite-react-ts-tailwind', 'dist');
 const frontendBuildExists = fs.existsSync(path.join(frontendDistPath, 'index.html'));
+console.log(
+  frontendBuildExists
+    ? `Dashboard build found at ${frontendDistPath} — serving it from '/'.`
+    : `WARNING: no dashboard build at ${frontendDistPath} — '/' will 404 until the ` +
+      `build command actually runs \`npm run build\` (root package.json's build ` +
+      `script builds the dashboard; verify your host's Build Command includes it).`
+);
 if (frontendBuildExists) {
   app.use(express.static(frontendDistPath));
 }
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Rate limiting
 const limiter = rateLimit({

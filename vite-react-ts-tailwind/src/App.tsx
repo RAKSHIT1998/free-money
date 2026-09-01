@@ -33,7 +33,10 @@ function App() {
               <Routes>
                 {/* Public routes */}
                 <Route path="/login" element={<LoginPage />} />
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                {/* Lands on the real-money view (pump.fun/Solana/futures P&L, wallet
+                    balances, agents & the performance governor) — the actual point of
+                    this app, not the fabricated-earnings demo dashboard. */}
+                <Route path="/" element={<Navigate to="/real-money" replace />} />
 
                 {/* Protected routes — PrivateRoute redirects to /login when not
                     authenticated, and renders these as children via <Outlet/> when it
