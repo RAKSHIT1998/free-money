@@ -162,6 +162,15 @@ app.get('/health', async (req, res) => {
     timestamp: new Date().toISOString(),
     service: 'Money Making API',
     version: '1.0.0',
+    // Which commit is ACTUALLY running, and whether the dashboard build exists —
+    // added 2026-09-02 after a long, expensive debugging loop where a Render service
+    // kept serving a stale frontend bundle (still containing a hardcoded
+    // localhost:5000 API URL fixed several commits earlier) with no way to tell from
+    // outside whether the deploy was old, cached, or misconfigured. Render injects
+    // RENDER_GIT_COMMIT automatically; other hosts can set GIT_COMMIT themselves.
+    deployedCommit: process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || 'unknown',
+    dashboardBuildPresent: frontendBuildExists,
+    publicAccessNoLogin: process.env.PUBLIC_ACCESS_NO_LOGIN === 'true',
     checks
   });
 });
