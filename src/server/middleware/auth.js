@@ -29,6 +29,19 @@ const authenticateToken = (req, res, next) => {
     return next();
   }
 
+  // Deliberately separate from the dev bypass above (which only ever activates in
+  // NODE_ENV=development) — this one is explicit, user-requested, and works in any
+  // environment including production. Added 2026-09-02 at the user's explicit
+  // request after repeated login friction on a fresh Render deploy. Makes EVERY
+  // /api/agents/* route — including spawning real-money trading agents and reading
+  // wallet balances — reachable by anyone with the URL, no password. Set
+  // PUBLIC_ACCESS_NO_LOGIN=true only if you specifically want that; unset (or any
+  // value other than 'true') to restore normal login.
+  if (process.env.PUBLIC_ACCESS_NO_LOGIN === 'true') {
+    req.user = { id: 'public-access', username: 'public', role: 'admin' };
+    return next();
+  }
+
   if (!JWT_SECRET) {
     console.error('Auth blocked: no JWT secret configured (set jwtSecret in config or JWT_SECRET env var)');
     return res.status(503).json({
