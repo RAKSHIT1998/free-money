@@ -511,8 +511,43 @@ async function getAllTimeSummary() {
   const bestTrade = sells.length > 0 ? sells.reduce((a, b) => (b.realizedPnlUsd > a.realizedPnlUsd ? b : a)) : null;
   const worstTrade = sells.length > 0 ? sells.reduce((a, b) => (b.realizedPnlUsd < a.realizedPnlUsd ? b : a)) : null;
 
+  // GROUND TRUTH, independent of per-trade bookkeeping. totalRealizedPnlUsd above sums
+  // each sell's own realizedPnlUsd, which is only as good as the cost basis that sell
+  // was handed — and a sell whose matching buy never got recorded (the unconfirmed-sell
+  // bug: the transaction landed on-chain but confirmTransaction() failed, so status
+  // stayed 'failed') contributes its full proceeds as profit with no cost subtracted.
+  //
+  // Audited 2026-09-02: that inflated the reported figure to +$2.21 when actual SOL
+  // flows were +0.0018 SOL (~$0.18), because 0.0195 SOL of cost basis went uncounted.
+  // Net SOL in/out cannot drift this way — every buy and sell moves real lamports.
+  const confirmed = allTrades.filter(t => t.status === 'confirmed');
+  const solSpent = confirmed.filter(t => t.action === 'buy').reduce((s, t) => s + (t.solAmount || 0), 0);
+  const solReceived = confirmed.filter(t => t.action === 'sell').reduce((s, t) => s + (t.solAmount || 0), 0);
+  const netSol = solReceived - solSpent;
+
+  // Buys with no corresponding sell — cost that the per-trade P&L never accounted for.
+  const buyCountByMint = {};
+  const sellCountByMint = {};
+  confirmed.forEach(t => {
+    const target = t.action === 'buy' ? buyCountByMint : t.action === 'sell' ? sellCountByMint : null;
+    if (target) target[t.tokenMint] = (target[t.tokenMint] || 0) + 1;
+  });
+  const unmatchedBuys = confirmed.filter(t =>
+    t.action === 'buy' && (sellCountByMint[t.tokenMint] || 0) < (buyCountByMint[t.tokenMint] || 0)
+  );
+  const unaccountedCostSol = unmatchedBuys.reduce((s, t) => s + (t.solAmount || 0), 0);
+
+  const solPrice = await getSolUsdPrice().catch(() => null);
+
   return {
+    // Kept for continuity, but no longer the headline — see netSolPnlUsd.
     totalRealizedPnlUsd,
+    // What the wallet actually gained or lost across every recorded trade.
+    netSol,
+    netSolPnlUsd: solPrice != null ? netSol * solPrice : null,
+    unaccountedCostSol,
+    unaccountedCostUsd: solPrice != null ? unaccountedCostSol * solPrice : null,
+    pnlFiguresDisagree: Math.abs(unaccountedCostSol) > 0.0005,
     closedTradeCount: sells.length,
     winCount: wins.length,
     lossCount: losses.length,
