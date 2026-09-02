@@ -373,7 +373,13 @@ class PumpFunSniperAgent extends BaseAgent {
 
   async attemptBuy(tokenMsg, preFetchedInfo) {
     const [spentSol, solPrice, balanceSol] = await Promise.all([
-      pumpFunTradingService.getTotalSpentSol(this.id),
+      // Across ALL agent instances, not just this.id: every restart spawns a fresh
+      // agent with a new ID, so a per-agent total reset the spend to zero and turned
+      // this "hard, permanent" cap into a per-restart allowance. On a host that
+      // redeploys often that is effectively no cap at all. See
+      // getTotalSpentSolAllAgents (and PUMPFUN_BUDGET_EPOCH, which lets a cap apply
+      // from a chosen point forward rather than being exhausted by old history).
+      pumpFunTradingService.getTotalSpentSolAllAgents(),
       pumpFunTradingService.getSolUsdPrice(),
       pumpFunTradingService.getWalletBalanceSol()
     ]);

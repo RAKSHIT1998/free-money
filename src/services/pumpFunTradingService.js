@@ -481,6 +481,30 @@ async function getTotalSpentSol(agentId) {
 }
 
 /**
+ * Total confirmed buy spend across EVERY agent instance, optionally only counting
+ * trades at or after PUMPFUN_BUDGET_EPOCH (an ISO timestamp).
+ *
+ * Why this exists: budgetCapUsd was enforced against getTotalSpentSol(agentId), which
+ * is per-agent — and every restart spawns a fresh agent with a new incrementing ID,
+ * resetting its spend to zero. A "$10 hard cap" therefore silently meant "$10 per
+ * restart", and on a host that redeploys frequently that is not a cap at all. This
+ * counts all instances, so the ceiling survives restarts.
+ *
+ * The epoch exists so a cap can be applied going forward without the ledger's existing
+ * history instantly exhausting it — set PUMPFUN_BUDGET_EPOCH to now when starting a
+ * fresh funded run.
+ * @returns {Promise<number>} SOL spent
+ */
+async function getTotalSpentSolAllAgents() {
+  const all = await getAllTrades();
+  const epoch = process.env.PUMPFUN_BUDGET_EPOCH ? Date.parse(process.env.PUMPFUN_BUDGET_EPOCH) : null;
+  return all
+    .filter(t => t.action === 'buy' && t.status === 'confirmed')
+    .filter(t => (epoch && Number.isFinite(epoch)) ? Date.parse(t.timestamp) >= epoch : true)
+    .reduce((sum, t) => sum + (t.solAmount || 0), 0);
+}
+
+/**
  * Real P&L across EVERY pump.fun trade ever recorded, regardless of which agent
  * instance/restart made it — a fresh agent spawn gets a new incrementing ID, so a
  * per-agentId summary alone would silently drop history from before the most recent
@@ -699,6 +723,7 @@ module.exports = {
   sellToken,
   getLedger,
   getTotalSpentSol,
+  getTotalSpentSolAllAgents,
   getAllTrades,
   getAllTimeSummary,
   withdrawSol,
