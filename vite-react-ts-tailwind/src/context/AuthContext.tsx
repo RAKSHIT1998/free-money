@@ -33,13 +33,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem('token');
   };
 
-  // Matches the backend's PUBLIC_ACCESS_NO_LOGIN flag (server/middleware/auth.js) —
-  // set together, at the same explicit user request, so the login screen itself is
-  // skipped rather than just the backend accepting unauthenticated calls underneath
-  // a login form that would still block on 401s it never expects. Baked in at build
-  // time (Vite inlines import.meta.env.*), same mechanism as VITE_API_URL elsewhere
-  // in this file's sibling api.ts.
-  const isAuthenticated = !!token || import.meta.env.VITE_PUBLIC_ACCESS_NO_LOGIN === 'true';
+  // Open access by default, mirroring the backend's REQUIRE_LOGIN default in
+  // server/middleware/auth.js — the two must agree, otherwise you get a login screen
+  // in front of an API that doesn't want credentials, or an API rejecting a UI that
+  // never collected any. Set VITE_REQUIRE_LOGIN=true (at BUILD time — Vite inlines
+  // import.meta.env.*) alongside the backend's REQUIRE_LOGIN=true to restore the
+  // login screen.
+  const isAuthenticated = !!token || import.meta.env.VITE_REQUIRE_LOGIN !== 'true';
 
   const contextValue = {
     token,

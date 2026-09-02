@@ -29,15 +29,24 @@ const authenticateToken = (req, res, next) => {
     return next();
   }
 
-  // Deliberately separate from the dev bypass above (which only ever activates in
-  // NODE_ENV=development) — this one is explicit, user-requested, and works in any
-  // environment including production. Added 2026-09-02 at the user's explicit
-  // request after repeated login friction on a fresh Render deploy. Makes EVERY
-  // /api/agents/* route — including spawning real-money trading agents and reading
-  // wallet balances — reachable by anyone with the URL, no password. Set
-  // PUBLIC_ACCESS_NO_LOGIN=true only if you specifically want that; unset (or any
-  // value other than 'true') to restore normal login.
-  if (process.env.PUBLIC_ACCESS_NO_LOGIN === 'true') {
+  // OPEN ACCESS BY DEFAULT — set REQUIRE_LOGIN=true to restore authentication.
+  //
+  // Changed 2026-09-02 at the user's explicit, repeated request ("remove login and
+  // password, let me enter direct"), after a long run of deploy friction made the
+  // login screen the main thing standing between them and their own dashboard.
+  // Defaulted ON (rather than gated behind an env var they'd have to add in a host
+  // dashboard) specifically because adding env vars on the host was itself the
+  // recurring failure point.
+  //
+  // What this means, plainly: every /api/agents/* route — spawning real-money
+  // trading agents, reading wallet balances, closing positions — is reachable by
+  // anyone who knows the URL, with no password. The repository is public, so the
+  // URL is not a secret in any meaningful sense.
+  //
+  // To turn authentication back on: set REQUIRE_LOGIN=true in the environment.
+  // Nothing was deleted — the full JWT path below still works and is used the
+  // moment that flag is set.
+  if (process.env.REQUIRE_LOGIN !== 'true') {
     req.user = { id: 'public-access', username: 'public', role: 'admin' };
     return next();
   }
