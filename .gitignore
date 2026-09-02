@@ -20,3 +20,7 @@ fixed-free-money-app.exe
 src/agents/agentManager.js.bak
 # Device ID file (generated at runtime)
 .device-id
+# Vite reads .env from ITS OWN directory at build time and inlines VITE_* vars
+# into the bundle. A committed vite-react-ts-tailwind/.env pinning VITE_API_URL to
+# localhost silently broke every deployed build for hours — never commit one.
+vite-react-ts-tailwind/.env
