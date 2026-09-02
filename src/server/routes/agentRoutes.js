@@ -18,6 +18,11 @@ router.get('/real/monitor', agentController.getRealAgentMonitorStatus);
 router.get('/real/summary', agentController.getRealMoneySummary);
 router.get('/real/feed', agentController.getRealMoneyFeed);
 router.get('/real/wallets', agentController.getRealWallets);
+// Read-only: how much can be withdrawn right now. Safe on the public dashboard.
+router.get('/real/solana/withdrawable', agentController.getWithdrawable);
+// REAL, IRREVERSIBLE money movement. Protected by WITHDRAWAL_PIN inside the
+// service (not by login, which is currently disabled) — see withdrawSol().
+router.post('/real/solana/withdraw', agentController.withdrawSolana);
 router.get('/real/memory', agentController.getAgentMemory);
 router.get('/real/smart-money', agentController.getSmartMoneyLeaderboard);
 router.post('/real/futures/:symbol/close', agentController.closeFuturesPosition);

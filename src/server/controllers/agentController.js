@@ -642,9 +642,15 @@ async function buildRealWallets() {
     const connection = pumpFunTradingService.getConnection();
     const owner = keypair.publicKey;
 
+    // The USD price is deliberately NOT allowed to fail this whole lookup. It used to
+    // sit bare inside this Promise.all, so a CoinGecko 429 (which happens routinely —
+    // free tier, and this polls every 20s) rejected everything and the dashboard showed
+    // NO wallet at all: no address, no SOL balance, no holdings. All of that is
+    // readable straight from the chain and doesn't need a price. Now a missing price
+    // just means the USD columns are null while the actual balances still show.
     const [freeSol, solPrice, tokenAccounts, token2022Accounts] = await Promise.all([
       pumpFunTradingService.getWalletBalanceSol(),
-      pumpFunTradingService.getSolUsdPrice(),
+      pumpFunTradingService.getSolUsdPrice().catch(() => null),
       connection.getParsedTokenAccountsByOwner(owner, { programId: new PublicKey(SPL_TOKEN_PROGRAM_ID) }),
       connection.getParsedTokenAccountsByOwner(owner, { programId: new PublicKey(SPL_TOKEN_2022_PROGRAM_ID) })
     ]);
@@ -677,14 +683,21 @@ async function buildRealWallets() {
     wallets.solana = {
       address: owner.toBase58(),
       freeSol,
-      freeSolUsd: freeSol * solPrice,
+      freeSolUsd: solPrice != null ? freeSol * solPrice : null,
       solPrice,
+      priceUnavailable: solPrice == null,
       tokenHoldings,
       tokenHoldingsUsd,
-      totalUsd: (freeSol * solPrice) + tokenHoldingsUsd
+      totalUsd: solPrice != null ? (freeSol * solPrice) + tokenHoldingsUsd : null
     };
   } catch (error) {
     wallets.solanaError = error.message;
+    // Even on a hard failure (RPC down, etc.) the deposit address is derived locally
+    // from the configured key and is always knowable — surface it regardless, so the
+    // dashboard can always tell the user where to send funds.
+    try {
+      wallets.solanaAddress = pumpFunTradingService.getKeypair().publicKey.toBase58();
+    } catch (_) { /* no key configured at all */ }
   }
 
   try {
@@ -862,3 +875,40 @@ exports.getOpportunityStats = async (req, res) => {
 };
 
 module.exports = exports;
+/**
+ * How much SOL can be withdrawn right now, plus whether withdrawals are configured at
+ * all. Read-only — safe to expose on the currently-public dashboard.
+ */
+exports.getWithdrawable = async (req, res) => {
+  try {
+    const info = await pumpFunTradingService.getWithdrawableSol();
+    res.json({ success: true, data: info });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * REAL, IRREVERSIBLE SOL withdrawal to an address the caller supplies. Requires the
+ * WITHDRAWAL_PIN secret in the body (enforced in pumpFunTradingService.withdrawSol) —
+ * the dashboard currently runs without login, so this endpoint would otherwise be a
+ * public drain on the wallet.
+ */
+exports.withdrawSolana = async (req, res) => {
+  try {
+    const { toAddress, amountSol, pin } = req.body;
+    if (!toAddress) {
+      return res.status(400).json({ success: false, message: 'toAddress is required' });
+    }
+    if (amountSol === undefined || amountSol === null || amountSol === '') {
+      return res.status(400).json({ success: false, message: "amountSol is required (a number, or 'max')" });
+    }
+    const result = await pumpFunTradingService.withdrawSol({ toAddress, amountSol, pin });
+    res.json({ success: true, data: result });
+  } catch (error) {
+    // 403 for the auth-shaped failures so the UI can tell "wrong PIN" apart from a
+    // genuine execution problem; 400 for everything else the caller can correct.
+    const isAuthFailure = /PIN/i.test(error.message);
+    res.status(isAuthFailure ? 403 : 400).json({ success: false, message: error.message });
+  }
+};

@@ -524,6 +524,135 @@ async function getAllTimeSummary() {
   };
 }
 
+// Minimum SOL to leave behind on a withdrawal. Emptying the account entirely would
+// leave nothing for transaction fees on any subsequent action (including selling an
+// open position), and an account below the rent-exempt minimum can be reaped. This is
+// the same reserve concept pumpFunSniperAgent uses before buying.
+const WITHDRAWAL_RESERVE_SOL = 0.002;
+
+/**
+ * Send SOL from this app's wallet to an arbitrary destination address. REAL, IRREVERSIBLE
+ * money movement — a wrong address means the funds are gone with no recourse.
+ *
+ * Deliberately gated on WITHDRAWAL_PIN rather than the normal login: as of 2026-09-02
+ * the dashboard runs with authentication disabled at the user's request, so without a
+ * separate secret this endpoint would let anyone who found the public URL drain the
+ * wallet. Fails closed — if no PIN is configured, withdrawal is refused outright rather
+ * than defaulting to open.
+ *
+ * @param {Object} params
+ * @param {string} params.toAddress destination Solana address
+ * @param {number|'max'} params.amountSol amount to send, or 'max' for everything above the reserve
+ * @param {string} params.pin must match WITHDRAWAL_PIN
+ * @returns {Promise<Object>} the recorded withdrawal
+ */
+async function withdrawSol({ toAddress, amountSol, pin }) {
+  const configuredPin = process.env.WITHDRAWAL_PIN;
+  if (!configuredPin) {
+    throw new Error(
+      'Withdrawals are disabled: set WITHDRAWAL_PIN in the environment first. ' +
+      'This is required because the dashboard currently runs without login, so a ' +
+      'withdrawal endpoint with no secret would be drainable by anyone with the URL.'
+    );
+  }
+  if (pin !== configuredPin) {
+    throw new Error('Incorrect withdrawal PIN');
+  }
+
+  const { SystemProgram, Transaction, PublicKey, sendAndConfirmTransaction } = require('@solana/web3.js');
+
+  let destination;
+  try {
+    destination = new PublicKey(toAddress);
+  } catch (error) {
+    throw new Error(`Invalid Solana address: ${toAddress}`);
+  }
+  // A valid-looking key that isn't actually on the ed25519 curve can't hold/spend SOL
+  // normally — catching it here rather than after the funds have already moved.
+  if (!PublicKey.isOnCurve(destination.toBytes())) {
+    throw new Error(`Address is not a valid wallet address (off-curve): ${toAddress}`);
+  }
+
+  const keypair = getKeypair();
+  const connection = getConnection();
+  const balanceSol = await getWalletBalanceSol();
+  const available = balanceSol - WITHDRAWAL_RESERVE_SOL;
+
+  if (available <= 0) {
+    throw new Error(
+      `Nothing available to withdraw: balance ${balanceSol.toFixed(6)} SOL, ` +
+      `${WITHDRAWAL_RESERVE_SOL} SOL reserved for transaction fees.`
+    );
+  }
+
+  const requested = amountSol === 'max' ? available : parseFloat(amountSol);
+  if (!Number.isFinite(requested) || requested <= 0) {
+    throw new Error(`Invalid amount: ${amountSol}`);
+  }
+  if (requested > available) {
+    throw new Error(
+      `Requested ${requested.toFixed(6)} SOL but only ${available.toFixed(6)} SOL is ` +
+      `available (balance ${balanceSol.toFixed(6)}, ${WITHDRAWAL_RESERVE_SOL} reserved for fees).`
+    );
+  }
+
+  const lamports = Math.floor(requested * LAMPORTS_PER_SOL);
+  const transaction = new Transaction().add(
+    SystemProgram.transfer({ fromPubkey: keypair.publicKey, toPubkey: destination, lamports })
+  );
+
+  let signature;
+  let status = 'confirmed';
+  let errorMessage;
+  try {
+    signature = await sendAndConfirmTransaction(connection, transaction, [keypair]);
+  } catch (error) {
+    status = 'failed';
+    errorMessage = formatTradeError(error);
+  }
+
+  const solPrice = await getSolUsdPrice().catch(() => null);
+  const record = {
+    agentId: 'manual-withdrawal',
+    timestamp: new Date(),
+    action: 'withdraw',
+    tokenMint: 'SOL',
+    solAmount: requested,
+    usdAmount: solPrice ? requested * solPrice : undefined,
+    txSignature: signature,
+    status,
+    raw: errorMessage ? { error: errorMessage, toAddress } : { toAddress }
+  };
+  await appendTrade(record);
+
+  if (status === 'failed') {
+    throw new Error(`Withdrawal failed: ${errorMessage}`);
+  }
+
+  return {
+    signature,
+    amountSol: requested,
+    amountUsd: solPrice ? requested * solPrice : null,
+    toAddress,
+    remainingSol: balanceSol - requested,
+    explorerUrl: `https://solscan.io/tx/${signature}`
+  };
+}
+
+/**
+ * How much could be withdrawn right now, without actually moving anything — so the UI
+ * can show a real number instead of making the user guess and hit an error.
+ */
+async function getWithdrawableSol() {
+  const balanceSol = await getWalletBalanceSol();
+  return {
+    balanceSol,
+    reservedSol: WITHDRAWAL_RESERVE_SOL,
+    withdrawableSol: Math.max(0, balanceSol - WITHDRAWAL_RESERVE_SOL),
+    pinConfigured: !!process.env.WITHDRAWAL_PIN
+  };
+}
+
 module.exports = {
   getKeypair,
   getConnection,
@@ -537,5 +666,7 @@ module.exports = {
   getTotalSpentSol,
   getAllTrades,
   getAllTimeSummary,
+  withdrawSol,
+  getWithdrawableSol,
   assertLivePumpFunTradingAllowed
 };

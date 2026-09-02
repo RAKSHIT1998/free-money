@@ -53,11 +53,21 @@ interface TokenHolding {
 interface SolanaWallet {
   address: string;
   freeSol: number;
-  freeSolUsd: number;
-  solPrice: number;
+  // Null when the USD price lookup is rate-limited — the on-chain balances above are
+  // still valid and shown; only the dollar conversions are unavailable.
+  freeSolUsd: number | null;
+  solPrice: number | null;
+  priceUnavailable?: boolean;
   tokenHoldings: TokenHolding[];
   tokenHoldingsUsd: number;
-  totalUsd: number;
+  totalUsd: number | null;
+}
+
+interface WithdrawableInfo {
+  balanceSol: number;
+  reservedSol: number;
+  withdrawableSol: number;
+  pinConfigured: boolean;
 }
 
 interface RealWallets {
@@ -260,6 +270,13 @@ const RealMoneyPage = () => {
   const [feed, setFeed] = useState<FeedEvent[]>([]);
   const [wallets, setWallets] = useState<RealWallets | null>(null);
   const [strategyGroups, setStrategyGroups] = useState<Record<string, RealAgentDetail[]>>({});
+  const [withdrawable, setWithdrawable] = useState<WithdrawableInfo | null>(null);
+  const [wdAddress, setWdAddress] = useState('');
+  const [wdAmount, setWdAmount] = useState('');
+  const [wdPin, setWdPin] = useState('');
+  const [wdBusy, setWdBusy] = useState(false);
+  const [wdResult, setWdResult] = useState<{ ok: boolean; msg: string; url?: string } | null>(null);
+  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
@@ -306,6 +323,43 @@ const RealMoneyPage = () => {
     const interval = setInterval(fetchWallets, 20000);
     return () => clearInterval(interval);
   }, []);
+
+  const fetchWithdrawable = useCallback(() => {
+    api.get('/agents/real/solana/withdrawable')
+      .then(res => setWithdrawable(res.data.data))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetchWithdrawable();
+    const interval = setInterval(fetchWithdrawable, 20000);
+    return () => clearInterval(interval);
+  }, [fetchWithdrawable]);
+
+  const submitWithdrawal = async () => {
+    setWdBusy(true);
+    setWdResult(null);
+    try {
+      const res = await api.post('/agents/real/solana/withdraw', {
+        toAddress: wdAddress.trim(),
+        amountSol: wdAmount.trim().toLowerCase() === 'max' ? 'max' : wdAmount.trim(),
+        pin: wdPin,
+      });
+      const d = res.data.data;
+      setWdResult({
+        ok: true,
+        msg: `Sent ${d.amountSol.toFixed(6)} SOL to ${d.toAddress.slice(0, 8)}...${d.toAddress.slice(-6)}`,
+        url: d.explorerUrl,
+      });
+      setWdAmount('');
+      setWdPin('');
+      fetchWithdrawable();
+    } catch (err: any) {
+      setWdResult({ ok: false, msg: err.response?.data?.message || err.message || 'Withdrawal failed' });
+    } finally {
+      setWdBusy(false);
+    }
+  };
 
   // 9 dedicated per-strategy endpoints, each returning richer detail than the
   // generic agent list — heavier than the 5s feed tick, so its own slower interval.
@@ -396,21 +450,45 @@ const RealMoneyPage = () => {
         </div>
         {wallets?.solana ? (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-500">Solana wallet</p>
-                <a
-                  href={`https://solscan.io/account/${wallets.solana.address}`}
-                  target="_blank" rel="noreferrer"
-                  className="text-xs text-blue-500 hover:underline inline-flex items-center gap-1"
+            {/* Deposit address, full and copyable — this is where the user sends funds
+                to top the wallet up, so it must be unambiguous, not truncated. */}
+            <div className="bg-indigo-50 border border-indigo-100 rounded-md p-3">
+              <p className="text-xs font-medium text-indigo-900 mb-1">Deposit address (send SOL here to fund the agents)</p>
+              <div className="flex items-center gap-2">
+                <code className="text-xs bg-white border border-indigo-200 rounded px-2 py-1 flex-1 break-all">
+                  {wallets.solana.address}
+                </code>
+                <Button
+                  variant="outline" size="sm"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(wallets.solana!.address);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
                 >
-                  {wallets.solana.address.slice(0, 8)}...{wallets.solana.address.slice(-6)} <FiExternalLink size={10} />
-                </a>
+                  {copied ? 'Copied' : 'Copy'}
+                </Button>
               </div>
-              <p className="text-2xl font-bold">${wallets.solana.totalUsd.toFixed(2)}</p>
+              <a
+                href={`https://solscan.io/account/${wallets.solana.address}`}
+                target="_blank" rel="noreferrer"
+                className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 mt-2"
+              >
+                View on Solscan <FiExternalLink size={10} />
+              </a>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500">Total value</p>
+              <p className="text-2xl font-bold">
+                {wallets.solana.totalUsd != null ? `$${wallets.solana.totalUsd.toFixed(2)}` : '—'}
+              </p>
             </div>
             <div className="text-xs text-gray-500">
-              Free SOL: {wallets.solana.freeSol.toFixed(4)} (${wallets.solana.freeSolUsd.toFixed(2)}) @ ${wallets.solana.solPrice.toFixed(2)}/SOL
+              Free SOL: {wallets.solana.freeSol.toFixed(6)}
+              {wallets.solana.freeSolUsd != null && wallets.solana.solPrice != null
+                ? ` ($${wallets.solana.freeSolUsd.toFixed(2)}) @ $${wallets.solana.solPrice.toFixed(2)}/SOL`
+                : ' · USD price temporarily unavailable (rate-limited) — balance above is live from the chain'}
             </div>
             {wallets.solana.tokenHoldings.length > 0 && (
               <div className="border-t border-gray-100 pt-2 space-y-1">
@@ -429,9 +507,83 @@ const RealMoneyPage = () => {
               <span className="text-gray-500">Binance (USDT)</span>
               <span className="font-medium">${(wallets.binance?.usdtFree ?? 0).toFixed(2)}</span>
             </div>
+
+            {/* Withdraw. Real, irreversible transfer — gated on a PIN rather than login,
+                because the dashboard currently runs with authentication disabled and an
+                unprotected withdraw endpoint would be drainable by anyone with the URL. */}
+            <div className="border-t border-gray-100 pt-3">
+              <p className="text-sm font-medium text-gray-700 mb-1">Withdraw SOL</p>
+              {withdrawable && (
+                <p className="text-xs text-gray-500 mb-2">
+                  Available: <span className="font-medium">{withdrawable.withdrawableSol.toFixed(6)} SOL</span>
+                  {' '}({withdrawable.reservedSol} SOL held back for transaction fees)
+                </p>
+              )}
+              {withdrawable && !withdrawable.pinConfigured ? (
+                <p className="text-xs text-orange-600 bg-orange-50 border border-orange-200 rounded p-2">
+                  Withdrawals are disabled until <code className="font-mono">WITHDRAWAL_PIN</code> is set in the
+                  environment. It's required because the dashboard currently has no login,
+                  so an unprotected withdraw endpoint could be drained by anyone with this URL.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  <input
+                    className="w-full text-xs border border-gray-200 rounded px-2 py-1.5"
+                    placeholder="Destination Solana address"
+                    value={wdAddress}
+                    onChange={e => setWdAddress(e.target.value)}
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      className="flex-1 text-xs border border-gray-200 rounded px-2 py-1.5"
+                      placeholder="Amount in SOL (or 'max')"
+                      value={wdAmount}
+                      onChange={e => setWdAmount(e.target.value)}
+                    />
+                    <input
+                      className="flex-1 text-xs border border-gray-200 rounded px-2 py-1.5"
+                      type="password"
+                      placeholder="Withdrawal PIN"
+                      value={wdPin}
+                      onChange={e => setWdPin(e.target.value)}
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={wdBusy || !wdAddress.trim() || !wdAmount.trim() || !wdPin}
+                    onClick={submitWithdrawal}
+                  >
+                    {wdBusy ? 'Sending...' : 'Send SOL'}
+                  </Button>
+                  <p className="text-xs text-gray-400">
+                    Irreversible. Double-check the address — funds sent to a wrong address cannot be recovered.
+                  </p>
+                </div>
+              )}
+              {wdResult && (
+                <div className={`mt-2 text-xs rounded p-2 ${wdResult.ok ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                  {wdResult.msg}
+                  {wdResult.url && (
+                    <>
+                      {' '}
+                      <a href={wdResult.url} target="_blank" rel="noreferrer" className="underline">View transaction</a>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         ) : (
-          <p className="text-sm text-gray-400">{wallets?.solanaError || 'Loading wallet balances...'}</p>
+          <div className="text-sm text-gray-400">
+            <p>{wallets?.solanaError || 'Loading wallet balances...'}</p>
+            {/* Even when the balance lookup fails outright, the deposit address is
+                derived locally and always knowable — the user still needs it to fund. */}
+            {(wallets as any)?.solanaAddress && (
+              <p className="mt-2 text-xs">
+                Deposit address: <code className="break-all">{(wallets as any).solanaAddress}</code>
+              </p>
+            )}
+          </div>
         )}
       </Card>
 
