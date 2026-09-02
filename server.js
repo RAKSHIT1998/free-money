@@ -171,6 +171,18 @@ app.get('/health', async (req, res) => {
     deployedCommit: process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || 'unknown',
     dashboardBuildPresent: frontendBuildExists,
     publicAccessNoLogin: process.env.PUBLIC_ACCESS_NO_LOGIN === 'true',
+    // SHAPE of the admin credential config only — never the value. A bcrypt hash is
+    // 60 chars starting with "$2". Because it contains '$' characters, an unquoted
+    // value in a .env file (or any host that does shell-style variable expansion on
+    // env values) silently mangles it into a short fragment, and login then fails
+    // with a generic "Invalid username or password" that looks like a wrong password
+    // rather than a config bug. Observed locally: the hash loaded as 10 chars.
+    adminAuthConfig: {
+      usernameSet: !!process.env.ADMIN_USERNAME,
+      hashLength: (process.env.ADMIN_PASSWORD_HASH || '').length,
+      hashLooksValid: /^\$2[aby]?\$/.test(process.env.ADMIN_PASSWORD_HASH || '') &&
+        (process.env.ADMIN_PASSWORD_HASH || '').length === 60
+    },
     checks
   });
 });
