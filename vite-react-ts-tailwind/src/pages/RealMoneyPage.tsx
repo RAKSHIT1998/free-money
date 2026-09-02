@@ -67,6 +67,106 @@ interface RealWallets {
   binanceError: string | null;
 }
 
+interface RealAgentDetail {
+  id: number;
+  type: string;
+  state: string;
+  isRunning: boolean;
+  performance: { earnings: number; opportunitiesFound: number; actionsTaken: number; successRate: number };
+  real?: Record<string, unknown>;
+  arbitrage?: Record<string, unknown>;
+}
+
+// One dedicated backend endpoint per real-money strategy (agentRoutes.js) — each
+// returns richer per-instance detail (symbol, leverage, budget remaining, open
+// positions, halted reason, etc.) than the generic /api/agents list does. Fetched
+// together and grouped below into one real "everything in one place" strategy
+// breakdown instead of a flat, detail-free agent list.
+const STRATEGY_ENDPOINTS: Array<{ path: string; label: string }> = [
+  { path: 'pumpfun-sniper', label: 'Pump.fun Sniper (Solana)' },
+  { path: 'binance-dca', label: 'Binance Spot DCA' },
+  { path: 'binance-earn', label: 'Binance Earn' },
+  { path: 'binance-futures-dca', label: 'Binance Futures DCA' },
+  { path: 'breakout-futures', label: 'Breakout Futures' },
+  { path: 'mean-reversion-futures', label: 'Mean-Reversion Futures' },
+  { path: 'funding-rate-arbitrage', label: 'Funding-Rate Arbitrage' },
+  { path: 'grid-trading', label: 'Grid Trading' },
+  { path: 'transfer-arbitrage', label: 'Transfer Arbitrage' },
+];
+
+// A handful of fields worth a human label when present, in priority order — kept
+// generic rather than one bespoke renderer per strategy type, since the 9 endpoints
+// above deliberately return different shapes. Arrays/objects are summarized as a
+// count instead of dumped raw.
+const REAL_FIELD_LABELS: Record<string, string> = {
+  symbol: 'Symbol', leverage: 'Leverage', marginMode: 'Margin mode',
+  budgetCapUsd: 'Budget cap', budgetRemainingUsd: 'Budget remaining',
+  totalMarginSpentUsd: 'Margin spent', totalSpentSol: 'SOL spent',
+  walletBalanceSol: 'Wallet SOL', currentPrice: 'Price', asset: 'Asset',
+  freeSpotBalance: 'Free balance', reserveUsd: 'Reserve', perTradeUsd: 'Per trade',
+};
+
+function formatRealValue(key: string, value: unknown): string | null {
+  if (value == null) return null;
+  if (Array.isArray(value)) return value.length > 0 ? `${value.length}` : null;
+  if (typeof value === 'object') return null;
+  if (typeof value === 'number') {
+    if (/usd|sol|price|balance|spent|remaining|reserve/i.test(key)) {
+      return key.toLowerCase().includes('sol') && !key.toLowerCase().includes('usd')
+        ? value.toFixed(4)
+        : `$${value.toFixed(2)}`;
+    }
+    return String(value);
+  }
+  return String(value);
+}
+
+function StrategyInstanceRow({ agent }: { agent: RealAgentDetail }) {
+  const real = agent.real || {};
+  const halted = Boolean(real.halted);
+  const haltedReason = typeof real.haltedReason === 'string' ? real.haltedReason : null;
+  const openCount =
+    (Array.isArray(real.openPositions) && real.openPositions.length) ||
+    (typeof real.openPositionsCount === 'number' && real.openPositionsCount) ||
+    (real.openPosition ? 1 : 0) || 0;
+
+  const fields = Object.keys(REAL_FIELD_LABELS)
+    .filter(k => k in real)
+    .map(k => ({ label: REAL_FIELD_LABELS[k], value: formatRealValue(k, real[k]) }))
+    .filter(f => f.value != null);
+
+  return (
+    <div className="p-3 border border-gray-100 rounded-md text-sm space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATE_COLOR[agent.state] || 'bg-gray-100 text-gray-800'}`}>
+            {agent.state}
+          </span>
+          <span className="text-gray-400 text-xs">#{agent.id}</span>
+          {openCount > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-700">
+              {openCount} open position{openCount === 1 ? '' : 's'}
+            </span>
+          )}
+        </div>
+        <span className="text-gray-400 text-xs">
+          {agent.performance.actionsTaken} action{agent.performance.actionsTaken === 1 ? '' : 's'}
+        </span>
+      </div>
+      {fields.length > 0 && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
+          {fields.map((f, i) => (
+            <span key={i}><span className="text-gray-400">{f.label}:</span> {f.value}</span>
+          ))}
+        </div>
+      )}
+      {halted && haltedReason && (
+        <p className="text-xs text-orange-600">Halted: {haltedReason}</p>
+      )}
+    </div>
+  );
+}
+
 interface RealMoneySummary {
   totalRealizedPnlUsd: number;
   futuresHistory: PnlBreakdown | null;
@@ -107,6 +207,15 @@ const STATE_COLOR: Record<string, string> = {
 const READ_ONLY_TYPES = new Set([
   'hackerOneBounty', 'cryptoGigHunter', 'githubBountyHunter', 'companyLeadHunter',
   'airdropClaimScanner', 'cryptoUpdatesTracker', 'smartMoneyTracker', 'telegramNotifier', 'crossExchangeArbitrage', 'realAgentMonitor', 'performanceGovernor'
+]);
+
+// Agent `type` values already covered by one of the 9 dedicated strategy endpoints
+// above (STRATEGY_ENDPOINTS) — used to keep the "Other" fallback list below from
+// duplicating every agent that's already shown in its own strategy group.
+const STRATEGY_COVERED_TYPES = new Set([
+  'pumpFunSniper', 'binanceDca', 'binanceEarn', 'binanceFuturesDca',
+  'breakoutFutures', 'meanReversionFutures', 'fundingRateArbitrage',
+  'gridTrading', 'crossExchangeTransferArbitrage',
 ]);
 
 function PnlCard({ title, data, icon, inrRate }: { title: string; data: PnlBreakdown | null; icon: React.ReactNode; inrRate: number | null }) {
@@ -150,6 +259,7 @@ const RealMoneyPage = () => {
   const [agents, setAgents] = useState<RealAgent[]>([]);
   const [feed, setFeed] = useState<FeedEvent[]>([]);
   const [wallets, setWallets] = useState<RealWallets | null>(null);
+  const [strategyGroups, setStrategyGroups] = useState<Record<string, RealAgentDetail[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
@@ -197,6 +307,27 @@ const RealMoneyPage = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // 9 dedicated per-strategy endpoints, each returning richer detail than the
+  // generic agent list — heavier than the 5s feed tick, so its own slower interval.
+  useEffect(() => {
+    const fetchStrategies = () => {
+      Promise.allSettled(
+        STRATEGY_ENDPOINTS.map(({ path }) => api.get(`/agents/real/${path}`))
+      ).then(results => {
+        const grouped: Record<string, RealAgentDetail[]> = {};
+        results.forEach((result, i) => {
+          if (result.status === 'fulfilled') {
+            grouped[STRATEGY_ENDPOINTS[i].path] = result.value.data.data || [];
+          }
+        });
+        setStrategyGroups(grouped);
+      });
+    };
+    fetchStrategies();
+    const interval = setInterval(fetchStrategies, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
   if (loading && !summary) {
     return (
       <div className="space-y-6">
@@ -208,7 +339,7 @@ const RealMoneyPage = () => {
     );
   }
 
-  const realAgents = agents.filter(a => !READ_ONLY_TYPES.has(a.type));
+  const realAgents = agents.filter(a => !READ_ONLY_TYPES.has(a.type) && !STRATEGY_COVERED_TYPES.has(a.type));
   const readOnlyAgents = agents.filter(a => READ_ONLY_TYPES.has(a.type));
 
   return (
@@ -379,27 +510,60 @@ const RealMoneyPage = () => {
         )}
       </Card>
 
-      {/* Real-money agent status */}
+      {/* Every real-money strategy, grouped, with the rich per-instance detail each
+          dedicated backend endpoint returns (config, budget, open positions, halted
+          reason) — not just a flat state list. This is the "everything in one place"
+          view: pump.fun, every Binance strategy, funding-rate arb, grid trading,
+          transfer arbitrage, all together. */}
       <Card>
-        <h3 className="font-semibold mb-3">Real-Money Agents</h3>
-        <div className="space-y-2">
-          {realAgents.map(a => (
-            <div key={a.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-md text-sm">
-              <div className="flex items-center gap-3">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATE_COLOR[a.state] || 'bg-gray-100 text-gray-800'}`}>
-                  {a.state}
-                </span>
-                <span className="font-medium">{a.type}</span>
-                <span className="text-gray-400 text-xs">#{a.id}</span>
+        <h3 className="font-semibold mb-1">All Real-Money Strategies</h3>
+        <p className="text-xs text-gray-400 mb-3">
+          Every trading strategy this app runs with real money, grouped by type. Updates every 10s.
+        </p>
+        <div className="space-y-4">
+          {STRATEGY_ENDPOINTS.map(({ path, label }) => {
+            const instances = strategyGroups[path];
+            if (!instances || instances.length === 0) return null;
+            return (
+              <div key={path}>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">{label}</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {instances.map(a => <StrategyInstanceRow key={a.id} agent={a} />)}
+                </div>
               </div>
-              <span className="text-gray-400 text-xs">
-                {a.performance.actionsTaken} actions · {a.performance.opportunitiesFound} found
-              </span>
-            </div>
-          ))}
-          {realAgents.length === 0 && <p className="text-sm text-gray-400">No real-money agents running.</p>}
+            );
+          })}
+          {Object.values(strategyGroups).every(v => !v || v.length === 0) && (
+            <p className="text-sm text-gray-400">Loading strategy detail...</p>
+          )}
         </div>
       </Card>
+
+      {/* Fallback flat list — anything running that isn't one of the 9 dedicated
+          strategy endpoints above (shouldn't normally happen, but keeps this page
+          complete if a new real-money agent type is added before getting its own
+          detail endpoint). */}
+      {realAgents.length > 0 && (
+        <Card>
+          <h3 className="font-semibold mb-3 text-gray-500">Other Real-Money Agents</h3>
+          <div className="space-y-2">
+            {realAgents.map(a => (
+              <div key={a.id} className="flex items-center justify-between p-3 border border-gray-100 rounded-md text-sm">
+                <div className="flex items-center gap-3">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATE_COLOR[a.state] || 'bg-gray-100 text-gray-800'}`}>
+                    {a.state}
+                  </span>
+                  <span className="font-medium">{a.type}</span>
+                  <span className="text-gray-400 text-xs">#{a.id}</span>
+                </div>
+                <span className="text-gray-400 text-xs">
+                  {a.performance.actionsTaken} actions · {a.performance.opportunitiesFound} found
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {/* Read-only / oversight agents, collapsed lower since they're not money-moving */}
       <Card>
